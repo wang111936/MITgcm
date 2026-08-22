@@ -10,9 +10,9 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-00-lifecycle` |
-| 当前阶段 PR | 待创建（P0.3 将堆叠在 PR #2） |
+| 当前阶段 PR | `wang111936/MITgcm#3`（draft，堆叠在 PR #2） |
 | 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.3：MITgcm 生命周期与 `useBOM` 注册（实现和验证完成） |
+| 当前工作包 | P0.3：MITgcm 生命周期与 `useBOM` 注册（完成，PR #3 待审查） |
 | 下一工作包 | P0.4：正式零粒子验证算例与测试驱动 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
@@ -86,6 +86,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 
 ### P0.3 生命周期注册
 
+- 本地/GitHub 提交：`7e156a418b6d3f345298edeadbe7af73c938a1c7`；
+- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/3`；
 - 在 `PARAMS.h` 和 `data.pkg` 的 `PACKAGES` namelist 中注册 `useBOM`，默认关闭；
 - 将读取、检查、固定初始化、变量初始化和空 `BOM_MAIN` 挂接到 MITgcm；
 - `BOM_MAIN` 位于 FLT 之后、嵌套和 monitor 之前；
@@ -146,6 +148,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 两项负向配置均在预期检查点终止；
 - 发现 Fortran `STOP` 退出码不可靠，登记为 R-008；
 - P0.3 证据保存在 `verification/bom/phase00-lifecycle`。
+- 创建并推送 P0.3 提交 `7e156a418b6d3f345298edeadbe7af73c938a1c7`；
+- 创建 draft PR #3，基分支暂为 P0.2 分支，确保差异只包含 P0.3；
+- PR #2 合并后，应将 PR #3 基分支调整到当时的集成基线。
 
 ## 6. 每次会话结束时必须更新
 
