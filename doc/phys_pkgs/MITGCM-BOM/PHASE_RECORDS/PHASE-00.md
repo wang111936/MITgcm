@@ -28,6 +28,12 @@ P0.4 提交：`1e5bda7e4375db5520446fb715849e199725642a`
 
 P0.4 draft PR：`https://github.com/wang111936/MITgcm/pull/4`
 
+P0.5 分支：`MITGCM-BOM/phase-00-final-gate`
+
+P0.5 功能提交：`6d705ed68d8d497597984d6c266a4954cd3b7ab8`
+
+P0.5 draft PR：`https://github.com/wang111936/MITgcm/pull/5`
+
 ## 1. 范围
 
 Phase 0 只建立可复现参考、MITgcm 包骨架、参数检查和零粒子验证，不实现粒子运动、Stokes、惯性、弹簧或生物过程。
@@ -40,7 +46,7 @@ Phase 0 只建立可复现参考、MITgcm 包骨架、参数检查和零粒子�
 | P0.2 | `pkg/bom` 空包骨架 | 完成 | `verification/bom/phase00-skeleton/TEST_RESULTS.md` |
 | P0.3 | MITgcm 生命周期挂接 | 完成 | `verification/bom/phase00-lifecycle/TEST_RESULTS.md` |
 | P0.4 | `verification/bom` 零粒子算例 | 完成 | `verification/bom/phase00-zero-particle/TEST_RESULTS.md` |
-| P0.5 | Phase 0 最终门禁与合并准备 | 未开始 | 下一开发任务 |
+| P0.5 | Phase 0 最终门禁与合并准备 | 完成 | `verification/bom/phase00-final-gate/TEST_RESULTS.md` |
 
 ## 3. P0.1 实际记录
 
@@ -181,25 +187,56 @@ P0.2 没有加入 `useBOM`，也没有改动 `model/src`、`model/inc`、验证�
 
 详细证据见 `verification/bom/phase00-zero-particle/TEST_RESULTS.md`。
 
-## 7. Phase 0 退出条件
+## 7. P0.5 实际记录
+
+### Julia 参考 smoke
+
+- 精确核对 Julia 源码、自定义注册表提交和 Project/Manifest SHA-256；
+- 使用专用 depot 和离线模式完成 `Pkg.instantiate`；
+- Julia 1.10.12 与 SargassumBOMB 0.7.14 匹配；
+- 坐标、时间和纯工具函数 smoke 共 8/8 断言通过；
+- 不调用上游陈旧示例入口，不依赖或下载默认环境场；
+- 默认环境场无法构造的已知警告保留，不被误当作物理验证。
+
+### 最终门禁与审计
+
+- 使用全新目录重跑 P0.4：4/4 构建、3/3 正向运行、24/24 哈希和 2/2 负向门禁通过；
+- 串行、2-rank 和 4-rank 的所有预期日志正常结束，正向日志无 fatal 标记；
+- 相同 P0.5 测试 ID 在覆盖证据前被拒绝；
+- 完成 Phase 0 退出条件审计、风险边界说明和 PR #1—#5 顺序合并方案；
+- Julia 参考锁继续保持 `PROVISIONAL`，直到后续解析输入和 trajectory golden 建立。
+
+### P0.5 完成条件
+
+- [x] 锁定 Julia 环境可离线实例化；
+- [x] 独立基础 smoke 8/8 通过；
+- [x] P0.4 正式门禁从全新目录重跑通过；
+- [x] Phase 0 需求追踪和退出条件完成审计；
+- [x] 堆叠 PR 的安全合并顺序与版本标记条件已记录；
+- [x] 未加入任何粒子状态或后续物理。
+
+详细证据见 `verification/bom/phase00-final-gate/TEST_RESULTS.md`、
+`PHASE0_EXIT_AUDIT.md` 和 `MERGE_PLAN.md`。
+
+## 8. Phase 0 退出条件
 
 - [x] BOM 关闭时 MITgcm 基线结果不变；
 - [x] BOM 开启、零粒子时单进程正常运行；
 - [x] BOM 开启、零粒子时 2 MPI ranks 正常运行；
 - [x] BOM 开启、零粒子时 4 MPI ranks 正常运行；
 - [x] `data.bom` 参数默认值和错误检查通过；
-- [ ] Julia 参考环境能加载并执行基础测试；
+- [x] Julia 参考环境能加载并执行基础测试；
 - [x] 需求—实现—测试追踪表已更新；
 - [ ] 阶段 PR 合并到 `MITGCM-BOM/development`。
 
-## 8. 下一任务：P0.5
+## 9. 下一任务：Phase 0 集成
 
-建立 `MITGCM-BOM/phase-00-final-gate` 分支，只完成：
+P0.5 发布后只完成：
 
-- 建立 BOM 专用 Julia 参考 smoke，避免依赖上游陈旧测试入口；
-- 重跑 P0.4 正式门禁并汇总 Phase 0 证据；
-- 审核 P0.1—P0.4 的范围、风险、追踪表和退出条件；
-- 给出堆叠 PR 的安全合并顺序和 `MITGCM-BOM-v0.1` 标记条件；
-- 保留阶段 PR 为待审查状态，不自动合并或打标签。
+- 创建堆叠在 PR #4 上的 P0.5 draft PR；
+- 审查 PR #1—#5 的范围、测试和变更文件；
+- 取得明确批准后按 `MERGE_PLAN.md` 逐个合并；
+- 在 `MITGCM-BOM/development` 上以新 ID 重跑最终门禁；
+- 集成门禁通过后再标记 Phase 0 完成并决定是否创建 v0.1 标签。
 
-P0.5 不得加入粒子数组、运动方程、环境场插值、Stokes、pickup 或 MPI 粒子交换。
+当前不得自动合并 PR、创建标签或开始 Phase 1 粒子运动实现。
