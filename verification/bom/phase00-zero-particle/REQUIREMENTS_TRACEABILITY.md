@@ -11,6 +11,10 @@
 | P0-R07 Reject nonzero Phase-0 state | `BOM_CHECK` | `nonzero-particles` negative gate | complete: expected rejection |
 | P0-R08 Detect false-success `STOP` | log-aware `run_gate.sh` assertions | both negative gates | complete: status 0 did not cause false pass |
 | P0-R09 Exclude later physics | Phase-0 scope guards and empty state | source diff/scope audit | complete |
+| P0-R10 Verify the locked Julia toolchain | P0.5 offline driver and pure-function smoke | `p05-attempt01`, 8/8 assertions | complete |
+| P0-R11 Integrate the reviewed Phase-0 stack | PRs #1 through #5 and merge plan | fresh P0.5 run on `MITGCM-BOM/development` | pending review and merge |
 
 Execution evidence is recorded in `TEST_RESULTS.md` and under the external run
 root `/home/wyl/runs/mitgcm-bom/phase00-zero-particle/p04-attempt01`.
+The fresh final-gate rerun is recorded under
+`/home/wyl/runs/mitgcm-bom/phase00-final-gate/p05-attempt01`.

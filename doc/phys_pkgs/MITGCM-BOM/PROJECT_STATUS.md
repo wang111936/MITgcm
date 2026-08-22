@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-00-zero-particle` |
-| 当前阶段 PR | `wang111936/MITgcm#4`（draft，堆叠在 PR #3） |
+| 当前任务分支 | `MITGCM-BOM/phase-00-final-gate` |
+| 当前阶段 PR | 待创建（将堆叠在 `wang111936/MITgcm#4`） |
 | 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.4：正式零粒子验证算例与测试驱动（完成，PR #4 待审查） |
-| 下一工作包 | P0.5：Phase 0 最终门禁、Julia smoke 与合并准备 |
+| 当前工作包 | P0.5：Phase 0 最终门禁、Julia smoke 与合并准备（实现与测试完成，待发布） |
+| 下一工作包 | Phase 0 审查与顺序合并（需要用户明确批准） |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. P0.4 审查后创建 `MITGCM-BOM/phase-00-final-gate`；
-2. 建立独立的 Julia 参考 smoke，避开上游测试中的陈旧入口；
-3. 复核 P0.1—P0.4 的需求追踪、已知风险和阶段退出条件；
-4. 重跑 P0.4 正式门禁，并生成 Phase 0 汇总证据；
-5. 准备堆叠 PR 的变基/合并顺序和版本标记条件，但不自动合并。
+1. 发布 P0.5 提交并创建堆叠在 PR #4 上的 draft PR #5；
+2. 审查 PR #1—#5，不自动合并；
+3. 获得明确批准后，按 `MERGE_PLAN.md` 顺序逐个合并并逐次调整基分支；
+4. 在集成分支上用新测试 ID 重跑 P0.5；
+5. 只有集成门禁通过后才将 Phase 0 标记完成并考虑 `MITGCM-BOM-v0.1` 标签。
 
 开始前执行：
 
@@ -39,7 +39,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | 阶段 | 状态 | 目标版本 | 当前结论 | 详细记录 |
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
-| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1—P0.4 完成；等待 P0.5 最终门禁和合并准备 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
+| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1—P0.5 可执行门禁完成；等待五个 PR 审查和集成 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 未开始 | v0.2 | 等待 Phase 0 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-1bom-lite--leeway) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
@@ -113,6 +113,18 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 需求—实现—测试追踪表已完成；
 - 详细证据见 `verification/bom/phase00-zero-particle/TEST_RESULTS.md`。
 
+### P0.5 Phase 0 最终门禁
+
+- 精确核对 Julia 源码、自定义注册表提交和锁定 Project/Manifest SHA-256；
+- 专用 Julia depot 在离线模式下完成依赖实例化；
+- Julia 1.10.12 / SargassumBOMB 0.7.14 的基础 smoke 8/8 断言通过；
+- smoke 只覆盖加载、坐标/时间往返和纯工具函数，不依赖默认环境场或陈旧示例入口；
+- 从全新目录重跑 P0.4，4/4 构建、3/3 正向、24/24 哈希、2/2 负向再次通过；
+- 相同测试 ID 在覆盖历史证据前被拒绝；
+- Phase 0 可执行退出条件全部满足，合并退出条件仍待 PR #1—#5 审查和集成；
+- 已记录顺序合并方案及集成后重跑/标记条件；
+- 详细证据见 `verification/bom/phase00-final-gate/TEST_RESULTS.md`。
+
 ## 4. 未决问题与风险
 
 | ID | 风险 | 当前处理 | 阻塞阶段 |
@@ -178,6 +190,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 创建并发布 P0.4 提交 `1e5bda7e4375db5520446fb715849e199725642a`；
 - 创建 draft PR #4，基分支暂为 P0.3 分支，确保差异只包含 P0.4；
 - PR #3 合并后，应将 PR #4 基分支调整到当时的集成基线。
+
+### 2026-08-23：P0.5 Phase 0 最终门禁
+
+- 创建 `MITGCM-BOM/phase-00-final-gate`，基于 P0.4 已发布提交；
+- 建立锁定提交/校验和检查、离线实例化和 8 项纯函数 Julia smoke；
+- 使用 `p05-attempt01` 从全新目录重跑完整 P0.4 门禁并通过；
+- 完成 Phase 0 退出条件审计、参考锁边界说明和 PR #1—#5 合并方案；
+- 当前不自动合并任何 PR，不创建标签，也不开始 Phase 1；
+- P0.5 证据保存在 `verification/bom/phase00-final-gate`。
 
 ## 6. 每次会话结束时必须更新
 

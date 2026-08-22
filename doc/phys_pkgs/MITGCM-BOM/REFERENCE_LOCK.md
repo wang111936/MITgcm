@@ -1,6 +1,6 @@
 # MITGCM-BOM 参考版本锁
 
-状态：`PROVISIONAL`（源码、依赖和包加载已验证，BOM 专用 Julia golden 测试尚未建立）
+状态：`PROVISIONAL`（源码、依赖、包加载和纯函数 smoke 已验证，BOM 专用 Julia golden 测试尚未建立）
 
 日期：2026-08-23
 
@@ -98,6 +98,14 @@ UndefVarError: generate_rp_example not defined
 ```
 
 这是固定参考提交的测试/接口不一致，不是依赖解析失败。MITGCM-BOM 不修改参考 checkout 来制造通过，而是在自身验证目录建立解析输入、RHS 分量测试和 golden 轨迹。详细记录见 `verification/bom/reference/UPSTREAM_TEST_STATUS.md`。
+
+### P0.5 专用 smoke
+
+- 使用锁定 Manifest 和专用 depot 离线 `Pkg.instantiate`：通过；
+- Julia 1.10.12、SargassumBOMB 0.7.14：匹配；
+- 坐标往返、时间往返和纯工具函数：8/8 断言通过；
+- 不调用陈旧 `generate_rp_example`，不依赖默认环境场，也不下载数据；
+- 详细记录见 `verification/bom/phase00-final-gate/TEST_RESULTS.md`。
 
 ## 7. 尚待完成
 
