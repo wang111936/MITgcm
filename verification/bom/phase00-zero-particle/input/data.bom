@@ -1,0 +1,12 @@
+# MITGCM-BOM Phase-0 zero-particle controls
+ &BOM_PARM01
+ bomMode='LEEW',
+ bomEquationMode='PAPER2024',
+ bomIntegrator='RK4',
+ bomDeltaTTarget=108000.0,
+ bomOutputFreq=0.0,
+ bomPickupFreq=0.0,
+ bomSeed=20240801,
+ bomMaxParticles=0,
+ bomInitialFile=' ',
+ &
