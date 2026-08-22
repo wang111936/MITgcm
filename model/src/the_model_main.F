@@ -437,6 +437,8 @@ C/\  | | |-STEP_FIZHI_CORR   :: ( see pkg/fizhi )
 C/\  | | |
 C/\  | | |-FLT_MAIN          :: Step forward Floats (see pkg/flt)
 C/\  | | |
+C/\  | | |-BOM_MAIN          :: Step forward BOM particles (see pkg/bom)
+C/\  | | |
 C/\  | | |-NEST_PARENT_IO_2  :: Nesting interface
 C/\  | | |-NEST_CHILD_TRANSP :: Nesting interface
 C/\  | | |

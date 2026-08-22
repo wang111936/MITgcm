@@ -16,6 +16,8 @@ P0.2 提交：`eee711c9b5aea0644ffb54fc5a08c544d2d7919e`
 
 P0.2 draft PR：`https://github.com/wang111936/MITgcm/pull/2`
 
+P0.3 分支：`MITGCM-BOM/phase-00-lifecycle`
+
 ## 1. 范围
 
 Phase 0 只建立可复现参考、MITgcm 包骨架、参数检查和零粒子验证，不实现粒子运动、Stokes、惯性、弹簧或生物过程。
@@ -26,8 +28,8 @@ Phase 0 只建立可复现参考、MITgcm 包骨架、参数检查和零粒子�
 |---|---|---|---|
 | P0.1 | 参考源码与 Julia 依赖锁 | 完成 | `REFERENCE_LOCK.md`、`verification/bom/reference/julia_env` |
 | P0.2 | `pkg/bom` 空包骨架 | 完成 | `verification/bom/phase00-skeleton/TEST_RESULTS.md` |
-| P0.3 | MITgcm 生命周期挂接 | 未开始 | 下一开发任务 |
-| P0.4 | `verification/bom` 零粒子算例 | 未开始 | 等待 P0.3 |
+| P0.3 | MITgcm 生命周期挂接 | 完成 | `verification/bom/phase00-lifecycle/TEST_RESULTS.md` |
+| P0.4 | `verification/bom` 零粒子算例 | 未开始 | 下一开发任务 |
 | P0.5 | 串行/MPI/零影响门禁 | 未开始 | 等待 P0.4 |
 
 ## 3. P0.1 实际记录
@@ -95,24 +97,66 @@ P0.2 没有加入 `useBOM`，也没有改动 `model/src`、`model/inc`、验证�
 
 详细证据见 `verification/bom/phase00-skeleton/TEST_RESULTS.md`。
 
-## 5. Phase 0 退出条件
+## 5. P0.3 实际记录
+
+### 生命周期挂接
+
+- `PARAMS.h`：新增全局运行期开关 `useBOM`；
+- `PACKAGES_BOOT`：加入 `data.pkg` namelist、默认关闭和包状态输出；
+- `PACKAGES_READPARMS`：在 FLT 之后调用 `BOM_READPARMS`；
+- `BOM_READPARMS`：`useBOM=false` 时不读取 `data.bom`；
+- `PACKAGES_CHECK`：检查未编译误开启，并在已编译/开启时调用 `BOM_CHECK`；
+- `PACKAGES_INIT_FIXED`、`PACKAGES_INIT_VARIABLES`：调用两个空初始化例程；
+- `FORWARD_STEP`：在 FLT 之后、嵌套和 monitor 之前调用空 `BOM_MAIN`；
+- 顶层调用树注释与实际调用同步更新。
+
+### 构建与运行结果
+
+- 未编译 BOM：串行和 MPI 完整构建、链接通过；
+- 编译 BOM：串行和 MPI 完整构建、链接通过；
+- 未编译 BOM、默认关闭：串行和 2-rank MPI 正常结束；
+- 编译 BOM、运行时关闭：串行和 2-rank MPI 正常结束；
+- 编译 BOM、运行时开启且零粒子：串行和 2-rank MPI 正常结束；
+- 六套正常运行的 48/48 checkpoint 文件均与冻结基线一致；
+- 启用日志包含 `BOM_READPARMS`、`BOM_CHECK` 和 `BOM [FORWARD_STEP]` 计时段。
+
+### 负向门禁
+
+- 未编译 BOM 但 `useBOM=true`：由 `PACKAGES_CHECK` 拒绝；
+- `bomMaxParticles=1`：由 `BOM_CHECK` 拒绝；
+- 两项均没有出现正常结束标志；
+- 当前 MITgcm/Fortran `STOP` 仍可能返回进程码 0，后续测试不能只看退出码。
+
+### P0.3 完成条件
+
+- [x] `ALLOW_BOM`/`useBOM` 编译和运行时边界成立；
+- [x] 参数读取、检查、初始化和空时间步调用已挂接；
+- [x] BOM 未编译和已编译配置均可串行/MPI 构建；
+- [x] BOM 关闭和开启零粒子均通过串行/2-rank MPI 回归；
+- [x] 未编译误开启和非零粒子均被安全拒绝；
+- [x] 没有加入粒子状态、运动或其他后续阶段功能。
+
+详细证据见 `verification/bom/phase00-lifecycle/TEST_RESULTS.md`。
+
+## 6. Phase 0 退出条件
 
 - [x] BOM 关闭时 MITgcm 基线结果不变；
-- [ ] BOM 开启、零粒子时单进程正常运行；
-- [ ] BOM 开启、零粒子时 2 和 4 MPI ranks 正常运行；
-- [ ] `data.bom` 参数默认值和错误检查通过；
+- [x] BOM 开启、零粒子时单进程正常运行；
+- [x] BOM 开启、零粒子时 2 MPI ranks 正常运行；
+- [ ] BOM 开启、零粒子时 4 MPI ranks 正常运行；
+- [x] `data.bom` 参数默认值和错误检查通过；
 - [ ] Julia 参考环境能加载并执行基础测试；
 - [ ] 需求—实现—测试追踪表已更新；
 - [ ] 阶段 PR 合并到 `MITGCM-BOM/development`。
 
-## 6. 下一任务：P0.3
+## 7. 下一任务：P0.4
 
-建立 `MITGCM-BOM/phase-00-lifecycle` 分支，只完成：
+建立 `MITGCM-BOM/phase-00-zero-particle` 分支，只完成：
 
-- 在全局参数中注册 `useBOM`；
-- 在包读取、检查和初始化位置挂接现有 BOM 空例程；
-- 在单一、经过审计的主时间步位置挂接空 `BOM_MAIN`；
-- 保持默认零粒子和无状态；
-- 通过 BOM 关闭时的串行/MPI 回归。
+- 固化 BOM 开启、`bomMaxParticles=0` 的 `verification/bom` 输入；
+- 建立可重复执行的构建/运行/日志/哈希测试驱动；
+- 覆盖串行、2-rank 和 4-rank MPI；
+- 将负向配置检查纳入测试驱动；
+- 建立需求—实现—测试追踪表。
 
-P0.3 不得加入粒子数组、运动方程、环境场插值、Stokes、pickup 或 MPI 粒子交换。
+P0.4 不得加入粒子数组、运动方程、环境场插值、Stokes、pickup 或 MPI 粒子交换。

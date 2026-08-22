@@ -218,6 +218,8 @@ C       |-- STEP_FIZHI_CORR
 C       |
 C       |-- FLT_MAIN
 C       |
+C       |-- BOM_MAIN
+C       |
 C       |-- NEST_PARENT_IO_2
 C       |-- NEST_CHILD_TRANSP
 C       |
@@ -1132,6 +1134,15 @@ C--   Calculate float trajectories
         CALL TIMER_START('FLOATS            [FORWARD_STEP]',myThid)
         CALL FLT_MAIN( myTime, myIter, myThid )
         CALL TIMER_STOP ('FLOATS            [FORWARD_STEP]',myThid)
+      ENDIF
+#endif
+
+#ifdef ALLOW_BOM
+C--   Advance BOM particles; Phase 0 implementation is intentionally empty
+      IF (useBOM) THEN
+        CALL TIMER_START('BOM               [FORWARD_STEP]',myThid)
+        CALL BOM_MAIN( myTime, myIter, myThid )
+        CALL TIMER_STOP ('BOM               [FORWARD_STEP]',myThid)
       ENDIF
 #endif
 

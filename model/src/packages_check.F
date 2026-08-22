@@ -41,6 +41,8 @@ C       |-- BBL_CHECK
 C       |
 C       |-- EXF_CHECK
 C       |
+C       |-- BOM_CHECK
+C       |
 C       |-- LONGSTEP_CHECK
 C       |
 C       |-- PTRACERS_CHECK
@@ -291,6 +293,12 @@ C---  Continue with standard packages (with standard usePKG flag)
 
 #ifndef ALLOW_FLT
       IF ( useFLT ) CALL PACKAGES_ERROR_MSG( 'FLT', ' ', myThid )
+#endif
+
+#ifdef ALLOW_BOM
+      IF ( useBOM ) CALL BOM_CHECK( myThid )
+#else
+      IF ( useBOM ) CALL PACKAGES_ERROR_MSG( 'BOM', ' ', myThid )
 #endif
 
 #ifdef ALLOW_LONGSTEP

@@ -63,6 +63,8 @@ C       |-- CHEAPAML_READPARMS
 C       |
 C       |-- FLT_READPARMS
 C       |
+C       |-- BOM_READPARMS
+C       |
 C       |-- LONGSTEP_READPARMS
 C       |-- PTRACERS_READPARMS
 C       |
@@ -240,6 +242,11 @@ C--   if useCheapAML=T, set CheapAML parameters; otherwise just return
 C--   if useFLT=T, set Floats (FLT) parameters; otherwise just return
       CALL FLT_READPARMS( myThid )
 #endif /* ALLOW_FLT */
+
+#ifdef ALLOW_BOM
+C--   if useBOM=T, set BOM parameters; otherwise just return
+      CALL BOM_READPARMS( myThid )
+#endif /* ALLOW_BOM */
 
 #ifdef ALLOW_LONGSTEP
 C--   if usePTRACERS=T, set Long-Step parameters; otherwise just return

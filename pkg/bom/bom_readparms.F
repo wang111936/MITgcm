@@ -9,7 +9,7 @@ C !INTERFACE:
 
 C !DESCRIPTION:
 C     Set the Phase-0 defaults and read the pkg/bom namelist.
-C     Registration and useBOM dispatch are added in Phase P0.3.
+C     Return without reading data.bom when useBOM is false.
 
 C !USES:
       IMPLICIT NONE
@@ -31,6 +31,14 @@ C !LOCAL VARIABLES:
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
      &       bomSeed, bomMaxParticles, bomInitialFile
+
+      IF ( .NOT.useBOM ) THEN
+C-    pkg BOM is not used; report an unexpected data.bom if present.
+        _BEGIN_MASTER(myThid)
+         CALL PACKAGES_UNUSED_MSG( 'useBOM', ' ', ' ' )
+        _END_MASTER(myThid)
+        RETURN
+      ENDIF
 
       _BEGIN_MASTER(myThid)
 
