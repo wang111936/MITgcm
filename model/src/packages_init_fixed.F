@@ -74,6 +74,8 @@ C       |-- OBSFIT_INIT_FIXED
 C       |
 C       |-- FLT_INIT_FIXED
 C       |
+C       |-- BOM_INIT_FIXED
+C       |
 C       |-- LONGSTEP_INIT_FIXED
 C       |
 C       |-- PTRACERS_INIT_FIXED
@@ -409,6 +411,16 @@ C--   Initialise fixed array for Float pkg
         IF (debugMode) CALL DEBUG_CALL('FLT_INIT_FIXED',myThid)
 # endif
         CALL FLT_INIT_FIXED( myThid )
+      ENDIF
+#endif
+
+#ifdef ALLOW_BOM
+C--   Initialise fixed data for BOM pkg
+      IF ( useBOM ) THEN
+# ifdef ALLOW_DEBUG
+        IF (debugMode) CALL DEBUG_CALL('BOM_INIT_FIXED',myThid)
+# endif
+        CALL BOM_INIT_FIXED( myThid )
       ENDIF
 #endif
 

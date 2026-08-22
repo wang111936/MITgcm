@@ -64,6 +64,8 @@ C       |-- CHEAPAML_INIT_VARIA
 C       |
 C       |-- FLT_INIT_VARIA
 C       |
+C       |-- BOM_INIT_VARIA
+C       |
 C       |-- PTRACERS_INIT_VARIA
 C       |
 C       |-- LONGSTEP_INIT_VARIA
@@ -323,6 +325,16 @@ C--   Initialise float position
         CALL FLT_INIT_VARIA( myThid )
       ENDIF
 #endif /* ALLOW_FLT */
+
+#ifdef ALLOW_BOM
+C--   Initialise variable data for BOM pkg
+      IF ( useBOM ) THEN
+# ifdef ALLOW_DEBUG
+        IF (debugMode) CALL DEBUG_CALL('BOM_INIT_VARIA',myThid)
+# endif
+        CALL BOM_INIT_VARIA( myThid )
+      ENDIF
+#endif /* ALLOW_BOM */
 
 #ifdef ALLOW_PTRACERS
 # ifndef ALLOW_AUTODIFF

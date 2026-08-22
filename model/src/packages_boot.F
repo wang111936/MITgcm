@@ -70,6 +70,7 @@ C     data.pkg namelists
      &          useCTRL,
      &          useSBO,
      &          useFLT,
+     &          useBOM,
      &          usePTRACERS,
      &          useGCHEM,
      &          useRBCS,
@@ -136,6 +137,7 @@ c     useGAD          =.FALSE.
       useCTRL         =.FALSE.
       useSBO          =.FALSE.
       useFLT          =.FALSE.
+      useBOM          =.FALSE.
       usePTRACERS     =.FALSE.
       useGCHEM        =.FALSE.
       useRBCS         =.FALSE.
@@ -348,6 +350,9 @@ C----- pkgs with a standard "usePKG" On/Off switch in "data.pkg":
 #endif
 #ifdef ALLOW_FLT
       CALL PACKAGES_PRINT_MSG( useFLT,        'FLT',         ' ' )
+#endif
+#ifdef ALLOW_BOM
+      CALL PACKAGES_PRINT_MSG( useBOM,        'BOM',         ' ' )
 #endif
 #ifdef ALLOW_PTRACERS
       CALL PACKAGES_PRINT_MSG( usePTRACERS,   'PTRACERS',    ' ' )

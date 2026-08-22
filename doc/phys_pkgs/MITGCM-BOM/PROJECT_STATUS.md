@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-00-skeleton` |
-| 当前阶段 PR | `wang111936/MITgcm#2`（draft，堆叠在 PR #1） |
+| 当前任务分支 | `MITGCM-BOM/phase-00-lifecycle` |
+| 当前阶段 PR | `wang111936/MITgcm#3`（draft，堆叠在 PR #2） |
 | 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.2：`pkg/bom` 可编译空包骨架（完成，PR #2 待审查） |
-| 下一工作包 | P0.3：MITgcm 生命周期与 `useBOM` 注册 |
+| 当前工作包 | P0.3：MITgcm 生命周期与 `useBOM` 注册（完成，PR #3 待审查） |
+| 下一工作包 | P0.4：正式零粒子验证算例与测试驱动 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 在 P0.2 PR 完成审查后创建 `MITGCM-BOM/phase-00-lifecycle`；
-2. 增加编译期开关 `ALLOW_BOM` 和运行期开关 `useBOM` 的核心注册；
-3. 只挂接 `BOM_READPARMS`、`BOM_CHECK`、初始化和空 `BOM_MAIN`；
-4. 保持 `bomMaxParticles=0`，不得加入粒子状态或运动方程；
-5. 为 P0.4 的 `data.pkg`、`data.bom` 零粒子算例准备稳定入口。
+1. 在 P0.3 PR 完成审查后创建 `MITGCM-BOM/phase-00-zero-particle`；
+2. 将已验证的 `data.pkg` 和 `data.bom` 固化为正式 `verification/bom` 算例；
+3. 建立同时检查进程状态、正常结束标志和 SHA-256 的测试驱动；
+4. 完成串行、2-rank 和 4-rank MPI 零粒子门禁；
+5. 建立需求—实现—测试追踪表，仍不得加入粒子运动。
 
 开始前执行：
 
@@ -39,7 +39,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | 阶段 | 状态 | 目标版本 | 当前结论 | 详细记录 |
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
-| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1、P0.2 完成；等待 P0.3 生命周期注册 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
+| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1—P0.3 完成；等待 P0.4 正式零粒子算例 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 未开始 | v0.2 | 等待 Phase 0 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-1bom-lite--leeway) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
@@ -84,6 +84,20 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 本工作包未修改 `model/src`、`model/inc`、`data.pkg` 或时间步调度；
 - 详细命令和哈希见 `verification/bom/phase00-skeleton/TEST_RESULTS.md`。
 
+### P0.3 生命周期注册
+
+- 本地/GitHub 提交：`7e156a418b6d3f345298edeadbe7af73c938a1c7`；
+- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/3`；
+- 在 `PARAMS.h` 和 `data.pkg` 的 `PACKAGES` namelist 中注册 `useBOM`，默认关闭；
+- 将读取、检查、固定初始化、变量初始化和空 `BOM_MAIN` 挂接到 MITgcm；
+- `BOM_MAIN` 位于 FLT 之后、嵌套和 monitor 之前；
+- 完成 BOM 未编译/已编译和串行/MPI 共四套完整构建；
+- 完成六套正常运行：未编译、编译但关闭、编译且零粒子开启，各含串行和 2-rank MPI；
+- 六套运行均正常结束，48/48 个 checkpoint 文件与冻结基线一致；
+- 未编译却设置 `useBOM=true` 时，`PACKAGES_CHECK` 按预期终止；
+- `bomMaxParticles=1` 时，`BOM_CHECK` 按预期拒绝未实现粒子状态；
+- 详细证据见 `verification/bom/phase00-lifecycle/TEST_RESULTS.md`。
+
 ## 4. 未决问题与风险
 
 | ID | 风险 | 当前处理 | 阻塞阶段 |
@@ -95,6 +109,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | R-005 | 一般网格迁移不能直接继承 FLT | Phase 6 后置并建立专门拓扑测试 | Phase 6 |
 | R-006 | GitHub 仓库当前关闭 Issues | 暂用阶段分支、提交和本状态账本记录；启用 Issues 后补建阶段 Issue | 不阻塞源码开发 |
 | R-007 | 固定 Julia 提交的自带测试调用不存在的函数；默认场失败时只警告 | 不修改参考源码；保存失败证据，另建 BOM 解析场和 smoke/golden 测试 | Phase 0/2 |
+| R-008 | MITgcm 的 Fortran `STOP` 在负向测试中可能仍返回进程码 0 | 测试驱动必须同时要求正常结束标志，并扫描 `ABNORMAL END`/fatal 日志 | Phase 0/CI |
 
 ## 5. 会话记录
 
@@ -123,6 +138,19 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 创建并推送 P0.2 提交 `eee711c9b5aea0644ffb54fc5a08c544d2d7919e`；
 - 创建 draft PR #2，基分支暂为 P0.1 分支，确保差异只包含 P0.2；
 - PR #1 合并后，应将 PR #2 基分支改为 `MITGCM-BOM/development`。
+
+### 2026-08-23：P0.3 生命周期注册
+
+- 创建 `MITGCM-BOM/phase-00-lifecycle`，基于 P0.2 已发布提交；
+- 注册 `useBOM`、包状态输出以及读取/检查/初始化/时间步调用；
+- 四套串行/MPI、编译开/关构建全部通过；
+- 六套正向运行均正常结束并通过 48/48 checkpoint 校验；
+- 两项负向配置均在预期检查点终止；
+- 发现 Fortran `STOP` 退出码不可靠，登记为 R-008；
+- P0.3 证据保存在 `verification/bom/phase00-lifecycle`。
+- 创建并推送 P0.3 提交 `7e156a418b6d3f345298edeadbe7af73c938a1c7`；
+- 创建 draft PR #3，基分支暂为 P0.2 分支，确保差异只包含 P0.3；
+- PR #2 合并后，应将 PR #3 基分支调整到当时的集成基线。
 
 ## 6. 每次会话结束时必须更新
 
