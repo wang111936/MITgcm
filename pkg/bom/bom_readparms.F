@@ -1,0 +1,72 @@
+#include "BOM_OPTIONS.h"
+
+C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+CBOP
+C !ROUTINE: BOM_READPARMS
+
+C !INTERFACE:
+      SUBROUTINE BOM_READPARMS( myThid )
+
+C !DESCRIPTION:
+C     Set the Phase-0 defaults and read the pkg/bom namelist.
+C     Registration and useBOM dispatch are added in Phase P0.3.
+
+C !USES:
+      IMPLICIT NONE
+#include "SIZE.h"
+#include "EEPARAMS.h"
+#include "PARAMS.h"
+#include "BOM.h"
+
+C !INPUT PARAMETERS:
+      INTEGER myThid
+CEOP
+
+#ifdef ALLOW_BOM
+C !LOCAL VARIABLES:
+      CHARACTER*(MAX_LEN_MBUF) msgBuf
+      INTEGER iUnit
+
+      NAMELIST /BOM_PARM01/
+     &       bomMode, bomEquationMode, bomIntegrator,
+     &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
+     &       bomSeed, bomMaxParticles, bomInitialFile
+
+      _BEGIN_MASTER(myThid)
+
+C--   Safe Phase-0 defaults: compile and configure, but move no particles.
+      bomMode          = 'LEEW'
+      bomEquationMode  = 'PAPER2024'
+      bomIntegrator    = 'RK4'
+      bomDeltaTTarget  = deltaTClock
+      bomOutputFreq    = 3600. _d 0
+      bomPickupFreq    = 86400. _d 0
+      bomSeed           = 20240801
+      bomMaxParticles   = 0
+      bomInitialFile    = ' '
+
+      WRITE(msgBuf,'(A)') 'BOM_READPARMS: opening data.bom'
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      CALL OPEN_COPY_DATA_FILE(
+     I                     'data.bom', 'BOM_READPARMS',
+     O                     iUnit,
+     I                     myThid )
+
+      READ(UNIT=iUnit,NML=BOM_PARM01)
+      WRITE(msgBuf,'(A)')
+     &    'BOM_READPARMS: finished reading data.bom'
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+#ifdef SINGLE_DISK_IO
+      CLOSE(iUnit)
+#else
+      CLOSE(iUnit,STATUS='DELETE')
+#endif
+
+      _END_MASTER(myThid)
+      _BARRIER
+#endif /* ALLOW_BOM */
+
+      RETURN
+      END

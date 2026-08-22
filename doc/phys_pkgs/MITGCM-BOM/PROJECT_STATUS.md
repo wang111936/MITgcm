@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-00-reference-lock` |
-| 当前阶段 PR | `wang111936/MITgcm#1` |
+| 当前任务分支 | `MITGCM-BOM/phase-00-skeleton` |
+| 当前阶段 PR | `wang111936/MITgcm#2`（draft，堆叠在 PR #1） |
 | 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.1：参考版本和依赖锁定（完成，PR #1 待审查） |
-| 下一工作包 | P0.2：`pkg/bom` 空包骨架 |
+| 当前工作包 | P0.2：`pkg/bom` 可编译空包骨架（完成，PR #2 待审查） |
+| 下一工作包 | P0.3：MITgcm 生命周期与 `useBOM` 注册 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 切换到 `MITGCM-BOM/phase-00-skeleton`；
-2. 建立 `pkg/bom` 的 options、size、状态头文件和空生命周期例程；
-3. 只加入参数读取、参数检查和空调用，不实现粒子运动；
-4. 建立 `verification/bom` 最小目录；
-5. 验证 BOM 关闭时原 MITgcm 基线不变，BOM 开启且零粒子时串行和 MPI 均正常结束。
+1. 在 P0.2 PR 完成审查后创建 `MITGCM-BOM/phase-00-lifecycle`；
+2. 增加编译期开关 `ALLOW_BOM` 和运行期开关 `useBOM` 的核心注册；
+3. 只挂接 `BOM_READPARMS`、`BOM_CHECK`、初始化和空 `BOM_MAIN`；
+4. 保持 `bomMaxParticles=0`，不得加入粒子状态或运动方程；
+5. 为 P0.4 的 `data.pkg`、`data.bom` 零粒子算例准备稳定入口。
 
 开始前执行：
 
@@ -39,7 +39,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | 阶段 | 状态 | 目标版本 | 当前结论 | 详细记录 |
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
-| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1 参考锁及加载验证完成，P0.2 空包骨架待开始 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
+| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1、P0.2 完成；等待 P0.3 生命周期注册 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 未开始 | v0.2 | 等待 Phase 0 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-1bom-lite--leeway) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
@@ -71,6 +71,19 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 上游自带测试结果已记录：0 passed、1 errored，原因为测试调用不存在的 `generate_rp_example`；
 - 详细限制与校验和见 [REFERENCE_LOCK](REFERENCE_LOCK.md)。
 
+### P0.2 可编译空包骨架
+
+- 本地/GitHub 提交：`eee711c9b5aea0644ffb54fc5a08c544d2d7919e`；
+- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/2`；
+- 新增 `pkg/bom` 的 options、size、控制参数、读取/检查和空生命周期例程；
+- `pkg/pkg_depend` 登记 `mdsio`、`mom_common` 强依赖；
+- 串行与双进程 MPI 均完成 `genmake2`、`make depend`、编译和链接；
+- 两个可执行文件均包含五个 `bom_*` 例程，证明包源码实际进入链接；
+- 串行和双进程 MPI `verification/exp2` 均正常结束；
+- 两套运行的 8 个 checkpoint 数据文件均与冻结基线 SHA-256 一致；
+- 本工作包未修改 `model/src`、`model/inc`、`data.pkg` 或时间步调度；
+- 详细命令和哈希见 `verification/bom/phase00-skeleton/TEST_RESULTS.md`。
+
 ## 4. 未决问题与风险
 
 | ID | 风险 | 当前处理 | 阻塞阶段 |
@@ -98,6 +111,18 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - GitHub Issues 当前关闭，阶段 Issue 创建请求返回 HTTP 410，已采用仓库内账本作为当前替代记录。
 - 创建并推送 P0.1 提交 `ff1ab313d348fc0219e6e192bcbab928eb49e7e7`；
 - 创建 GitHub PR #1，目标为 `MITGCM-BOM/development`，`master` 未修改。
+
+### 2026-08-23：P0.2 可编译空骨架
+
+- 创建 `MITGCM-BOM/phase-00-skeleton`，基于 P0.1 已发布提交；
+- 实现 `pkg/bom` 的最小稳定控制接口和零粒子安全检查；
+- 只登记包依赖，未加入 MITgcm 核心生命周期调用；
+- 串行和双进程 MPI 构建、链接及 exp2 运行通过；
+- 8/8 checkpoint 与冻结基线一致，串行/MPI 之间也一致；
+- P0.2 证据保存在 `verification/bom/phase00-skeleton`。
+- 创建并推送 P0.2 提交 `eee711c9b5aea0644ffb54fc5a08c544d2d7919e`；
+- 创建 draft PR #2，基分支暂为 P0.1 分支，确保差异只包含 P0.2；
+- PR #1 合并后，应将 PR #2 基分支改为 `MITGCM-BOM/development`。
 
 ## 6. 每次会话结束时必须更新
 
