@@ -12,6 +12,10 @@ P0.1 PR：`https://github.com/wang111936/MITgcm/pull/1`
 
 P0.2 分支：`MITGCM-BOM/phase-00-skeleton`
 
+P0.2 提交：`eee711c9b5aea0644ffb54fc5a08c544d2d7919e`
+
+P0.2 draft PR：`https://github.com/wang111936/MITgcm/pull/2`
+
 ## 1. 范围
 
 Phase 0 只建立可复现参考、MITgcm 包骨架、参数检查和零粒子验证，不实现粒子运动、Stokes、惯性、弹簧或生物过程。

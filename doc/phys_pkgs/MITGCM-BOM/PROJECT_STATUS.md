@@ -10,9 +10,9 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-00-skeleton` |
-| 当前阶段 PR | 待创建（P0.2 将作为 P0.1 上的堆叠 PR） |
+| 当前阶段 PR | `wang111936/MITgcm#2`（draft，堆叠在 PR #1） |
 | 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.2：`pkg/bom` 可编译空包骨架（实现与验证完成） |
+| 当前工作包 | P0.2：`pkg/bom` 可编译空包骨架（完成，PR #2 待审查） |
 | 下一工作包 | P0.3：MITgcm 生命周期与 `useBOM` 注册 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
@@ -73,6 +73,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 
 ### P0.2 可编译空包骨架
 
+- 本地/GitHub 提交：`eee711c9b5aea0644ffb54fc5a08c544d2d7919e`；
+- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/2`；
 - 新增 `pkg/bom` 的 options、size、控制参数、读取/检查和空生命周期例程；
 - `pkg/pkg_depend` 登记 `mdsio`、`mom_common` 强依赖；
 - 串行与双进程 MPI 均完成 `genmake2`、`make depend`、编译和链接；
@@ -118,6 +120,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 串行和双进程 MPI 构建、链接及 exp2 运行通过；
 - 8/8 checkpoint 与冻结基线一致，串行/MPI 之间也一致；
 - P0.2 证据保存在 `verification/bom/phase00-skeleton`。
+- 创建并推送 P0.2 提交 `eee711c9b5aea0644ffb54fc5a08c544d2d7919e`；
+- 创建 draft PR #2，基分支暂为 P0.1 分支，确保差异只包含 P0.2；
+- PR #1 合并后，应将 PR #2 基分支改为 `MITGCM-BOM/development`。
 
 ## 6. 每次会话结束时必须更新
 
