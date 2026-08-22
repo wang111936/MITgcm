@@ -10,9 +10,9 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-00-zero-particle` |
-| 当前阶段 PR | 待创建（将堆叠在 `wang111936/MITgcm#3`） |
+| 当前阶段 PR | `wang111936/MITgcm#4`（draft，堆叠在 PR #3） |
 | 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.4：正式零粒子验证算例与测试驱动（实现与测试完成，待发布） |
+| 当前工作包 | P0.4：正式零粒子验证算例与测试驱动（完成，PR #4 待审查） |
 | 下一工作包 | P0.5：Phase 0 最终门禁、Julia smoke 与合并准备 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
@@ -100,6 +100,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 
 ### P0.4 正式零粒子门禁
 
+- 本地/GitHub 提交：`1e5bda7e4375db5520446fb715849e199725642a`；
+- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/4`；
 - 固化 BOM 开启/关闭包清单、零粒子输入和 2 x 2 MPI 网格配置；
 - 新增仓库外、唯一测试 ID 的自动测试驱动，并拒绝覆盖既有证据目录；
 - `bash -n` 与 `shellcheck` 均通过；
@@ -173,6 +175,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 四套构建、三套正向运行、24/24 哈希和两项负向门禁全部通过；
 - 正式证据保存在 `verification/bom/phase00-zero-particle`；
 - 本工作包没有修改 `pkg/bom`、MITgcm 核心源码或加入任何粒子物理。
+- 创建并发布 P0.4 提交 `1e5bda7e4375db5520446fb715849e199725642a`；
+- 创建 draft PR #4，基分支暂为 P0.3 分支，确保差异只包含 P0.4；
+- PR #3 合并后，应将 PR #4 基分支调整到当时的集成基线。
 
 ## 6. 每次会话结束时必须更新
 
