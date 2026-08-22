@@ -10,8 +10,9 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-00-reference-lock` |
+| 当前阶段 PR | `wang111936/MITgcm#1` |
 | 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.1：参考版本和依赖锁定（完成，等待提交） |
+| 当前工作包 | P0.1：参考版本和依赖锁定（完成，PR #1 待审查） |
 | 下一工作包 | P0.2：`pkg/bom` 空包骨架 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
@@ -60,6 +61,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 
 ### P0.1 参考版本锁
 
+- 本地/GitHub 提交：`ff1ab313d348fc0219e6e192bcbab928eb49e7e7`；
+- GitHub PR：`https://github.com/wang111936/MITgcm/pull/1`；
 - Julia 参考源码固定到 `156557359185e4413ce82829f3ed26a4eb8c6283`；
 - 自定义注册表固定到 `02961aced4cfa2b3430ebd4b44cdb7a3056e7175`；
 - 已为 Julia 1.10.12 重建根级 Manifest；
@@ -93,6 +96,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 发现并记录上游缺少根级 Manifest 的可复现性风险。
 - Julia 固定环境实例化和包加载成功；上游测试的陈旧接口错误已复现并记录。
 - GitHub Issues 当前关闭，阶段 Issue 创建请求返回 HTTP 410，已采用仓库内账本作为当前替代记录。
+- 创建并推送 P0.1 提交 `ff1ab313d348fc0219e6e192bcbab928eb49e7e7`；
+- 创建 GitHub PR #1，目标为 `MITGCM-BOM/development`，`master` 未修改。
 
 ## 6. 每次会话结束时必须更新
 
