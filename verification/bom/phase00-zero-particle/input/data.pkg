@@ -1,0 +1,4 @@
+# MITGCM-BOM Phase-0 package activation
+ &PACKAGES
+ useBOM=.TRUE.,
+ &

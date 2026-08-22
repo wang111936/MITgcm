@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-00-lifecycle` |
-| 当前阶段 PR | `wang111936/MITgcm#3`（draft，堆叠在 PR #2） |
+| 当前任务分支 | `MITGCM-BOM/phase-00-zero-particle` |
+| 当前阶段 PR | `wang111936/MITgcm#4`（draft，堆叠在 PR #3） |
 | 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.3：MITgcm 生命周期与 `useBOM` 注册（完成，PR #3 待审查） |
-| 下一工作包 | P0.4：正式零粒子验证算例与测试驱动 |
+| 当前工作包 | P0.4：正式零粒子验证算例与测试驱动（完成，PR #4 待审查） |
+| 下一工作包 | P0.5：Phase 0 最终门禁、Julia smoke 与合并准备 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 在 P0.3 PR 完成审查后创建 `MITGCM-BOM/phase-00-zero-particle`；
-2. 将已验证的 `data.pkg` 和 `data.bom` 固化为正式 `verification/bom` 算例；
-3. 建立同时检查进程状态、正常结束标志和 SHA-256 的测试驱动；
-4. 完成串行、2-rank 和 4-rank MPI 零粒子门禁；
-5. 建立需求—实现—测试追踪表，仍不得加入粒子运动。
+1. P0.4 审查后创建 `MITGCM-BOM/phase-00-final-gate`；
+2. 建立独立的 Julia 参考 smoke，避开上游测试中的陈旧入口；
+3. 复核 P0.1—P0.4 的需求追踪、已知风险和阶段退出条件；
+4. 重跑 P0.4 正式门禁，并生成 Phase 0 汇总证据；
+5. 准备堆叠 PR 的变基/合并顺序和版本标记条件，但不自动合并。
 
 开始前执行：
 
@@ -39,7 +39,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | 阶段 | 状态 | 目标版本 | 当前结论 | 详细记录 |
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
-| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1—P0.3 完成；等待 P0.4 正式零粒子算例 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
+| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1—P0.4 完成；等待 P0.5 最终门禁和合并准备 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 未开始 | v0.2 | 等待 Phase 0 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-1bom-lite--leeway) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
@@ -98,6 +98,21 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - `bomMaxParticles=1` 时，`BOM_CHECK` 按预期拒绝未实现粒子状态；
 - 详细证据见 `verification/bom/phase00-lifecycle/TEST_RESULTS.md`。
 
+### P0.4 正式零粒子门禁
+
+- 本地/GitHub 提交：`1e5bda7e4375db5520446fb715849e199725642a`；
+- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/4`；
+- 固化 BOM 开启/关闭包清单、零粒子输入和 2 x 2 MPI 网格配置；
+- 新增仓库外、唯一测试 ID 的自动测试驱动，并拒绝覆盖既有证据目录；
+- `bash -n` 与 `shellcheck` 均通过；
+- BOM 编译开启的串行、2-rank、4-rank MPI，以及 BOM 未编译的串行构建共 4/4 通过；
+- 串行、2-rank 和 4-rank MPI 正向运行共 3/3 通过；
+- 三种分解共 24/24 个 checkpoint SHA-256 与冻结基线一致；
+- 未编译误开启与非零粒子两项负向门禁共 2/2 通过；
+- 驱动通过正常/异常结束标志和预期错误文本避免 `STOP` 退出码 0 的误判；
+- 需求—实现—测试追踪表已完成；
+- 详细证据见 `verification/bom/phase00-zero-particle/TEST_RESULTS.md`。
+
 ## 4. 未决问题与风险
 
 | ID | 风险 | 当前处理 | 阻塞阶段 |
@@ -151,6 +166,18 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 创建并推送 P0.3 提交 `7e156a418b6d3f345298edeadbe7af73c938a1c7`；
 - 创建 draft PR #3，基分支暂为 P0.2 分支，确保差异只包含 P0.3；
 - PR #2 合并后，应将 PR #3 基分支调整到当时的集成基线。
+
+### 2026-08-23：P0.4 正式零粒子门禁
+
+- 创建 `MITGCM-BOM/phase-00-zero-particle`，基于 P0.3 已发布提交；
+- 固化正式零粒子配置、4-rank 网格、负向配置和需求追踪表；
+- 建立日志感知、哈希校验、外部隔离且不可覆盖历史证据的测试驱动；
+- 四套构建、三套正向运行、24/24 哈希和两项负向门禁全部通过；
+- 正式证据保存在 `verification/bom/phase00-zero-particle`；
+- 本工作包没有修改 `pkg/bom`、MITgcm 核心源码或加入任何粒子物理。
+- 创建并发布 P0.4 提交 `1e5bda7e4375db5520446fb715849e199725642a`；
+- 创建 draft PR #4，基分支暂为 P0.3 分支，确保差异只包含 P0.4；
+- PR #3 合并后，应将 PR #4 基分支调整到当时的集成基线。
 
 ## 6. 每次会话结束时必须更新
 

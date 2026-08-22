@@ -22,6 +22,12 @@ P0.3 提交：`7e156a418b6d3f345298edeadbe7af73c938a1c7`
 
 P0.3 draft PR：`https://github.com/wang111936/MITgcm/pull/3`
 
+P0.4 分支：`MITGCM-BOM/phase-00-zero-particle`
+
+P0.4 提交：`1e5bda7e4375db5520446fb715849e199725642a`
+
+P0.4 draft PR：`https://github.com/wang111936/MITgcm/pull/4`
+
 ## 1. 范围
 
 Phase 0 只建立可复现参考、MITgcm 包骨架、参数检查和零粒子验证，不实现粒子运动、Stokes、惯性、弹簧或生物过程。
@@ -33,8 +39,8 @@ Phase 0 只建立可复现参考、MITgcm 包骨架、参数检查和零粒子�
 | P0.1 | 参考源码与 Julia 依赖锁 | 完成 | `REFERENCE_LOCK.md`、`verification/bom/reference/julia_env` |
 | P0.2 | `pkg/bom` 空包骨架 | 完成 | `verification/bom/phase00-skeleton/TEST_RESULTS.md` |
 | P0.3 | MITgcm 生命周期挂接 | 完成 | `verification/bom/phase00-lifecycle/TEST_RESULTS.md` |
-| P0.4 | `verification/bom` 零粒子算例 | 未开始 | 下一开发任务 |
-| P0.5 | 串行/MPI/零影响门禁 | 未开始 | 等待 P0.4 |
+| P0.4 | `verification/bom` 零粒子算例 | 完成 | `verification/bom/phase00-zero-particle/TEST_RESULTS.md` |
+| P0.5 | Phase 0 最终门禁与合并准备 | 未开始 | 下一开发任务 |
 
 ## 3. P0.1 实际记录
 
@@ -142,25 +148,58 @@ P0.2 没有加入 `useBOM`，也没有改动 `model/src`、`model/inc`、验证�
 
 详细证据见 `verification/bom/phase00-lifecycle/TEST_RESULTS.md`。
 
-## 6. Phase 0 退出条件
+## 6. P0.4 实际记录
+
+### 正式验证资产
+
+- 固化 BOM 编译开启/关闭包清单、2 x 2 MPI `SIZE.h` 和零粒子输入；
+- 新增唯一测试 ID 驱动，构建和运行目录均位于仓库外；
+- 驱动同时检查进程状态、各 rank 正常结束标志、fatal 日志和 SHA-256；
+- 纳入未编译误开启与非零粒子两项负向门禁；
+- 新增需求—实现—测试追踪表；
+- 驱动拒绝复用已有测试 ID，避免覆盖历史证据。
+
+### 构建与运行结果
+
+- `bash -n` 与 `shellcheck` 均通过；
+- BOM 编译开启的串行、2-rank MPI、4-rank MPI，以及 BOM 未编译的串行构建全部通过；
+- 串行、2-rank MPI 和 4-rank MPI 正向运行全部正常结束；
+- 三种分解共 24/24 个 checkpoint SHA-256 与冻结基线一致；
+- 4-rank 运行的四个 rank 日志均包含正常结束标志；
+- 启用日志均包含包激活、`BOM_READPARMS`、`BOM_CHECK` 和 `BOM [FORWARD_STEP]` 证据；
+- 两项负向门禁均由预期检查拒绝，且不会因 Fortran `STOP` 返回 0 而误判成功。
+
+### P0.4 完成条件
+
+- [x] 正式 `data.pkg`、`data.bom` 和 4-rank 网格配置入库；
+- [x] 可重复的仓库外构建/运行测试驱动入库；
+- [x] 串行、2-rank 和 4-rank MPI 零粒子门禁通过；
+- [x] 24/24 checkpoint 哈希与冻结基线一致；
+- [x] 未编译误开启和非零粒子负向门禁通过；
+- [x] 需求—实现—测试追踪表完成；
+- [x] 未加入粒子状态、运动方程或后续物理。
+
+详细证据见 `verification/bom/phase00-zero-particle/TEST_RESULTS.md`。
+
+## 7. Phase 0 退出条件
 
 - [x] BOM 关闭时 MITgcm 基线结果不变；
 - [x] BOM 开启、零粒子时单进程正常运行；
 - [x] BOM 开启、零粒子时 2 MPI ranks 正常运行；
-- [ ] BOM 开启、零粒子时 4 MPI ranks 正常运行；
+- [x] BOM 开启、零粒子时 4 MPI ranks 正常运行；
 - [x] `data.bom` 参数默认值和错误检查通过；
 - [ ] Julia 参考环境能加载并执行基础测试；
-- [ ] 需求—实现—测试追踪表已更新；
+- [x] 需求—实现—测试追踪表已更新；
 - [ ] 阶段 PR 合并到 `MITGCM-BOM/development`。
 
-## 7. 下一任务：P0.4
+## 8. 下一任务：P0.5
 
-建立 `MITGCM-BOM/phase-00-zero-particle` 分支，只完成：
+建立 `MITGCM-BOM/phase-00-final-gate` 分支，只完成：
 
-- 固化 BOM 开启、`bomMaxParticles=0` 的 `verification/bom` 输入；
-- 建立可重复执行的构建/运行/日志/哈希测试驱动；
-- 覆盖串行、2-rank 和 4-rank MPI；
-- 将负向配置检查纳入测试驱动；
-- 建立需求—实现—测试追踪表。
+- 建立 BOM 专用 Julia 参考 smoke，避免依赖上游陈旧测试入口；
+- 重跑 P0.4 正式门禁并汇总 Phase 0 证据；
+- 审核 P0.1—P0.4 的范围、风险、追踪表和退出条件；
+- 给出堆叠 PR 的安全合并顺序和 `MITGCM-BOM-v0.1` 标记条件；
+- 保留阶段 PR 为待审查状态，不自动合并或打标签。
 
-P0.4 不得加入粒子数组、运动方程、环境场插值、Stokes、pickup 或 MPI 粒子交换。
+P0.5 不得加入粒子数组、运动方程、环境场插值、Stokes、pickup 或 MPI 粒子交换。
