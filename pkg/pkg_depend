@@ -38,6 +38,7 @@ exf		=cal
 profiles	+cal
 obsfit		+cal
 flt		+mdsio
+bom		+mdsio		+mom_common
 autodiff	+mdsio
 ctrl		+mdsio
 ecco		+mdsio		+cal
