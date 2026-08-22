@@ -13,7 +13,7 @@ review decision.
 | 2 | #2 | `MITGCM-BOM/phase-00-skeleton` | P0.1 branch | open, draft, mergeable |
 | 3 | #3 | `MITGCM-BOM/phase-00-lifecycle` | P0.2 branch | open, draft, mergeable |
 | 4 | #4 | `MITGCM-BOM/phase-00-zero-particle` | P0.3 branch | open, draft, mergeable |
-| 5 | #5 | `MITGCM-BOM/phase-00-final-gate` | P0.4 branch | to be created as draft |
+| 5 | #5 | `MITGCM-BOM/phase-00-final-gate` | P0.4 branch | open, draft, mergeable |
 
 ## Required sequence
 
