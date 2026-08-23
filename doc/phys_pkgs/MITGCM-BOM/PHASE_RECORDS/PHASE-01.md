@@ -6,10 +6,10 @@
 | 目标版本 | `MITGCM-BOM-v0.2` |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
-| 当前分支 | `MITGCM-BOM/phase-01-state` |
-| 当前 PR | `wang111936/MITgcm#8`（Ready） |
-| 当前工作包 | P1.1 状态与初值 |
-| 状态 | 五项阻断均关闭且最终独立复审通过，PR #8 已 Ready 并等待明确的合并授权 |
+| 当前分支 | `MITGCM-BOM/phase-01-state-integration-record` |
+| 当前 PR | `wang111936/MITgcm#9`（Ready，P1.1 集成记录） |
+| 当前工作包 | P1.1 集成记录 |
+| 状态 | PR #8 已合并；P1.1/Phase 0 集成回归和 PR #9 最终独立复审通过，PR #9 已 Ready 并等待明确的合并授权 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -24,8 +24,8 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | 工作包 | 状态 | 分支/PR | 结论 |
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
-| P1.1 状态与初值 | 待合并 | `MITGCM-BOM/phase-01-state` / PR #8 | 5 项审查阻断已关闭；最终独立复审通过且 PR 已 Ready |
-| P1.2 映射与环境场 | 未开始 | 待建立 | 等待 P1.1 门禁 |
+| P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
+| P1.2 映射与环境场 | 未开始 | 待建立 | 等待 P1.1 集成记录收口 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -120,7 +120,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - `p11-state-review-fixes-attempt02`：MITgcm 核心拒绝 momStepping 下 OL1；随后改为 locator-only 初始化配置；
 - `p11-state-review-fixes-attempt03`：当时定义的全部扩展门禁通过，独立复审后由物理长度修复门禁取代；
 - `p11-rereview-physical-trailing-attempt01`：保留为静默接受额外物理记录的复现证据；
-- 所有目录均保留且未覆盖，只有 `p11-physical-size-fix-attempt01` 是当前权威 P1.1 证据。
+- 所有目录均保留且未覆盖；`p11-physical-size-fix-attempt01` 是最终合并前权威证据，`p11-integrated-pr8-attempt01` 是当前权威集成证据。
 
 ### 6.5 GitHub 记录
 
@@ -128,10 +128,21 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 正式审查修复提交：`2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65`；
 - 物理长度修复提交：`40f5754b3b00ea4bb6a9b20c64c10e968080ad24`；
 - 作者与提交者：`WangYuLin <wang111936@outlook.com>`；
-- Ready PR #8：`https://github.com/wang111936/MITgcm/pull/8`；
+- merged PR #8：`https://github.com/wang111936/MITgcm/pull/8`；
 - base：`MITGCM-BOM/development@acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
 - 生产/门禁 head：`MITGCM-BOM/phase-01-state@40f5754b3b00ea4bb6a9b20c64c10e968080ad24`；
-- 当前不合并、不创建 `MITGCM-BOM-v0.2` 标签。
+- PR head：`d39a878ef647f5e4dbc2b47ef694563848ce8ba4`；
+- merge commit：`ab30b3dc530404fda796189e50b8de776bf4441d`；
+- 当前不创建 `MITGCM-BOM-v0.2` 标签。
+
+### 6.6 集成结果
+
+- P1.1 集成门禁：`p11-integrated-pr8-attempt01`，8/8 构建、14/14 正向、20/20 负向、104/104 checkpoint 通过；
+- P1.1 summary SHA-256：`93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7`；
+- Phase 0 集成门禁：`p11-integrated-pr8-phase0-attempt01`，锁定参考、离线 Julia、smoke 和 P0.4 总门禁通过；
+- Phase 0 summary SHA-256：`e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`；
+- 测试产物全部位于仓库外，集成分支运行后工作树保持干净。
+- PR #9 最终独立复审重新核对 merge 双亲、42/42 P1.1 结果、104 条 checkpoint 记录、4/4 Phase 0 总门禁结果、9/9 嵌套 P0.4 结果和三份摘要哈希，未发现源码或测试问题。
 
 ## 7. Phase 1 总退出条件
 
@@ -144,10 +155,10 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 ## 8. 下一恢复点
 
-从 Ready PR #8 恢复：
+从 `MITGCM-BOM/phase-01-state-integration-record` 恢复：
 
-1. 最终独立复审已完成且 PR #8 已标记 Ready；先确认其相对 `MITGCM-BOM/development` 保持 31 文件独立差异；
-2. 等待明确的 merge commit 合并授权，不自动合并；
-3. 本 PR 不加入环境场、通用映射、粒子运动或交换等 P1.2+ 范围；
-4. 获得明确合并授权后使用 merge commit，并在集成分支复跑 P1.1 与 Phase 0 门禁；
-5. 集成通过前不创建 `MITGCM-BOM-v0.2` 标签；通过后创建独立 P1.2“映射与环境场”分支。
+1. 核对 PR #8 merge commit 为 `ab30b3dc530404fda796189e50b8de776bf4441d`，并复核两套集成测试 ID 与摘要哈希；
+2. PR #9 最终独立复审已通过并已标记 Ready；确认其相对 `MITGCM-BOM/development` 严格只有 3 个 Markdown；
+3. 集成记录 PR 不加入环境场、通用映射、粒子运动或交换等 P1.2+ 范围；
+4. 等待明确的 merge commit 合并授权，不自动合并；获准集成后从最新 `MITGCM-BOM/development` 创建独立 P1.2“映射与环境场”分支；
+5. `MITGCM-BOM-v0.2` 仅在 P1.1—P1.5 全部完成并通过 Phase 1 退出审计后创建。
