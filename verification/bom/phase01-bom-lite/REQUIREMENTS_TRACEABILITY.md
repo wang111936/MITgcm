@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 需求追踪
 
-状态：P1.1 已验收；P1.2 映射、locator 包装和表层环境场构造完成，湿点 pair 插值待实现
+状态：P1.1 已验收；P1.2 的 P1-R05—P1-R07 实现与全回归完成，范围审计和独立复审待进行
 
 本表是 Phase 1 需求、计划例程和测试之间的权威映射。实现阶段不得把“已有代码”当作完成证据；只有对应测试通过并在 `TEST_RESULTS.md` 记录后，需求状态才能改为完成。
 
@@ -14,7 +14,7 @@
 | P1-R04 | 每 tile 权威 SoA、紧凑 owner 和容量安全 | `BOM.h`、`BOM_SIZE.h`、`BOM_READ_INITIAL`、后续 `BOM_CHECK_STATE` | P1-S03、P1-S04a、P1-N03a—N03b | P1.1、P1.4 | P1.1 状态/初值容量完成；运行/交换检查待后续 |
 | P1-R05 | 支持规则 Cartesian 与未旋转 spherical-polar 映射 | `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、`BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY`、兼容 `BOM_LOCATE_INITIAL` | P1-S03、P1-M01、P1-M02、P1-N04 | P1.1、P1.2 | 完成；映射门禁与 locator 包装后的完整 P1.1/Phase 0 回归通过 |
 | P1-R06 | 表层 C-grid U/V 正确转为 C 点 east/north | `BOM_BUILD_FIELDS`、`bomGrid*` 单层数组 | P1-F01、P1-F02 | P1.2 | 完成；`Nr=2` 串行/MPI4 旋转、mask 和标量 halo 门禁及前序回归通过 |
-| P1-R07 | 对湿点做一致的归一化双线性插值 | `BOM_INTERP_WET_PAIR` | P1-F03、P1-N05 | P1.2 | 接口冻结、实现待完成 |
+| P1-R07 | 对湿点做一致的归一化双线性插值 | `BOM_INTERP_WET_PAIR` | P1-F03、P1-N05 | P1.2 | 完成；全湿/部分湿 pair 与无效返回在串行/MPI4 通过，前序全回归通过 |
 | P1-R08 | LEEW 海流 RHS 使用 SI 且坐标率转换正确 | `BOM_RHS_LEEWAY` | P1-I01、P1-I02、P1-I03 | P1.3 | 未实现 |
 | P1-R09 | 可选 EXF 风按独立经验系数叠加 | `BOM_BUILD_FIELDS`、`BOM_RHS_LEEWAY` | P1-I04、P1-N06 | P1.3 | 未实现 |
 | P1-R10 | Stokes 在 Phase 1 固定关闭，误配置失败 | `BOM_READPARMS`、`BOM_CHECK` | P1-N07 | P1.1 | P1.1 完成 |
@@ -47,9 +47,9 @@
 | `BOM_LOCATE_INITIAL` 兼容包装 | P1-R02、P1-R04、P1-R05 | 包装源审计、P1-S03、完整 P1.1 与 Phase 0 回归已通过 |
 | `BOM_BUILD_FIELDS`、`bomGridUWork/bomGridVWork` | P1-R06 | P1-F01、P1-F02 与多层步长探针已通过 |
 | `bomGridVEast/bomGridVNorth`、标量 halo exchange | P1-R06 | P1-F01、P1-F02 串行/MPI4 及 Phase 0 零影响回归已通过 |
-| `BOM_INTERP_WET_PAIR` | P1-R07 | 接口已冻结；P1-F03、P1-N05 待执行 |
+| `BOM_INTERP_WET_PAIR` | P1-R07 | P1-F03/P1-N05 串行/MPI4 9/9 门禁及前序全回归已通过 |
 
-详细调用契约见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)。映射与 locator 包装证据见 [`../phase01-mapping/TEST_RESULTS.md`](../phase01-mapping/TEST_RESULTS.md)，字段构造证据见 [`../phase01-fields/TEST_RESULTS.md`](../phase01-fields/TEST_RESULTS.md)。P1-R05/P1-R06 已完成；P1-R07 仍等待湿点 pair 插值。只有 P1.2 全部生产实现、门禁、回归与独立复审通过后，整个工作包才能改为完成。
+详细调用契约见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)。映射、字段构造和插值证据分别见 [`../phase01-mapping/TEST_RESULTS.md`](../phase01-mapping/TEST_RESULTS.md)、[`../phase01-fields/TEST_RESULTS.md`](../phase01-fields/TEST_RESULTS.md) 和 [`../phase01-interp/TEST_RESULTS.md`](../phase01-interp/TEST_RESULTS.md)。P1-R05—P1-R07 已完成；P1.2 仍需范围审计与独立复审，之后才能把整个工作包改为完成。
 
 ## 2. 上层验证编号映射
 

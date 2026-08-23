@@ -9,7 +9,7 @@
 | 当前分支 | `MITGCM-BOM/phase-01-mapping-environment` |
 | 当前 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前工作包 | P1.2 映射与环境场 |
-| 状态 | P1.2 映射、locator 包装和表层环境场构造及回归通过；湿点 pair 插值待实现 |
+| 状态 | P1.2 P1-R05—P1-R07 实现与全回归通过；范围审计和独立复审待进行 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -25,7 +25,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 进行中 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Draft） | 字段构造 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`；P1-R05/P1-R06 完成，P1-R07 待实现 |
+| P1.2 映射与环境场 | 进行中 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Draft） | 插值 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；P1-R05—P1-R07 和全回归完成，待最终审计/复审 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -157,10 +157,10 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 从 `MITGCM-BOM/phase-01-mapping-environment` 恢复：
 
-1. 核对当前分支包含最新已验收功能提交 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`；
-2. 以 [`P1.2_INTERFACE_FREEZE.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md)、[`phase01-mapping/TEST_RESULTS.md`](../../../../verification/bom/phase01-mapping/TEST_RESULTS.md) 和 [`phase01-fields/TEST_RESULTS.md`](../../../../verification/bom/phase01-fields/TEST_RESULTS.md) 作为接口与已执行证据入口；
-3. 下一独立增量只实现 `BOM_INTERP_WET_PAIR`，先建立 P1-F03/P1-N05 的常数、线性、部分湿和失败门禁，不移动粒子；
-4. 完成后复跑字段、映射、完整 P1.1 与 Phase 0 门禁，再进行 P1.2 范围审计与独立复审；
+1. 核对当前分支包含最新已验收功能提交 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；
+2. 以 [`P1.2_INTERFACE_FREEZE.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md) 和 mapping/fields/interp 三份 `TEST_RESULTS.md` 作为接口与证据入口；
+3. 下一步只进行 P1.2 最终范围审计和独立复审，核对生产接口、失败语义、证据哈希、PR 差异以及没有粒子运动/P1.3 越界；
+4. 若复审发现问题，只修复 P1.2 并按风险复跑门禁；复审通过后记录结论，未获明确授权不把 PR #10 标记 Ready 或合并；
 5. P1.2 完整门禁和独立复审前不开始 P1.3，不创建 `MITGCM-BOM-v0.2` 标签。
 
 ## 9. P1.2 启动记录
@@ -221,3 +221,13 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 回归 `p12-20260823T214951Z-501860` 通过映射/locator 15/15，`20260823T215044Z-548609` 通过 P1.1 42/42，`20260823T215320Z-668561` 通过 Phase 0 4/4；
 - 功能提交为 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；
 - P1-R06 完成，P1-R07 未实现；未加入湿点 pair 插值、风、Stokes 或粒子运动，PR #10 保持 Draft，不创建标签、不开始 P1.3。
+
+### 9.7 P1.2 湿点 pair 插值
+
+- 新增 `BOM_INTERP_WET_PAIR`，对 east/north C 点 pair 复用同一组 mask 过滤和湿权重归一化；
+- 在整数转换前拒绝非有限或超出 overlap 的实数索引，再以数学 floor 建立四点 stencil，避免巨大有限值的整数转换溢出；
+- 未就绪、缺失 stencil、非有限 pair、湿权重不足或坏 tile 均返回 `isValid=.FALSE.` 和零速度值；湿权重不足时保留实际权重供未来上层诊断；
+- `p12-interp-20260824-a` 首轮通过源码契约、串行/MPI4 debug/bounds 构建和六项 P1-F03/P1-N05 运行，共 9/9 summary 行；summary SHA-256 为 `75fcde1ce34ceb1b43cb2ef8dcc6e323948db1edb6df2d4fb90329d8395be81a`；
+- 回归 `p12-field-20260823T222525Z-392`、`p12-20260823T222622Z-390`、`20260823T222731Z-385` 和 `20260823T223014Z-381` 分别通过字段 7/7、映射 15/15、P1.1 42/42 和 Phase 0 4/4；
+- 功能提交为 `597d1a706de2ca388d1312dd6bb667421ae9adc7`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；
+- P1-R05—P1-R07 的生产实现与全回归完成；未加入粒子 RHS、运动、迁移、风或 Stokes，PR #10 继续保持 Draft，下一步为 P1.2 范围审计和独立复审。

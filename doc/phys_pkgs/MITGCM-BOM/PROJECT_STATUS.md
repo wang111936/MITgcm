@@ -12,18 +12,18 @@
 | 当前任务分支 | `MITGCM-BOM/phase-01-mapping-environment` |
 | 当前阶段 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.2：映射、locator 包装与表层环境场构造完成；湿点 pair 插值待实现 |
-| 下一工作包 | 实现 `BOM_INTERP_WET_PAIR`，通过 P1-F03/P1-N05 |
+| 当前工作包 | P1.2：P1-R05—P1-R07 实现与全回归完成；范围审计和独立复审待进行 |
+| 下一工作包 | P1.2 最终范围审计、证据复核与独立复审 |
 | 当前阻塞 | 无；P1.2 只支持规则 Cartesian 与未旋转 spherical-polar，其他拓扑按阶段边界明确拒绝 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment`，最新已验收功能提交为 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`；
-2. 读取 [P1.2 接口冻结](../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md)、[映射与 locator 结果](../../../verification/bom/phase01-mapping/TEST_RESULTS.md)和[字段构造结果](../../../verification/bom/phase01-fields/TEST_RESULTS.md)；
-3. 下一独立增量只实现 `BOM_INTERP_WET_PAIR`，先建立 P1-F03/P1-N05 常数、线性、部分湿和失败门禁；不移动粒子；
-4. 湿点 pair 门禁后复跑字段、映射、P1.1 与 Phase 0，再进行 P1.2 范围审计与独立复审；
+1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment`，最新已验收功能提交为 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；
+2. 读取 [P1.2 接口冻结](../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md)及 mapping、fields、interp 三份测试结果；
+3. 下一步只进行 P1.2 最终范围审计和独立复审，核对生产接口、失败语义、证据哈希、PR 差异和无粒子运动/P1.3 越界；
+4. 若发现问题，只修复 P1.2 并按风险复跑；复审通过后记录结论，未获明确授权不把 PR #10 标记 Ready 或合并；
 5. P1.2 完整门禁和独立复审前不开始 P1.3，不创建 `MITGCM-BOM-v0.2`。
 
 开始前执行：
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.2 映射、locator 包装与表层环境场构造完成，湿点 pair 插值待实现 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.2 P1-R05—P1-R07 实现与全回归完成，待范围审计/独立复审 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -158,7 +158,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 集成 `p11-integrated-pr8-phase0-attempt01` 再次通过锁定参考、离线 Julia、smoke 和 P0.4 总门禁；summary SHA-256 为 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`；
 - 详细证据和非权威尝试见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
 
-### P1.2 映射、locator 包装与表层环境场构造
+### P1.2 映射、字段构造与湿点 pair 插值
 
 - 映射核心提交：`633d3f9af75b4a052303ec0d0a06edf40677e18c`；locator 包装提交：`14636cda2bc9da61da784752b1dec11e54d518f1`；
 - 新增规则网格映射状态、只针对完整 360° spherical-polar 域的经度规范化，以及正反局部映射；
@@ -171,7 +171,11 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 字段构造提交为 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`；四个真实单层数组只复制 `k=1`，经真实旋转后以两次标量交换发布；
 - `p12-field-20260824-a` 通过 7/7 summary 行，覆盖串行/MPI4 `Nr=2` 构建、P1-F01 均匀场和 P1-F02 旋转、干点及 halo；summary SHA-256 为 `97d21381200a8c8314de96302d790bb4aa995092a100bb9b83e42f27840d4492`；
 - 本增量后的映射 15/15、P1.1 42/42 与 Phase 0 4/4 回归均通过；
-- P1-R05/P1-R06 已完成；湿点 pair 插值与粒子运动尚未建立，详细证据见 `verification/bom/phase01-mapping/TEST_RESULTS.md` 和 `verification/bom/phase01-fields/TEST_RESULTS.md`。
+- 字段增量完成 P1-R06；该增量当时未加入湿点 pair 插值或粒子运动，证据见 mapping/fields 两份 `TEST_RESULTS.md`；
+- 插值提交为 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；`BOM_INTERP_WET_PAIR` 使用共同湿权重并以显式无效结果处理未就绪、缺 stencil、非有限和湿权重不足；
+- `p12-interp-20260824-a` 通过 9/9 summary 行，覆盖 P1-F03 全湿/部分湿和 P1-N05 串行/MPI4；summary SHA-256 为 `75fcde1ce34ceb1b43cb2ef8dcc6e323948db1edb6df2d4fb90329d8395be81a`；
+- 插值后的字段 7/7、映射 15/15、P1.1 42/42 和 Phase 0 4/4 回归全部通过；
+- P1-R05—P1-R07 的生产实现与全回归完成；P1.2 仍待范围审计和独立复审，证据见 `verification/bom/phase01-interp/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
 
@@ -398,6 +402,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 以 `WangYuLin <wang111936@outlook.com>` 创建功能提交 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`；
 - P1-R06 标记完成；未实现 `BOM_INTERP_WET_PAIR`、P1-F03/P1-N05 或任何粒子运动；
 - PR #10 保持 Draft，不创建 `MITGCM-BOM-v0.2` 标签，不开始 P1.3；下一增量只处理湿点 pair 插值。
+
+### 2026-08-24：P1.2 湿点 pair 插值
+
+- 实现 `BOM_INTERP_WET_PAIR`：实数范围预检、数学 floor、四点有限性检查、共同湿权重和显式无效返回；
+- `p12-interp-20260824-a` 首轮通过 9/9；插值后字段 7/7、映射 15/15、P1.1 42/42、Phase 0 4/4 全部通过；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建功能提交 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；
+- P1-R07 标记完成，P1-R05—P1-R07 的生产实现和执行证据已齐备；
+- 未实现粒子 RHS、位置推进、owner 迁移、风或 Stokes，也未开始 P1.3；
+- PR #10 保持 Draft，不创建 `MITGCM-BOM-v0.2` 标签；下一步只做 P1.2 最终范围审计和独立复审。
 
 ## 6. 每次会话结束时必须更新
 
