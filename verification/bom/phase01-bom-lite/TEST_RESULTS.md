@@ -138,7 +138,37 @@ No evidence directory was overwritten or removed.
 - No remaining source or test blocker was found. The only findings were stale recovery text and the missing P1-D014 row in the authoritative design-decision table; both are corrected in the documentation-only follow-up.
 - The full build matrix was not repeated after this follow-up because production source, gate scripts, generators, and inputs are unchanged from the authoritative runs; Markdown scope and consistency are checked statically.
 
-## 7. Deferred by work-package boundary
+## 7. Post-merge integration
+
+| Record | Value |
+|---|---|
+| PR | `wang111936/MITgcm#8` |
+| PR head | `d39a878ef647f5e4dbc2b47ef694563848ce8ba4` |
+| Merge commit | `ab30b3dc530404fda796189e50b8de776bf4441d` |
+| Merge parents | `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`, `d39a878ef647f5e4dbc2b47ef694563848ce8ba4` |
+| P1.1 integration ID | `p11-integrated-pr8-attempt01` |
+| Phase 0 integration ID | `p11-integrated-pr8-phase0-attempt01` |
+
+The P1.1 integration run used the merged `MITGCM-BOM/development` tree and passed 8/8 builds, 14/14 positive runs, 20/20 negative gates, and 104/104 checkpoint comparisons. Evidence roots are:
+
+```text
+/home/wyl/build/mitgcm-bom/phase01-state/p11-integrated-pr8-attempt01
+/home/wyl/runs/mitgcm-bom/phase01-state/p11-integrated-pr8-attempt01
+```
+
+Its `summary.tsv` SHA-256 is `93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7`, identical to the final pre-merge authoritative summary.
+
+The Phase 0 integration run passed locked-reference verification, offline Julia instantiation, the BOM-specific Julia smoke, and the complete P0.4 gate. P0.4 contributed 4/4 builds, 3/3 positive runs, 24/24 checkpoint comparisons, and 2/2 negative gates. Evidence roots are:
+
+```text
+/home/wyl/runs/mitgcm-bom/phase00-final-gate/p11-integrated-pr8-phase0-attempt01
+/home/wyl/build/mitgcm-bom/phase00-zero-particle/p11-integrated-pr8-phase0-attempt01-p04
+/home/wyl/runs/mitgcm-bom/phase00-zero-particle/p11-integrated-pr8-phase0-attempt01-p04
+```
+
+The Phase 0 `summary.tsv` SHA-256 is `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`; the nested P0.4 summary SHA-256 is `af87c782d2f7b1016677c32de98512e3430bb3fafab6ba2c6c2e18eba384f97d`. All run and build products remained outside the repository, and the working tree was clean after both gates.
+
+## 8. Deferred by work-package boundary
 
 - P1-S04a (WAITING initialization) is complete; P1-S04b (release-time substep split) requires P1.3 motion.
 - P1-N03a (initial global/tile capacity) is complete; P1-N03b requires P1.4 exchange buffers.

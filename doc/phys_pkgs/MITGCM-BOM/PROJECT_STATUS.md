@@ -4,27 +4,27 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-23 |
+| 最后更新 | 2026-08-24 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-01-state` |
-| 当前阶段 PR | `wang111936/MITgcm#8`（Ready，P1.1 状态与初值） |
+| 当前任务分支 | `MITGCM-BOM/phase-01-state-integration-record` |
+| 当前阶段 PR | 待创建（P1.1 集成记录） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.1：状态、参数、初始文件、64 位 ID 与容量门禁 |
-| 下一工作包 | 等待明确的 PR #8 合并授权；获准集成后建立 P1.2 映射与环境场分支 |
-| 当前阻塞 | 无；P1.1 最终独立复审已通过，PR #8 已进入 Ready 并等待明确的合并授权 |
+| 当前工作包 | P1.1：已集成，固化 merge commit 与集成回归证据 |
+| 下一工作包 | 复审并集成 P1.1 集成记录；随后建立 P1.2 映射与环境场分支 |
+| 当前阻塞 | 无；PR #8 已合并，集成 P1.1 与 Phase 0 门禁全部通过 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对当前分支基线为 PR #7 的 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
-2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对 `p11-physical-size-fix-attempt01` 与 `p11-physical-size-fix-phase0-attempt01`；
-3. 最终独立复审已完成且 PR #8 已标记 Ready：五项阻断均关闭，31 文件差异未发现剩余源码或测试问题；
-4. 未经明确授权不合并 PR；获准后使用 merge commit 并复跑集成门禁；
-5. 在 P1.1 合并和集成回归前不开始 P1.2、不创建 v0.2 标签。
+1. 核对 `MITGCM-BOM/development` 包含 PR #8 merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；
+2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对集成 ID `p11-integrated-pr8-attempt01` 与 `p11-integrated-pr8-phase0-attempt01`；
+3. 确认集成 P1.1 为 8/8 构建、14/14 正向、20/20 负向、104/104 checkpoint，Phase 0 总门禁全部通过；
+4. 完成 P1.1 集成记录分支的 Markdown 审计、提交、推送和独立复审，不加入 P1.2 源码；
+5. 集成记录获准合并后建立独立 P1.2 分支；`MITGCM-BOM-v0.2` 仍须等待 P1.1—P1.5 全部完成。
 
 开始前执行：
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 已合并；P1.1 五项阻断均关闭且最终独立复审通过，PR #8 已 Ready 并等待合并授权 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.1 集成回归通过，正在固化集成记录 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -139,7 +139,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - Phase 1 已进入 P1.0 设计冻结，尚未修改粒子运动源码；
 - 详细记录见 `verification/bom/phase00-final-gate/INTEGRATION_RESULTS.md`。
 
-### P1.1 状态与初值本地退出
+### P1.1 状态与初值完成及集成
 
 - PR #7 已以 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` 合并到 `MITGCM-BOM/development`；
 - 从该提交创建 `MITGCM-BOM/phase-01-state`，未混入其他项目文件；
@@ -153,7 +153,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 最终独立复审未发现剩余源码或测试问题；额外 bare-prefix 优先级探针正常结束且只有一个 owner，证明物理长度检查与 MDS 读取选择同一文件；
 - 生产代码未加入环境场、插值、粒子运动、迁移、轨迹或 pickup；
 - 功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d` 已推送并创建 draft PR #8；
-- PR #8 已进入 Ready，等待明确的 merge commit 合并授权；
+- PR #8 已以 merge commit `ab30b3dc530404fda796189e50b8de776bf4441d` 合并到 `MITGCM-BOM/development`；
+- 集成 `p11-integrated-pr8-attempt01` 再次通过 8/8 构建、14/14 正向、20/20 负向和 104/104 checkpoint；summary SHA-256 为 `93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7`；
+- 集成 `p11-integrated-pr8-phase0-attempt01` 再次通过锁定参考、离线 Julia、smoke 和 P0.4 总门禁；summary SHA-256 为 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`；
 - 详细证据和非权威尝试见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
@@ -313,6 +315,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 转换前 head 为 `32e6bafeb4d28427bc138d5390a11d86b65d0675`，PR 为 7 个提交、31 个文件、ahead 7/behind 0 且可合并；
 - 未合并 PR、未创建标签、未加入 P1.2+ 范围；
 - 下一步等待明确的 merge commit 合并授权，集成后必须复跑 P1.1 与 Phase 0 门禁。
+
+### 2026-08-24：PR #8 合并与集成回归
+
+- 合并前 PR #8 为 Ready、head `d39a878ef647f5e4dbc2b47ef694563848ce8ba4`、8 个提交、31 个文件、ahead 8/behind 0 且可合并，无状态检查、工作流、评审或评审线程；
+- 获得明确授权后使用 merge commit 合并，集成提交为 `ab30b3dc530404fda796189e50b8de776bf4441d`，双亲为 `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` 和 `d39a878ef647f5e4dbc2b47ef694563848ce8ba4`；
+- `p11-integrated-pr8-attempt01` 在集成提交上通过 8/8 构建、14/14 正向、20/20 负向和 104/104 checkpoint；证据位于 `/home/wyl/{build,runs}/mitgcm-bom/phase01-state/p11-integrated-pr8-attempt01`；
+- `p11-integrated-pr8-phase0-attempt01` 通过锁定参考、离线 Julia、BOM smoke 与 P0.4 的 4 构建、3 正向、24 checkpoint 和 2 负向；证据位于 `/home/wyl/runs/mitgcm-bom/phase00-final-gate/p11-integrated-pr8-phase0-attempt01`；
+- 两个主摘要 SHA-256 分别为 `93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7` 和 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`，与合并前权威结果一致；
+- 从集成提交建立 `MITGCM-BOM/phase-01-state-integration-record`，仅记录集成证据；未创建标签、未开始 P1.2。
 
 ## 6. 每次会话结束时必须更新
 
