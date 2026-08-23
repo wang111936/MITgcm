@@ -12,18 +12,18 @@
 | 当前任务分支 | `MITGCM-BOM/phase-01-mapping-environment` |
 | 当前阶段 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.2：映射与环境场接口冻结完成，生产实现待开始 |
-| 下一工作包 | 在当前分支实现正反映射与周期规范化，先通过 P1-M01/P1-M02/P1-N04 |
+| 当前工作包 | P1.2：首个映射增量完成；locator 兼容包装与环境场待实现 |
+| 下一工作包 | 将 `BOM_LOCATE_INITIAL` 收敛为新映射接口的兼容包装，并复跑映射/P1.1/Phase 0 门禁 |
 | 当前阻塞 | 无；P1.2 只支持规则 Cartesian 与未旋转 spherical-polar，其他拓扑按阶段边界明确拒绝 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment`，基线为 PR #9 merge commit `320a07d5eb2e2795ddd1e0b93ceaddd6c32a1621`；
-2. 读取 [P1.2 接口冻结](../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md)，不得改变冻结例程、周期和湿点失败语义后直接实现；
-3. 第一实现增量只加入域界、360° 球面周期规范化和正反映射，建立 P1-M01/P1-M02/P1-N04 证据；
-4. 映射门禁通过后才替换 P1.1 locator 内部实现，并完整复跑 P1.1/Phase 0；随后再加入表层场与湿点 pair 插值；
+1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment`，已验收功能提交为 `633d3f9af75b4a052303ec0d0a06edf40677e18c`；
+2. 读取 [P1.2 接口冻结](../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md)和[首个映射增量结果](../../../verification/bom/phase01-mapping/TEST_RESULTS.md)；
+3. 下一增量只将 `BOM_LOCATE_INITIAL` 收敛为 `BOM_MAP_XY2IJLOCAL` 的兼容包装，不建立环境场、不移动粒子；
+4. 包装完成后复跑 P1-M01/P1-M02/P1-N04、完整 P1.1 与 Phase 0 门禁；通过后再实现 `BOM_BUILD_FIELDS` 与 `BOM_INTERP_WET_PAIR`；
 5. P1.2 完整门禁和独立复审前不开始 P1.3，不创建 `MITGCM-BOM-v0.2`。
 
 开始前执行：
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 和集成记录已合并；P1.2 独立分支与接口冻结完成，生产实现待开始 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 和集成记录已合并；P1.2 首个映射增量与回归通过，locator 包装和环境场待实现 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -158,6 +158,17 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 集成 `p11-integrated-pr8-phase0-attempt01` 再次通过锁定参考、离线 Julia、smoke 和 P0.4 总门禁；summary SHA-256 为 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`；
 - 详细证据和非权威尝试见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
 
+### P1.2 首个映射增量
+
+- 功能提交：`633d3f9af75b4a052303ec0d0a06edf40677e18c`；
+- 新增规则网格映射状态、只针对完整 360° spherical-polar 域的经度规范化，以及正反局部映射；
+- owner 与 stencil 判定彼此独立，负分数 overlap 使用数学 floor，区域球面域不回绕也不裁剪；
+- `p12-map-20260824-b` 通过 3 项构建、3 项正向映射和 7 项 P1-N04 拒绝门禁，共 14/14 summary 行；
+- 映射 summary SHA-256 为 `52d3e2b26c043d870bcb1c21169dd307b1f96d449bdcba0c76327e258f6d9bde`；
+- `p12-regression-p11-20260824` 通过 8/8 构建、14/14 正向、20/20 负向和 104/104 checkpoint；
+- `p12-regression-p05-20260824` 通过 Phase 0 总门禁，嵌套 P0.4 为 4 构建、3 正向、2 负向和 24/24 checkpoint；
+- `BOM_LOCATE_INITIAL` 保持未修改，未建立环境场、插值或粒子运动；详细证据见 `verification/bom/phase01-mapping/TEST_RESULTS.md`。
+
 ## 4. 未决问题与风险
 
 | ID | 风险 | 当前处理 | 阻塞阶段 |
@@ -173,7 +184,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | R-009 | Phase 1 海洋步内冻结环境场，对真实时变驱动不具高阶时间精度 | 输出明确标记 `STEP_END_FROZEN`；Phase 2 以 old/new 快照和 B05 升级 | Phase 2 |
 | R-010 | Phase 1 pickup 只支持相同 MPI/tile 分解 | 写入并核对分解签名；变分解重启明确拒绝，后续单独设计 | Phase 5 |
 | R-011 | P1.1 为小型验证文件采用每 rank 全量读取 | 以 `bomInitGlobalLimit` 硬限制；P1.5 前复核可扩展分片读取，禁止直接用于百万粒子 | Phase 1.5 |
-| R-012 | P1.1 locator 只覆盖规则原生坐标初值分发 | P1.2 独立实现周期规范化、正反映射、stage stencil 和 Cartesian/spherical 测试 | Phase 1.2 |
+| R-012 | P1.1 locator 只覆盖规则原生坐标初值分发 | P1.2 周期规范化、正反映射和 stage stencil 已通过首个门禁；下一增量将 locator 收敛为兼容包装并复跑初值回归 | Phase 1.2 |
 
 ## 5. 会话记录
 
@@ -354,6 +365,16 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 以 `WangYuLin <wang111936@outlook.com>` 创建设计提交 `4d7bfa8dae16e8ca23d96043b6207a4b91a95f3e`，推送 `MITGCM-BOM/phase-01-mapping-environment` 并创建 Draft PR #10；
 - PR #10 初始范围为 1 个提交、6 个 Markdown、ahead 1/behind 0，无状态检查或工作流；
 - 本次设计增量仅为 Markdown，尚未实现生产 Fortran 或运行编译矩阵；下一增量从映射内核与 P1-M01/P1-M02/P1-N04 开始。
+
+### 2026-08-24：P1.2 首个映射增量
+
+- 在 `MITGCM-BOM/phase-01-mapping-environment` 实现映射状态、360° 球面周期规范化和规则网格正反映射；
+- 保持 P1.1 `BOM_LOCATE_INITIAL` 未修改，没有建立速度场、插值环境场或移动粒子；
+- 权威 `p12-map-20260824-b` 通过 regular debug、实际 OpenMP、实际 EXCH2 三套构建及 P1-M01/P1-M02/P1-N04 共 14/14 summary 行；
+- 非权威 `p12-map-20260824-a` 因固定格式字符串越过 72 列在编译期失败，修复后保留该失败目录且未覆盖；
+- `p12-regression-p11-20260824` 再次通过完整 P1.1 门禁，`p12-regression-p05-20260824` 再次通过 Phase 0 总门禁；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建功能提交 `633d3f9af75b4a052303ec0d0a06edf40677e18c`；
+- Draft PR #10 保持 Draft，不创建 `MITGCM-BOM-v0.2` 标签，不开始 P1.3；下一增量只处理 locator 兼容包装与对应回归。
 
 ## 6. 每次会话结束时必须更新
 
