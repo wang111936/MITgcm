@@ -1,0 +1,9 @@
+ &BOM_PARM01
+ bomMode='LEEW',
+ bomMaxParticles=0,
+ bomInitialFile=' ',
+ &
+ &BOM_PARM02
+ bomWindSource='NONE',
+ bomStokesSource='NONE',
+ &

@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 需求追踪
 
-状态：P1.1 状态与初值已验收；P1.2 接口已冻结、实现与门禁待执行
+状态：P1.1 状态与初值已验收；P1.2 首个映射增量通过，locator 包装与环境场仍待实现
 
 本表是 Phase 1 需求、计划例程和测试之间的权威映射。实现阶段不得把“已有代码”当作完成证据；只有对应测试通过并在 `TEST_RESULTS.md` 记录后，需求状态才能改为完成。
 
@@ -12,7 +12,7 @@
 | P1-R02 | 读取 schema 1 初始文件并拒绝损坏输入 | `BOM_INIT_VARIA`、`BOM_READ_INITIAL` | P1-S01、P1-N02 | P1.1 | P1.1 完成 |
 | P1-R03 | 全局 64 位 ID 唯一且交换/I/O 不失真 | `BOM_ID_FROM_WORDS`、后续 pack/交换/pickup | P1-S02、P1-X04、P1-P02 | P1.1、P1.4、P1.5 | P1.1 初值恢复与唯一性完成；交换/I/O 待后续 |
 | P1-R04 | 每 tile 权威 SoA、紧凑 owner 和容量安全 | `BOM.h`、`BOM_SIZE.h`、`BOM_READ_INITIAL`、后续 `BOM_CHECK_STATE` | P1-S03、P1-S04a、P1-N03a—N03b | P1.1、P1.4 | P1.1 状态/初值容量完成；运行/交换检查待后续 |
-| P1-R05 | 支持规则 Cartesian 与未旋转 spherical-polar 映射 | `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、`BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY`、兼容 `BOM_LOCATE_INITIAL` | P1-S03、P1-M01、P1-M02、P1-N04 | P1.1、P1.2 | P1.1 受限 locator 完成；P1.2 接口冻结、实现待完成 |
+| P1-R05 | 支持规则 Cartesian 与未旋转 spherical-polar 映射 | `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、`BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY`、兼容 `BOM_LOCATE_INITIAL` | P1-S03、P1-M01、P1-M02、P1-N04 | P1.1、P1.2 | 映射初始化、周期规范化和正反映射通过 P1-M01/M02/N04；兼容 locator 包装待完成 |
 | P1-R06 | 表层 C-grid U/V 正确转为 C 点 east/north | `BOM_BUILD_FIELDS`、`bomGrid*` 单层数组 | P1-F01、P1-F02 | P1.2 | 接口冻结、实现待完成 |
 | P1-R07 | 对湿点做一致的归一化双线性插值 | `BOM_INTERP_WET_PAIR` | P1-F03、P1-N05 | P1.2 | 接口冻结、实现待完成 |
 | P1-R08 | LEEW 海流 RHS 使用 SI 且坐标率转换正确 | `BOM_RHS_LEEWAY` | P1-I01、P1-I02、P1-I03 | P1.3 | 未实现 |
@@ -38,18 +38,18 @@
 
 权威执行证据见 [`TEST_RESULTS.md`](TEST_RESULTS.md)。P1.1 没有实现或宣称完成环境场、stage-time 映射、粒子运动、release 转换、交换、轨迹或 pickup。
 
-### P1.2 冻结反向追踪
+### P1.2 分阶段反向追踪
 
-| 计划生产例程/接口 | 需求 | 冻结验收 |
+| 生产例程/接口 | 需求 | 当前证据 |
 |---|---|---|
-| `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X` | P1-R05 | P1-M02、P1-N04 |
-| `BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY` | P1-R05 | P1-M01、P1-M02、P1-N04 |
-| `BOM_LOCATE_INITIAL` 兼容包装 | P1-R02、P1-R04、P1-R05 | P1-S03 与全部 P1.1 初值回归 |
-| `BOM_BUILD_FIELDS`、`bomGridUWork/bomGridVWork` | P1-R06 | P1-F01、P1-F02 |
-| `bomGridVEast/bomGridVNorth`、标量 halo exchange | P1-R06 | P1-F01、P1-F02、P1-Z01 |
-| `BOM_INTERP_WET_PAIR` | P1-R07 | P1-F03、P1-N05 |
+| `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X` | P1-R05 | P1-M02、P1-N04 已通过 |
+| `BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY` | P1-R05 | P1-M01、P1-M02、P1-N04 已通过 |
+| `BOM_LOCATE_INITIAL` 兼容包装 | P1-R02、P1-R04、P1-R05 | 待实现；完成后复跑 P1-S03 与全部 P1.1 门禁 |
+| `BOM_BUILD_FIELDS`、`bomGridUWork/bomGridVWork` | P1-R06 | 接口已冻结；P1-F01、P1-F02 待执行 |
+| `bomGridVEast/bomGridVNorth`、标量 halo exchange | P1-R06 | 接口已冻结；P1-F01、P1-F02、P1-Z01 待执行 |
+| `BOM_INTERP_WET_PAIR` | P1-R07 | 接口已冻结；P1-F03、P1-N05 待执行 |
 
-详细调用契约见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)。冻结记录不是完成证据；只有生产实现、工作包门禁、P1.1/Phase 0 回归与独立复审通过后，P1-R05—P1-R07 才能改为完成。
+详细调用契约见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)。首个映射增量证据见 [`../phase01-mapping/TEST_RESULTS.md`](../phase01-mapping/TEST_RESULTS.md)。完整 P1-R05 仍等待 locator 包装；P1-R06/P1-R07 仍等待环境场与湿点 pair 插值。只有 P1.2 全部生产实现、门禁、回归与独立复审通过后，整个工作包才能改为完成。
 
 ## 2. 上层验证编号映射
 

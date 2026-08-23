@@ -8,7 +8,7 @@ C !INTERFACE:
       SUBROUTINE BOM_INIT_FIXED( myThid )
 
 C !DESCRIPTION:
-C     Empty fixed-field initialization hook for the Phase-0 skeleton.
+C     Initialize the static Phase-1.2 regular-grid mapping state.
 
 C !USES:
       IMPLICIT NONE
@@ -16,6 +16,10 @@ C !USES:
 C !INPUT PARAMETERS:
       INTEGER myThid
 CEOP
+
+#ifdef ALLOW_BOM
+      CALL BOM_INIT_MAPPING( myThid )
+#endif
 
       RETURN
       END

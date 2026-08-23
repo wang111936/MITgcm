@@ -1,0 +1,5 @@
+ &W2_EXCH2_PARM01
+ preDefTopol=1,
+ dimsFacets=8,6,
+ W2_printMsg=0,
+ &
