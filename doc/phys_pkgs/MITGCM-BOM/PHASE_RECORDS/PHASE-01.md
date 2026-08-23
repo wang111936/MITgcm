@@ -7,7 +7,7 @@
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
 | 当前分支 | `MITGCM-BOM/phase-01-mapping-environment` |
-| 当前 PR | 待创建（P1.2 Draft） |
+| 当前 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前工作包 | P1.2 映射与环境场 |
 | 状态 | PR #9 已以 merge commit 合并；P1.2 独立分支已建立，接口冻结完成，生产实现与门禁待开始 |
 | 开始日期 | 2026-08-23 |
@@ -25,7 +25,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 进行中 | `MITGCM-BOM/phase-01-mapping-environment` / Draft PR 待创建 | 接口冻结完成；尚未修改生产源码 |
+| P1.2 映射与环境场 | 进行中 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Draft） | 接口冻结完成；尚未修改生产源码 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -185,4 +185,6 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - Julia `Leeway!` 只裁决 P1.3 RHS，不裁决 MITgcm C-grid、tile、halo、周期 owner 或湿点插值；
 - 形成 P1-D015—P1-D020：网格/粒子诊断分离命名、只对完整 360° 球面域回绕、east/north 标量交换、pair 插值显式有效性、Julia 映射非权威，以及负分数 overlap 使用数学 floor；
 - 冻结 `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、正反映射、`BOM_BUILD_FIELDS` 和 `BOM_INTERP_WET_PAIR` 的接口与失败边界；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建设计提交 `4d7bfa8dae16e8ca23d96043b6207a4b91a95f3e`，推送分支并创建 Draft PR #10；
+- Draft PR 初始远端范围为 1 个提交、6 个 Markdown、ahead 1/behind 0，无状态检查或工作流；
 - 本次只修改 Markdown，没有实现 Fortran、门禁脚本或测试输入，因此未运行编译矩阵。

@@ -10,7 +10,7 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-01-mapping-environment` |
-| 当前阶段 PR | 待创建（P1.2 Draft） |
+| 当前阶段 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.2：映射与环境场接口冻结完成，生产实现待开始 |
 | 下一工作包 | 在当前分支实现正反映射与周期规范化，先通过 P1-M01/P1-M02/P1-N04 |
@@ -351,6 +351,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 只读审计 MITgcm FLT 映射/插值、`ROTATE_UV2EN_RL`、现有 BOM 状态与锁定 Julia `Leeway!`；没有读取或修改其他开发工程；
 - 冻结 P1.2 数据布局、域界、完整 360° 球面周期规范化、正反映射、owner/stencil 分离、C-grid 转 east/north、标量 halo exchange、湿点 pair 插值和失败语义；
 - 新增 P1-D015—P1-D020，并把 P1-R05—P1-R07、P1-M01/M02、P1-F01—F03、P1-N04/N05 反向绑定到冻结接口；P1-D020 专门防止负分数 overlap 被 Fortran `INT` 向零截断后错选 stencil；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建设计提交 `4d7bfa8dae16e8ca23d96043b6207a4b91a95f3e`，推送 `MITGCM-BOM/phase-01-mapping-environment` 并创建 Draft PR #10；
+- PR #10 初始范围为 1 个提交、6 个 Markdown、ahead 1/behind 0，无状态检查或工作流；
 - 本次设计增量仅为 Markdown，尚未实现生产 Fortran 或运行编译矩阵；下一增量从映射内核与 P1-M01/P1-M02/P1-N04 开始。
 
 ## 6. 每次会话结束时必须更新
