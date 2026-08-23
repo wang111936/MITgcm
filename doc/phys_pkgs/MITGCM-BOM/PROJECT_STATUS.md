@@ -285,6 +285,16 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 以 `WangYuLin <wang111936@outlook.com>` 创建审查修复提交 `2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65`；
 - PR #8 保持 draft，未合并、未创建 `MITGCM-BOM-v0.2` 标签，下一步为独立复审。
 
+### 2026-08-23：P1.1 独立复审与物理长度修复
+
+- 独立复审构造 meta/header 均声明 128 字节、实际 `.data` 为 192 字节的输入，程序正常结束并静默忽略额外粒子记录；复现证据为 `p11-rereview-physical-trailing-attempt01`；
+- 在 `BOM_READ_INITIAL` 中镜像全局 MDS 文件名优先级，以 64 位整数校验实际物理长度，要求精确等于 `(nParticles+1)*8*8` 字节；
+- 扩展负测为 64 字节截断、192 字节完整额外记录和 129 字节单字节尾随，三者对 128 字节预期长度均由 BOM 主动拒绝；
+- `p11-physical-size-fix-attempt01` 完成 8/8 构建、14/14 正向、20/20 负向和 104/104 适用海洋哈希；summary SHA-256 为 `93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7`；
+- `p11-physical-size-fix-phase0-attempt01` 完成 Phase 0 最终回归；summary SHA-256 保持 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建物理长度修复提交 `40f5754b3b00ea4bb6a9b20c64c10e968080ad24`；
+- PR #8 继续保持 draft，未合并、未创建标签，下一步为修复后的最终独立复审。
+
 ## 6. 每次会话结束时必须更新
 
 1. 当前任务分支、当前工作包和下一工作包；
