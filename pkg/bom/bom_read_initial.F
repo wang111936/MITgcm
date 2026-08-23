@@ -25,6 +25,10 @@ C !INPUT PARAMETERS:
       INTEGER myThid
 CEOP
 
+C !FUNCTIONS:
+      INTEGER ILNBLNK
+      EXTERNAL ILNBLNK
+
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
       INTEGER bomRecordSize
@@ -41,14 +45,16 @@ C !LOCAL VARIABLES:
       INTEGER nFoundLocal, statusValue
       INTEGER errCount, globalErrCount, idError, k
       INTEGER metaFilePrec, metaNDims, metaNFlds, metaNTimRec
-      INTEGER metaDimList(3,3), metaNRecords, metaFileIter
+      INTEGER metaDimList(3,3), metaNRecords, metaFileIter, prefixLen
+      INTEGER*8 dataFileBytes, expectedFileBytes
       _RL ix, jy, ownerIx, ownerJy
       _RL metaTimList(1), metaMissingValue
       LOGICAL isLocal, isWet, recordValid, headerFinite, ownerWet
-      LOGICAL useCurrentDir
+      LOGICAL useCurrentDir, dataFileExists
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       CHARACTER*(MAX_LEN_MBUF) metaSimulation, metaTitle
       CHARACTER*8 metaFieldList(1)
+      CHARACTER*(MAX_LEN_FNAM) dataFileName
 
       nInput = 0
       nAssignedLocal = 0
@@ -214,6 +220,35 @@ C     precision, reserved, reserved.
      &       ' expected from header=', nInput+1
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
+      ENDIF
+
+C--   Cross-check the physical data-file length.  MDS_READVEC_LOC first
+C     tries the bare prefix, then the .data suffix for a global vector;
+C     use the same precedence here.  SIZE and the expected byte count are
+C     INTEGER*8 so the check remains safe beyond the P1.1 verification cap.
+      IF ( nInput.GT.0 .AND. errCount.EQ.0 ) THEN
+        prefixLen = ILNBLNK( bomInitialFile )
+        dataFileName = bomInitialFile
+        dataFileBytes = -1
+        INQUIRE( FILE=dataFileName, EXIST=dataFileExists,
+     &           SIZE=dataFileBytes )
+        IF ( .NOT.dataFileExists ) THEN
+          WRITE(dataFileName,'(2A)')
+     &         bomInitialFile(1:prefixLen), '.data'
+          dataFileBytes = -1
+          INQUIRE( FILE=dataFileName, EXIST=dataFileExists,
+     &             SIZE=dataFileBytes )
+        ENDIF
+        expectedFileBytes = INT(nInput+1,8)
+     &                    * INT(bomRecordSize,8) * 8_8
+        IF ( .NOT.dataFileExists .OR.
+     &       dataFileBytes.NE.expectedFileBytes ) THEN
+          WRITE(msgBuf,'(A,I20,A,I20)')
+     &         'BOM_READ_INITIAL: physical data bytes=', dataFileBytes,
+     &         ' expected=', expectedFileBytes
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
       ENDIF
 
       IF ( errCount.EQ.0 ) THEN

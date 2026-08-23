@@ -286,7 +286,7 @@ Phase 1 采用 BOM 独立的 MDS 风格全局二进制文件，不复用 FLT 文
 
 P1.1 可让各 rank 读取同一个小型 verification 全局文件，再只保留属于本 rank/tile 的记录，但必须受 `bomInitGlobalLimit` 硬上限保护；超过上限时明确停止。生产可扩展的分片读取属于 P1.5 前必须完成的设计复核项，不能把百万粒子永久 gather 到 rank 0，也不能让所有 ranks 永久读取完整生产文件。
 
-读取后执行：schema、记录数、有限数、ID 正数且全局唯一、状态、release time、坐标域、湿单元、全局上限和每 tile 容量检查。错误输入不得部分接受。
+读取前必须交叉验证 meta 和头记录计数，并要求 `<prefix>.data` 的实际长度精确等于 `(nParticles+1) * fieldsPerParticle * 8` 字节；截断、完整额外记录和任意残缺尾随字节均为致命错误。读取后执行：schema、有限数、ID 正数且全局唯一、状态、release time、坐标域、湿单元、全局上限和每 tile 容量检查。错误输入不得部分接受。
 
 为使 P1.1 的初值分发可独立验收，允许本工作包提供只服务于规则网格初始 owner 判定的 `BOM_LOCATE_INITIAL`。它不提供周期规范化、stage-time 映射、反向坐标变换或插值 stencil，不能替代 P1.2 的完整映射接口。
 

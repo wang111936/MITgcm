@@ -52,6 +52,9 @@ def scenario_records(name: str) -> tuple[tuple[float, ...], list[tuple[float, ..
     elif name == "trailing-record":
         records = valid[:2]
         header = (1.0, 8.0, 1.0, 1.0, 1.0, 64.0, 0.0, 0.0)
+    elif name == "partial-trailing":
+        records = valid[:1]
+        header = (1.0, 8.0, 1.0, 1.0, 1.0, 64.0, 0.0, 0.0)
     elif name == "duplicate":
         records = [valid[0], valid[0]]
         header = (1.0, 8.0, 2.0, 1.0, 1.0, 64.0, 0.0, 0.0)
@@ -123,6 +126,7 @@ def main() -> None:
             "missing-meta",
             "bad-meta-schema",
             "trailing-record",
+            "partial-trailing",
             "duplicate",
             "bad-schema",
             "bad-id",
@@ -147,12 +151,16 @@ def main() -> None:
     with data_path.open("wb") as stream:
         for record in [header, *records]:
             stream.write(struct.pack(">8d", *record))
+        if args.scenario == "partial-trailing":
+            stream.write(b"\x00")
     if args.scenario == "missing-meta":
         return
     if args.scenario == "bad-meta-schema":
         write_meta(meta_path, len(records) + 1, schema="BOMV0002")
     elif args.scenario == "truncated":
         write_meta(meta_path, 2)
+    elif args.scenario == "trailing-record":
+        write_meta(meta_path, int(header[2]) + 1)
     else:
         write_meta(meta_path, len(records) + 1)
 

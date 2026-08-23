@@ -420,13 +420,15 @@ run_negative infinite-age "${CASE_DIR}/input/data.bom.one" \
 run_negative bad-release "${CASE_DIR}/input/data.bom.one" \
   bad-release 'invalid release time record='
 run_negative truncated-file "${CASE_DIR}/input/data.bom.one" \
-  truncated 'MDS_READVEC_LOC'
+  truncated 'physical data bytes='
 run_negative missing-meta "${CASE_DIR}/input/data.bom.one" \
   missing-meta 'required MDS meta file is missing'
 run_negative bad-meta-schema "${CASE_DIR}/input/data.bom.one" \
   bad-meta-schema 'meta schema fields='
 run_negative trailing-record "${CASE_DIR}/input/data.bom.one" \
-  trailing-record 'meta records='
+  trailing-record 'physical data bytes='
+run_negative partial-trailing "${CASE_DIR}/input/data.bom.one" \
+  partial-trailing 'physical data bytes='
 run_negative outside-domain "${CASE_DIR}/input/data.bom.one" \
   outside 'owner count='
 run_negative tile-capacity "${CASE_DIR}/input/data.bom.capacity" \
