@@ -1,8 +1,45 @@
-# P1.2 first mapping increment results
+# P1.2 mapping and locator-wrapper results
 
 Status: **PASS**
 
-## Authoritative mapping gate
+## Current authoritative mapping and locator gate
+
+- test ID: `p12-locator-20260824-a`;
+- build root:
+  `/home/wyl/build/mitgcm-bom/phase01-mapping/p12-locator-20260824-a`;
+- run root:
+  `/home/wyl/runs/mitgcm-bom/phase01-mapping/p12-locator-20260824-a`;
+- result: 15/15 summary rows passed;
+- summary SHA-256:
+  `24ee80deb67395b9a8c14662d26e1da66be30b76ffc284ba409f15fc66c725d7`;
+- locator-source SHA-256:
+  `65b5810a06ebe649d39675e33115fb8af133ea9cd3b38131afaabd4c1b43a084`;
+- gate-driver SHA-256:
+  `282f9091c595cd963454cb976c76af2ae93ff18c23530691c25043718b2e85dd`.
+
+The gate passed production/test separation, the locator-wrapper audit, three
+fresh debug builds, three positive mapping cases, and seven P1-N04 rejection
+cases.  The wrapper audit proves that the public `BOM_LOCATE_INITIAL` symbol
+calls `BOM_MAP_XY2IJLOCAL`, retains `NINT(ix/jy)` center selection and the
+P1.1 `maskC` center-wet test, performs no direct `xG/yG` search, and does not
+use the future wet-pair interpolator.
+
+## Current regressions after the locator wrapper
+
+| Gate | Test ID | Result | Summary SHA-256 |
+|---|---|---|---|
+| P1.1 state/initial-file gate | `p12-locator-regression-p11-20260824` | 8/8 builds, 14/14 positive, 20/20 negative, 104/104 applicable checkpoint hashes PASS | `93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7` |
+| Phase 0 final gate | `p12-locator-regression-p05-20260824` | locked references, offline Julia smoke, and formal P0.4 gate PASS | `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2` |
+| nested P0.4 gate | `p12-locator-regression-p05-20260824-p04` | 4 builds, 3 positive, 2 negative, 24/24 checkpoint hashes PASS | `af87c782d2f7b1016677c32de98512e3430bb3fafab6ba2c6c2e18eba384f97d` |
+
+The P1.1 matrix supplies runtime evidence for unique owner selection, the
+MPI4 north-east internal-corner owner, owner-center wet/dry rejection,
+outside-domain rejection, and overlap-one GNU bounds checking.  Evidence is
+under `/home/wyl/{build,runs}/mitgcm-bom/phase01-state/` using the stated test
+ID.  Phase 0 evidence is under the corresponding `phase00-final-gate` and
+`phase00-zero-particle` roots.
+
+## Prior mapping-only authoritative gate
 
 - test ID: `p12-map-20260824-b`;
 - build root:
@@ -42,7 +79,7 @@ Fortran truncation: local index `-0.25` retains a valid overlap stencil while
 domains canonicalize equivalent longitudes; the regional case neither wraps
 nor clips them.
 
-## Regressions after the mapping increment
+## Prior regressions after the first mapping increment
 
 | Gate | Test ID | Result | Summary SHA-256 |
 |---|---|---|---|
@@ -66,7 +103,7 @@ overwritten; `p12-map-20260824-b` is the authoritative result.
 
 ## Scope boundary
 
-This increment publishes mapping state, longitude normalization, and forward
-and inverse regular-grid mapping.  It does not replace `BOM_LOCATE_INITIAL`,
-construct or interpolate environmental fields, move particles, start P1.3,
-or authorize a `MITGCM-BOM-v0.2` tag.
+The completed mapping portion now publishes mapping state, longitude
+normalization, forward/inverse regular-grid mapping, and a P1.1-compatible
+initial locator wrapper.  It does not construct or interpolate environmental
+fields, move particles, start P1.3, or authorize a `MITGCM-BOM-v0.2` tag.

@@ -76,7 +76,8 @@ build_case() {
   [[ -x "${build_dir}/mitgcmuv" ]] || fail "missing executable: ${case_name}"
   nm "${build_dir}/mitgcmuv" > "${build_dir}/symbols.txt"
   for symbol in bom_init_mapping_ bom_normalize_x_ \
-                bom_map_xy2ijlocal_ bom_map_ijlocal2xy_; do
+                bom_map_xy2ijlocal_ bom_map_ijlocal2xy_ \
+                bom_locate_initial_; do
     grep -q "${symbol}" "${build_dir}/symbols.txt" \
       || fail "missing ${symbol} in ${case_name}"
   done
@@ -190,6 +191,22 @@ if rg -n 'BOM_VERIFY_|P1-M0[12]' "${REPO_ROOT}/pkg/bom"; then
   fail 'verification hook leaked into production pkg/bom'
 fi
 printf 'source-separation\tPASS\tverification hook confined to case mods\n' \
+  >> "${RUN_ROOT}/summary.tsv"
+
+log 'audit initial-locator compatibility wrapper'
+readonly LOCATOR_SOURCE="${REPO_ROOT}/pkg/bom/bom_locate_initial.F"
+grep -q 'CALL BOM_MAP_XY2IJLOCAL' "${LOCATOR_SOURCE}" \
+  || fail 'initial locator does not call BOM_MAP_XY2IJLOCAL'
+grep -q 'ic = NINT(ix)' "${LOCATOR_SOURCE}" \
+  || fail 'initial locator lost P1.1 x-center selection'
+grep -q 'jc = NINT(jy)' "${LOCATOR_SOURCE}" \
+  || fail 'initial locator lost P1.1 y-center selection'
+grep -q 'maskC(ic,jc,1,bi,bj).GT.0.' "${LOCATOR_SOURCE}" \
+  || fail 'initial locator lost P1.1 center-wet test'
+if rg -n 'xG\(|yG\(|BOM_INTERP_WET_PAIR' "${LOCATOR_SOURCE}"; then
+  fail 'initial locator still maps directly or uses pair interpolation'
+fi
+printf 'locator-wrapper\tPASS\tnew mapping plus P1.1 center-wet semantics\n' \
   >> "${RUN_ROOT}/summary.tsv"
 
 build_case regular serial "${CASE_DIR}/code/packages.conf"
