@@ -12,9 +12,9 @@
 | 当前任务分支 | `MITGCM-BOM/phase-01-state-integration-record` |
 | 当前阶段 PR | `wang111936/MITgcm#9`（draft，P1.1 集成记录） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.1：已集成，固化 merge commit 与集成回归证据 |
-| 下一工作包 | 独立复审 draft PR #9；获准集成后建立 P1.2 映射与环境场分支 |
-| 当前阻塞 | 无；PR #8 已合并，集成 P1.1 与 Phase 0 门禁全部通过 |
+| 当前工作包 | P1.1：已集成，集成记录最终独立复审通过 |
+| 下一工作包 | 等待明确授权将 PR #9 标记 Ready；获准集成后建立 P1.2 映射与环境场分支 |
+| 当前阻塞 | 无；PR #8 已合并，集成门禁和 PR #9 最终独立复审全部通过 |
 
 ## 1. 当前恢复点
 
@@ -23,7 +23,7 @@
 1. 核对 `MITGCM-BOM/development` 包含 PR #8 merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；
 2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对集成 ID `p11-integrated-pr8-attempt01` 与 `p11-integrated-pr8-phase0-attempt01`；
 3. 确认集成 P1.1 为 8/8 构建、14/14 正向、20/20 负向、104/104 checkpoint，Phase 0 总门禁全部通过；
-4. 独立复审 draft PR #9 相对 `MITGCM-BOM/development` 的 3 个 Markdown、base/head、状态检查与评审线程，不加入 P1.2 源码；
+4. PR #9 最终独立复审已通过：远端范围严格为 3 个 Markdown，原始集成证据、base/head、状态检查与评审线程均已核对；
 5. 未经明确授权不把 PR #9 标记 Ready 或合并；获准集成后建立独立 P1.2 分支，`MITGCM-BOM-v0.2` 仍须等待 P1.1—P1.5 全部完成。
 
 开始前执行：
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.1 集成回归通过，正在固化集成记录 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.1 集成记录最终独立复审通过，PR #9 等待明确授权 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -324,6 +324,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - `p11-integrated-pr8-phase0-attempt01` 通过锁定参考、离线 Julia、BOM smoke 与 P0.4 的 4 构建、3 正向、24 checkpoint 和 2 负向；证据位于 `/home/wyl/runs/mitgcm-bom/phase00-final-gate/p11-integrated-pr8-phase0-attempt01`；
 - 两个主摘要 SHA-256 分别为 `93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7` 和 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`，与合并前权威结果一致；
 - 从集成提交建立 `MITGCM-BOM/phase-01-state-integration-record`，以提交 `804d80e1820a7a00376b659a372182373e215249` 记录集成证据并创建 draft PR #9；未创建标签、未开始 P1.2。
+
+### 2026-08-24：PR #9 最终独立复审
+
+- 复审快照：base `ab30b3dc530404fda796189e50b8de776bf4441d`、head `ad37693c89c5d251a2bab39ce39780819ae7a9a5`、2 个提交、3 个 Markdown、ahead 2/behind 0、可合并且保持 draft，无状态检查、工作流、评审或评审线程；
+- 远端完整补丁未包含 Fortran、脚本、生成器、输入、测试数据、标签或 P1.2 实现；
+- 原始证据核对为 42/42 P1.1 结果 PASS、13 份 checkpoint 日志共 104 行、4/4 Phase 0 总门禁结果 PASS、9/9 嵌套 P0.4 结果 PASS；merge commit 双亲和三份摘要哈希均与记录一致；
+- 发现并修正三类文档一致性问题：合并前门禁仍称“当前权威”、P1.2 仍写“等待 P1.1 门禁”、恢复点仍停留在“待独立复审”；
+- 修复仅涉及现有 3 个 Markdown，生产源码、门禁和证据不变，因此未重复执行编译矩阵；
+- PR #9 保持 draft，未标记 Ready、未合并、未创建标签，等待明确授权。
 
 ## 6. 每次会话结束时必须更新
 

@@ -27,7 +27,7 @@ Status: **PASS**
 | verification base | `verification/exp2` |
 | package list | `verification/bom/phase00-zero-particle/code/packages.conf` |
 
-## 2. Authoritative P1.1 gate
+## 2. Final pre-merge authoritative P1.1 gate
 
 Command:
 
@@ -88,7 +88,7 @@ b7638cc0eb9a3236f1ac43652dca593ce4a2a8681f62c11ec01aa46776438971  input/data.bom
 ff06dbed654ee04bdf5fe22b37960c259f1d6d9832b879a5b3e03c975979db4c  input/data.bom.bad-frequency
 ```
 
-## 4. Final Phase 0 regression
+## 4. Final pre-merge Phase 0 regression
 
 Command:
 
@@ -126,7 +126,7 @@ Locked references, offline Julia instantiation, BOM-specific Julia smoke, and th
 | `p11-state-review-fixes-attempt03` | 8/8 builds, 14/14 positive, and 19/19 then-defined negative gates passed | superseded after independent re-review exposed an unannounced physical trailing record |
 | `p11-rereview-physical-trailing-attempt01` | 192-byte data with meta/header declaring 128 bytes ended normally and silently ignored the extra record | retained as the reproducer that triggered the physical-length fix |
 | `p11-final-rereview-bare-prefix-attempt01` | bare prefix was 128 bytes while the suffixed `.data` was 192 bytes; the run ended normally with exactly one owner | confirms the reader and physical-size check share bare-prefix-first precedence |
-| previous Phase 0 attempts | passed | superseded by `p11-physical-size-fix-phase0-attempt01` on the physical-length fix source |
+| previous pre-merge Phase 0 attempts | passed | superseded pre-merge by `p11-physical-size-fix-phase0-attempt01`; current integration authority is `p11-integrated-pr8-phase0-attempt01` |
 
 No evidence directory was overwritten or removed.
 
@@ -138,7 +138,7 @@ No evidence directory was overwritten or removed.
 - No remaining source or test blocker was found. The only findings were stale recovery text and the missing P1-D014 row in the authoritative design-decision table; both are corrected in the documentation-only follow-up.
 - The full build matrix was not repeated after this follow-up because production source, gate scripts, generators, and inputs are unchanged from the authoritative runs; Markdown scope and consistency are checked statically.
 
-## 7. Post-merge integration
+## 7. Post-merge integration (current authoritative evidence)
 
 | Record | Value |
 |---|---|
@@ -167,6 +167,14 @@ The Phase 0 integration run passed locked-reference verification, offline Julia 
 ```
 
 The Phase 0 `summary.tsv` SHA-256 is `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`; the nested P0.4 summary SHA-256 is `af87c782d2f7b1016677c32de98512e3430bb3fafab6ba2c6c2e18eba384f97d`. All run and build products remained outside the repository, and the working tree was clean after both gates.
+
+### 7.1 Independent review of the integration record
+
+- Remote snapshot: base `ab30b3dc530404fda796189e50b8de776bf4441d`, head `ad37693c89c5d251a2bab39ce39780819ae7a9a5`, 2 commits, 3 Markdown files, ahead 2/behind 0, mergeable and draft, with no statuses, workflows, reviews, or review threads.
+- The complete remote patch contained no Fortran, scripts, generators, inputs, test data, tag, or P1.2 implementation.
+- Raw evidence checks found 42/42 P1.1 result rows PASS, 13 checkpoint logs containing 104 total successful comparisons, 4/4 Phase 0 final-gate rows PASS, and 9/9 nested P0.4 rows PASS. Merge parents and all three recorded summary hashes matched.
+- Review found documentation-only consistency issues: pre-merge evidence was still labelled current authoritative evidence, P1.2 still claimed to wait for the already-passed P1.1 gate, and the recovery point still requested this completed review. These statements are corrected in the same three Markdown files.
+- Production source, gates, inputs, and evidence are unchanged by the review follow-up, so the build matrices were not repeated.
 
 ## 8. Deferred by work-package boundary
 
