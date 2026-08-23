@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-00-integration-record` |
-| 当前阶段 PR | `wang111936/MITgcm#6`（Phase 0 集成记录，draft，待审查） |
+| 当前任务分支 | `MITGCM-BOM/development` |
+| 当前阶段 PR | `wang111936/MITgcm#6`（Phase 0 集成记录） |
 | 当前阶段 | Phase 0：参考基线与骨架设计（完成） |
-| 当前工作包 | Phase 0 集成记录：PR #1—#5 已合并，集成门禁已通过 |
-| 下一工作包 | 审查并合并 Phase 0 集成记录；之后单独决定是否创建 `MITGCM-BOM-v0.1` 标签 |
+| 当前工作包 | Phase 0 完成：PR #1—#5 已集成，PR #6 固化集成记录 |
+| 下一工作包 | 单独决定是否创建 `MITGCM-BOM-v0.1` 标签，并准备 Phase 1 需求与接口设计 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 审查 Phase 0 集成记录 PR #6，确认它只包含文档；
-2. 获得明确批准后，将 PR #6 合并到 `MITGCM-BOM/development`；
-3. 合并后核对开发分支包含集成记录，且模型源码与已验证提交一致；
-4. 单独决定是否从确认后的开发分支创建 `MITGCM-BOM-v0.1` 标签；
-5. 在 Phase 1 开始前建立 BOM-Lite 的需求、接口和最小测试设计。
+1. 核对 `MITGCM-BOM/development` 已包含 PR #6 的 Phase 0 集成记录；
+2. 单独决定是否从确认后的开发分支创建 `MITGCM-BOM-v0.1` 标签；
+3. 未获明确批准前不创建标签；
+4. 建立 Phase 1 BOM-Lite 的需求、接口、状态布局和最小测试设计；
+5. 设计评审通过后再建立 Phase 1 实现分支。
 
 开始前执行：
 
@@ -223,6 +223,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - Julia 8/8、P0.4 的 4/4 构建、3/3 正向运行、24/24 哈希和 2/2 负向门禁全部通过；
 - 同名测试 ID 的再次运行在写入前按预期拒绝，开发工作树保持干净；
 - 创建 `MITGCM-BOM/phase-00-integration-record`，只记录集成事实和阶段状态；
+- 以 `WangYuLin <wang111936@outlook.com>` 发布记录提交 `4e4f616d7ec97ec6e79a63879a2315e201cf47b1` 并创建 PR #6；
 - 未创建 `MITGCM-BOM-v0.1` 标签，未开始 Phase 1。
 
 ## 6. 每次会话结束时必须更新
