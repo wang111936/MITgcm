@@ -7,9 +7,9 @@
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
 | 当前分支 | `MITGCM-BOM/phase-01-state-integration-record` |
-| 当前 PR | `wang111936/MITgcm#9`（draft，P1.1 集成记录） |
+| 当前 PR | `wang111936/MITgcm#9`（Ready，P1.1 集成记录） |
 | 当前工作包 | P1.1 集成记录 |
-| 状态 | PR #8 已合并；P1.1/Phase 0 集成回归和 PR #9 最终独立复审通过，等待明确的 Ready 授权 |
+| 状态 | PR #8 已合并；P1.1/Phase 0 集成回归和 PR #9 最终独立复审通过，PR #9 已 Ready 并等待明确的合并授权 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -158,7 +158,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 从 `MITGCM-BOM/phase-01-state-integration-record` 恢复：
 
 1. 核对 PR #8 merge commit 为 `ab30b3dc530404fda796189e50b8de776bf4441d`，并复核两套集成测试 ID 与摘要哈希；
-2. PR #9 最终独立复审已通过；确认其仍为 draft、相对 `MITGCM-BOM/development` 严格只有 3 个 Markdown；
+2. PR #9 最终独立复审已通过并已标记 Ready；确认其相对 `MITGCM-BOM/development` 严格只有 3 个 Markdown；
 3. 集成记录 PR 不加入环境场、通用映射、粒子运动或交换等 P1.2+ 范围；
-4. 等待明确的 Ready 授权，不自动改变 draft 状态或合并；获准集成后从最新 `MITGCM-BOM/development` 创建独立 P1.2“映射与环境场”分支；
+4. 等待明确的 merge commit 合并授权，不自动合并；获准集成后从最新 `MITGCM-BOM/development` 创建独立 P1.2“映射与环境场”分支；
 5. `MITGCM-BOM-v0.2` 仅在 P1.1—P1.5 全部完成并通过 Phase 1 退出审计后创建。
