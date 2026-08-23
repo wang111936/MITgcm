@@ -10,11 +10,11 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-01-state` |
-| 当前阶段 PR | `wang111936/MITgcm#8`（draft，P1.1 状态与初值） |
+| 当前阶段 PR | `wang111936/MITgcm#8`（Ready，P1.1 状态与初值） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.1：状态、参数、初始文件、64 位 ID 与容量门禁 |
-| 下一工作包 | 等待明确授权将 PR #8 标记 Ready；获准集成后建立 P1.2 映射与环境场分支 |
-| 当前阻塞 | 无；P1.1 最终独立复审已通过，PR #8 保持 draft 并等待明确的 Ready/合并授权 |
+| 下一工作包 | 等待明确的 PR #8 合并授权；获准集成后建立 P1.2 映射与环境场分支 |
+| 当前阻塞 | 无；P1.1 最终独立复审已通过，PR #8 已进入 Ready 并等待明确的合并授权 |
 
 ## 1. 当前恢复点
 
@@ -22,8 +22,8 @@
 
 1. 核对当前分支基线为 PR #7 的 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
 2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对 `p11-physical-size-fix-attempt01` 与 `p11-physical-size-fix-phase0-attempt01`；
-3. 最终独立复审已完成：五项阻断均关闭，31 文件差异未发现剩余源码或测试问题，设计决定和恢复文档已同步；
-4. 未经明确授权不把 PR 标记 Ready 或合并；获准后使用 merge commit 并复跑集成门禁；
+3. 最终独立复审已完成且 PR #8 已标记 Ready：五项阻断均关闭，31 文件差异未发现剩余源码或测试问题；
+4. 未经明确授权不合并 PR；获准后使用 merge commit 并复跑集成门禁；
 5. 在 P1.1 合并和集成回归前不开始 P1.2、不创建 v0.2 标签。
 
 开始前执行：
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 已合并；P1.1 五项阻断均关闭且最终独立复审通过，PR #8 等待明确授权 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 已合并；P1.1 五项阻断均关闭且最终独立复审通过，PR #8 已 Ready 并等待合并授权 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -153,7 +153,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 最终独立复审未发现剩余源码或测试问题；额外 bare-prefix 优先级探针正常结束且只有一个 owner，证明物理长度检查与 MDS 读取选择同一文件；
 - 生产代码未加入环境场、插值、粒子运动、迁移、轨迹或 pickup；
 - 功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d` 已推送并创建 draft PR #8；
-- PR #8 保持 draft，等待明确的 Ready/合并授权；
+- PR #8 已进入 Ready，等待明确的 merge commit 合并授权；
 - 详细证据和非权威尝试见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
@@ -306,6 +306,13 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 发现唯一恢复入口仍引用旧门禁，且权威设计决定表缺少 P1-D014；已仅同步四份 Markdown，不改生产源码、门禁或输入；
 - 权威 P1.1/Phase 0 门禁后的变更仅为文档，因此未重复执行完整编译矩阵；
 - PR #8 保持 draft，未标记 Ready、未合并、未创建标签，等待明确授权。
+
+### 2026-08-23：PR #8 进入 Ready
+
+- 获得用户明确授权后，将 PR #8 从 draft 标记为 Ready for review；
+- 转换前 head 为 `32e6bafeb4d28427bc138d5390a11d86b65d0675`，PR 为 7 个提交、31 个文件、ahead 7/behind 0 且可合并；
+- 未合并 PR、未创建标签、未加入 P1.2+ 范围；
+- 下一步等待明确的 merge commit 合并授权，集成后必须复跑 P1.1 与 Phase 0 门禁。
 
 ## 6. 每次会话结束时必须更新
 

@@ -7,9 +7,9 @@
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
 | 当前分支 | `MITGCM-BOM/phase-01-state` |
-| 当前 PR | `wang111936/MITgcm#8`（draft） |
+| 当前 PR | `wang111936/MITgcm#8`（Ready） |
 | 当前工作包 | P1.1 状态与初值 |
-| 状态 | 五项阻断均关闭且最终独立复审通过，等待明确的 Ready 授权 |
+| 状态 | 五项阻断均关闭且最终独立复审通过，PR #8 已 Ready 并等待明确的合并授权 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -24,7 +24,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | 工作包 | 状态 | 分支/PR | 结论 |
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
-| P1.1 状态与初值 | 待授权 | `MITGCM-BOM/phase-01-state` / PR #8 | 5 项审查阻断已关闭；最终独立复审、扩展门禁与 Phase 0 回归通过 |
+| P1.1 状态与初值 | 待合并 | `MITGCM-BOM/phase-01-state` / PR #8 | 5 项审查阻断已关闭；最终独立复审通过且 PR 已 Ready |
 | P1.2 映射与环境场 | 未开始 | 待建立 | 等待 P1.1 门禁 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
@@ -128,7 +128,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 正式审查修复提交：`2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65`；
 - 物理长度修复提交：`40f5754b3b00ea4bb6a9b20c64c10e968080ad24`；
 - 作者与提交者：`WangYuLin <wang111936@outlook.com>`；
-- draft PR #8：`https://github.com/wang111936/MITgcm/pull/8`；
+- Ready PR #8：`https://github.com/wang111936/MITgcm/pull/8`；
 - base：`MITGCM-BOM/development@acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
 - 生产/门禁 head：`MITGCM-BOM/phase-01-state@40f5754b3b00ea4bb6a9b20c64c10e968080ad24`；
 - 当前不合并、不创建 `MITGCM-BOM-v0.2` 标签。
@@ -144,10 +144,10 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 ## 8. 下一恢复点
 
-从 draft PR #8 恢复：
+从 Ready PR #8 恢复：
 
-1. 最终独立复审已完成；先确认 PR #8 仍为 draft、相对 `MITGCM-BOM/development` 保持 31 文件独立差异；
-2. 等待明确的 Ready 授权，不自动改变 draft 状态；
+1. 最终独立复审已完成且 PR #8 已标记 Ready；先确认其相对 `MITGCM-BOM/development` 保持 31 文件独立差异；
+2. 等待明确的 merge commit 合并授权，不自动合并；
 3. 本 PR 不加入环境场、通用映射、粒子运动或交换等 P1.2+ 范围；
 4. 获得明确合并授权后使用 merge commit，并在集成分支复跑 P1.1 与 Phase 0 门禁；
 5. 集成通过前不创建 `MITGCM-BOM-v0.2` 标签；通过后创建独立 P1.2“映射与环境场”分支。
