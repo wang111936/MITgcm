@@ -10,7 +10,7 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-01-state` |
-| 当前阶段 PR | 待创建（P1.1 状态与初值） |
+| 当前阶段 PR | `wang111936/MITgcm#8`（draft，P1.1 状态与初值） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.1：状态、参数、初始文件、64 位 ID 与容量门禁 |
 | 下一工作包 | P1.1 评审集成后建立 P1.2 映射与环境场分支 |
@@ -22,8 +22,8 @@
 
 1. 核对当前分支基线为 PR #7 的 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
 2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对 `p11-state-attempt05` 与 `p11-phase0-regression-attempt03`；
-3. 审计 diff 只包含 `pkg/bom`、`verification/bom/phase01-bom-lite` 和本阶段文档；
-4. 提交、推送并创建面向 `MITGCM-BOM/development` 的 P1.1 draft PR；
+3. 审查 draft PR #8 的 30 文件独立差异、base/head SHA、评审线程和状态检查；
+4. 未经明确授权不把 PR 标记 ready 或合并；获准后使用 merge commit 并复跑集成门禁；
 5. 在 P1.1 合并和集成回归前不开始 P1.2、不创建 v0.2 标签。
 
 开始前执行：
@@ -149,6 +149,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 最终 `p11-phase0-regression-attempt03`：锁定参考、离线 Julia、专用 smoke 和 P0.4 总门禁全部通过；
 - P1-D013 允许 P1.1 受限初值 locator，并将内部边界统一为 `[west,east) x [south,north)`；
 - 生产代码未加入环境场、插值、粒子运动、迁移、轨迹或 pickup；
+- 功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d` 已推送并创建 draft PR #8；
 - 详细证据和非权威尝试见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
@@ -270,6 +271,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - `p11-state-attempt04` 的扩展矩阵通过；最终文件同步后，权威 `attempt05` 再次完成 4 构建、7 正向、16 负向并全部通过；
 - `p11-phase0-regression-attempt03` 在最终源码上完成 Phase 0 总回归并通过；
 - 形成 P1-D013，拆分 P1-S04/P1-N03 的跨工作包验收边界；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d`，推送阶段分支并创建 draft PR #8；
 - 当前尚未加入 P1.2 环境场/通用映射或 P1.3 粒子运动。
 
 ## 6. 每次会话结束时必须更新

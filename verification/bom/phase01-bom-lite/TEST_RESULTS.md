@@ -7,7 +7,7 @@ Status: **PASS**
 | Date | 2026-08-23 |
 | Branch | `MITGCM-BOM/phase-01-state` |
 | Base/PR #7 merge | `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
-| P1.1 feature commit | pending at test execution; the tested production code, gate, generator, and inputs are the content prepared for that commit |
+| P1.1 feature commit | `c5ee5549a504ed428f152bbc5022368095a1752d`; tests ran immediately before this commit from identical production code, gate, generator, and inputs |
 | Working tree during execution | intentionally dirty with the uncommitted P1.1 work package; build and run products were outside the repository |
 
 ## 1. Locked references and environment

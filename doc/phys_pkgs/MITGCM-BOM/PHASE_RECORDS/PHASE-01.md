@@ -7,9 +7,9 @@
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
 | 当前分支 | `MITGCM-BOM/phase-01-state` |
-| 当前 PR | 待创建（P1.1 状态与初值） |
+| 当前 PR | `wang111936/MITgcm#8`（draft） |
 | 当前工作包 | P1.1 状态与初值 |
-| 状态 | 本地实现与门禁完成，待提交评审 |
+| 状态 | 已发布 draft PR，待评审 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -24,7 +24,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | 工作包 | 状态 | 分支/PR | 结论 |
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
-| P1.1 状态与初值 | 本地完成 | `MITGCM-BOM/phase-01-state` / 待创建 PR | 正式门禁与 Phase 0 回归通过，待评审集成 |
+| P1.1 状态与初值 | 待评审 | `MITGCM-BOM/phase-01-state` / PR #8 | 正式门禁与 Phase 0 回归通过，draft PR 已发布 |
 | P1.2 映射与环境场 | 未开始 | 待建立 | 等待 P1.1 门禁 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
@@ -112,6 +112,15 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - `p11-state-attempt04`：扩展门禁通过；最终文件同步后由 attempt05 再次验证并取代；
 - 上述目录均保留且未覆盖，只有 `p11-state-attempt05` 是 P1.1 权威通过证据。
 
+### 6.5 GitHub 记录
+
+- 功能提交：`c5ee5549a504ed428f152bbc5022368095a1752d`；
+- 作者与提交者：`WangYuLin <wang111936@outlook.com>`；
+- draft PR #8：`https://github.com/wang111936/MITgcm/pull/8`；
+- base：`MITGCM-BOM/development@acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
+- head：`MITGCM-BOM/phase-01-state@c5ee5549a504ed428f152bbc5022368095a1752d`；
+- 当前不合并、不创建 `MITGCM-BOM-v0.2` 标签。
+
 ## 7. Phase 1 总退出条件
 
 - [ ] P1.1—P1.5 全部完成并顺序集成；
@@ -123,10 +132,10 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 ## 8. 下一恢复点
 
-从 `MITGCM-BOM/phase-01-state` 恢复：
+从 draft PR #8 恢复：
 
-1. 复核 P1.1 diff 只包含 `pkg/bom`、P1.1 verification 和阶段文档；
-2. 以 `WangYuLin <wang111936@outlook.com>` 提交并推送当前分支，创建面向 `MITGCM-BOM/development` 的 draft PR；
-3. PR 评审期间不加入环境场、通用映射、粒子运动或交换；
-4. P1.1 合并并在集成分支复跑门禁前不创建 `MITGCM-BOM-v0.2` 标签；
-5. P1.1 集成通过后创建独立 P1.2“映射与环境场”分支。
+1. 复核 PR #8 相对 `MITGCM-BOM/development` 的 30 文件独立差异和设计边界；
+2. 检查评审线程、提交状态与 base/head SHA，不把 draft 自动标记 ready；
+3. 评审期间不加入环境场、通用映射、粒子运动或交换；
+4. 获得明确合并授权后使用 merge commit，并在集成分支复跑 P1.1 与 Phase 0 门禁；
+5. 集成通过前不创建 `MITGCM-BOM-v0.2` 标签；通过后创建独立 P1.2“映射与环境场”分支。
