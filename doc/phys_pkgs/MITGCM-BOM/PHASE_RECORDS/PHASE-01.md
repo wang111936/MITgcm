@@ -6,10 +6,10 @@
 | 目标版本 | `MITGCM-BOM-v0.2` |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
-| 当前分支 | `MITGCM-BOM/phase-01-state-integration-record` |
-| 当前 PR | `wang111936/MITgcm#9`（Ready，P1.1 集成记录） |
-| 当前工作包 | P1.1 集成记录 |
-| 状态 | PR #8 已合并；P1.1/Phase 0 集成回归和 PR #9 最终独立复审通过，PR #9 已 Ready 并等待明确的合并授权 |
+| 当前分支 | `MITGCM-BOM/phase-01-mapping-environment` |
+| 当前 PR | 待创建（P1.2 Draft） |
+| 当前工作包 | P1.2 映射与环境场 |
+| 状态 | PR #9 已以 merge commit 合并；P1.2 独立分支已建立，接口冻结完成，生产实现与门禁待开始 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -25,7 +25,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 未开始 | 待建立 | 等待 P1.1 集成记录收口 |
+| P1.2 映射与环境场 | 进行中 | `MITGCM-BOM/phase-01-mapping-environment` / Draft PR 待创建 | 接口冻结完成；尚未修改生产源码 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -155,10 +155,34 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 ## 8. 下一恢复点
 
-从 `MITGCM-BOM/phase-01-state-integration-record` 恢复：
+从 `MITGCM-BOM/phase-01-mapping-environment` 恢复：
 
-1. 核对 PR #8 merge commit 为 `ab30b3dc530404fda796189e50b8de776bf4441d`，并复核两套集成测试 ID 与摘要哈希；
-2. PR #9 最终独立复审已通过并已标记 Ready；确认其相对 `MITGCM-BOM/development` 严格只有 3 个 Markdown；
-3. 集成记录 PR 不加入环境场、通用映射、粒子运动或交换等 P1.2+ 范围；
-4. 等待明确的 merge commit 合并授权，不自动合并；获准集成后从最新 `MITGCM-BOM/development` 创建独立 P1.2“映射与环境场”分支；
-5. `MITGCM-BOM-v0.2` 仅在 P1.1—P1.5 全部完成并通过 Phase 1 退出审计后创建。
+1. 核对分支基线为 PR #9 merge commit `320a07d5eb2e2795ddd1e0b93ceaddd6c32a1621`，双亲为 `ab30b3dc530404fda796189e50b8de776bf4441d` 和 `09a9590456c6e50072ce707607011fd535c523b3`；
+2. 以 [`P1.2_INTERFACE_FREEZE.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md) 作为 P1.2 生产接口、失败语义和门禁的权威入口；
+3. 先实现 `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、`BOM_MAP_XY2IJLOCAL` 和 `BOM_MAP_IJLOCAL2XY`，通过 P1-M01/P1-M02/P1-N04；
+4. 再把 `BOM_LOCATE_INITIAL` 收敛为兼容包装并复跑全部 P1.1 门禁，然后实现 `BOM_BUILD_FIELDS` 与 `BOM_INTERP_WET_PAIR`；
+5. P1.2 完整门禁和独立复审前不开始 P1.3，不创建 `MITGCM-BOM-v0.2` 标签。
+
+## 9. P1.2 启动记录
+
+### 9.1 PR #9 合并与基线
+
+- PR #9 已以 merge commit `320a07d5eb2e2795ddd1e0b93ceaddd6c32a1621` 合并；
+- 合并双亲为原 `development@ab30b3dc530404fda796189e50b8de776bf4441d` 与 PR head `09a9590456c6e50072ce707607011fd535c523b3`；
+- 合并范围保持 3 个 Markdown，四个 PR 项目提交作者均为 `WangYuLin <wang111936@outlook.com>`；
+- 本地 `MITGCM-BOM/development` 已快进到合并提交，工作树干净，未创建 `MITGCM-BOM-v0.2`。
+
+### 9.2 P1.2 分支与环境
+
+- 从 `development@320a07d5eb2e2795ddd1e0b93ceaddd6c32a1621` 创建 `MITGCM-BOM/phase-01-mapping-environment`；
+- 仓库 Git 身份固定为 `WangYuLin <wang111936@outlook.com>`；
+- MITGCM-BOM 专用环境自检通过：GNU Fortran 11.4、OpenMPI 4.1.2、NetCDF-C 4.8.1、NetCDF-Fortran 4.5.4、fortls 3.2.2、Julia 1.10.12、MPI smoke；
+- 源码、构建和运行根分别保持 `/home/wyl/projects/mitgcm-bom`、`/home/wyl/build/mitgcm-bom`、`/home/wyl/runs/mitgcm-bom`。
+
+### 9.3 P1.2 接口冻结
+
+- 只读审计 `pkg/flt/flt_mapping.F`、`flt_interp_linear.F`、`model/src/rotate_uv2en.F`、当前 `pkg/bom` 与锁定 Julia checkout；
+- Julia `Leeway!` 只裁决 P1.3 RHS，不裁决 MITgcm C-grid、tile、halo、周期 owner 或湿点插值；
+- 形成 P1-D015—P1-D020：网格/粒子诊断分离命名、只对完整 360° 球面域回绕、east/north 标量交换、pair 插值显式有效性、Julia 映射非权威，以及负分数 overlap 使用数学 floor；
+- 冻结 `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、正反映射、`BOM_BUILD_FIELDS` 和 `BOM_INTERP_WET_PAIR` 的接口与失败边界；
+- 本次只修改 Markdown，没有实现 Fortran、门禁脚本或测试输入，因此未运行编译矩阵。

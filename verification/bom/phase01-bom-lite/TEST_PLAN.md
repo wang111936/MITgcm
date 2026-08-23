@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.1 状态与初值门禁已执行；P1.2—P1.5 保持计划状态
+状态：P1.1 状态与初值门禁已执行；P1.2 接口和判据已冻结、执行待开始；P1.3—P1.5 保持计划状态
 
 P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 
@@ -13,6 +13,8 @@ P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边�
 /home/wyl/runs/mitgcm-bom/phase01-state/<test-id>/
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/<test-id>/
 ```
+
+P1.2 使用新的 `p12-*` test ID，并把构建/运行根分别放在 `phase01-mapping` 下；不得复用或覆盖 `phase01-state/p11-*` 证据。冻结接口见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)。
 
 每次运行使用唯一 `test-id`，拒绝覆盖已有证据目录。最终在本目录提交紧凑的 `TEST_RESULTS.md`，至少记录：
 
@@ -47,8 +49,8 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 | P1-N03 | 容量溢出父项 | P1-R04 | 由 P1-N03a 与 P1-N03b 完成，不静默截断 |
 | P1-N03a | 初值全局或 tile 容量溢出 | P1-R04 | 输出 tile/需要量/上限后停止，不截断 |
 | P1-N03b | 交换发送或接收容量溢出 | P1-R04、P1-R12 | P1.4 输出 rank/方向/需要量/上限后停止 |
-| P1-N04 | rotated、curvilinear、EXCH2 或多线程 | P1-R05 | Phase 1 明确拒绝并说明支持范围 |
-| P1-N05 | 湿权重不足或域外插值 | P1-R07 | 明确停止，不做常数外推或静默搁浅 |
+| P1-N04 | rotated、curvilinear、EXCH2、`usingPCoords`、多线程、非正网格间距或不一致域界 | P1-R05 | Phase 1 明确拒绝并说明支持范围；不能建立部分映射状态 |
+| P1-N05 | 域外/缺失 stencil、字段未就绪、非有限字段或湿权重不足 | P1-R07 | 输出 tile、局部索引和湿权重后明确停止，不做夹取、常数外推或静默搁浅 |
 | P1-N06 | 风系数非零但 source NONE；EXF 未编译/未启用 | P1-R09 | 依赖检查失败，信息包含 source 和系数 |
 | P1-N07 | `bomStokesSource=FILES/COUPLER` | P1-R10 | Phase 1 明确拒绝，不读取外部文件 |
 | P1-N08 | NaN RHS、CFL/overlap 超限 | P1-R16 | 输出粒子 ID 和局部量后全局停止 |
@@ -68,11 +70,11 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 
 | ID | 场景 | 需求 | 判据 |
 |---|---|---|---|
-| P1-M01 | 规则 Cartesian 原生坐标与局部 ij 往返 | P1-R05 | 内点接近舍入误差，边界遵守半开区间 |
-| P1-M02 | spherical-polar、周期经度与非零纬度 | P1-R05 | 经度规范化、局部 ij 和 owner 正确 |
-| P1-F01 | 均匀 model-grid U/V，经旋转到 east/north | P1-R06 | C 点向量与解析值接近舍入误差 |
-| P1-F02 | 人工角度场与 mask | P1-R06 | 旋转方向、colocation 和掩膜正确 |
-| P1-F03 | 常数/线性 C 点场的随机粒子插值 | P1-R07 | 常数精确，线性场达到双线性解析容差 |
+| P1-M01 | 规则 Cartesian 原生坐标与局部 ij 往返，覆盖内点、面、内部角点及西/南负分数 overlap | P1-R05 | 规范化坐标往返接近舍入误差；半开 owner 全局唯一；`isOwner`、`hasStencil` 与数学 floor 低端索引正确 |
+| P1-M02 | 全球/区域 spherical-polar、±360° 等价经度、上界和非零纬度 | P1-R05 | 全球域经度规范化到半开域且 owner 唯一；区域域不回绕；反向映射返回规范化值 |
+| P1-F01 | `Nr>1` 配置中的均匀表层 model-grid U/V，经真实 `ROTATE_UV2EN_RL` 转到 east/north | P1-R06 | 真正 `kSize=1` 数组无步长混淆；所有湿 C 点向量达到尺度化舍入容差 |
+| P1-F02 | 人工 angle/mask、多 tile halo | P1-R06 | 旋转符号、C-grid colocation、干点零值和交换后共享 halo 一致；不宣称支持 `rotateGrid` |
+| P1-F03 | 常数/双线性可表示 C 点 pair 场的确定性粒子集合，全湿与部分湿 stencil | P1-R07 | 常数在舍入范围内保持；全湿线性场达解析容差；部分湿时两分量复用同一归一化权重 |
 
 ## 6. 积分与解析轨迹
 
