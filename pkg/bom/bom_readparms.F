@@ -8,7 +8,7 @@ C !INTERFACE:
       SUBROUTINE BOM_READPARMS( myThid )
 
 C !DESCRIPTION:
-C     Set the Phase-0 defaults and read the pkg/bom namelist.
+C     Set the Phase-1.1 defaults and read the pkg/bom namelists.
 C     Return without reading data.bom when useBOM is false.
 
 C !USES:
@@ -16,6 +16,7 @@ C !USES:
 #include "SIZE.h"
 #include "EEPARAMS.h"
 #include "PARAMS.h"
+#include "BOM_SIZE.h"
 #include "BOM.h"
 
 C !INPUT PARAMETERS:
@@ -26,11 +27,17 @@ CEOP
 C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER iUnit
+      INTEGER iErr
 
       NAMELIST /BOM_PARM01/
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
      &       bomSeed, bomMaxParticles, bomInitialFile
+      NAMELIST /BOM_PARM02/
+     &       bomLeewayWindCoeff, bomWindSource,
+     &       bomStokesSource, bomWetWeightMin, bomAdvCFL,
+     &       bomMaxHop, bomInitGlobalLimit,
+     &       bomCheckEverySubstep
 
       IF ( .NOT.useBOM ) THEN
 C-    pkg BOM is not used; report an unexpected data.bom if present.
@@ -42,16 +49,24 @@ C-    pkg BOM is not used; report an unexpected data.bom if present.
 
       _BEGIN_MASTER(myThid)
 
-C--   Safe Phase-0 defaults: compile and configure, but move no particles.
+C--   Safe Phase-1.1 defaults: state is optional and never moves here.
       bomMode          = 'LEEW'
       bomEquationMode  = 'PAPER2024'
       bomIntegrator    = 'RK4'
       bomDeltaTTarget  = deltaTClock
       bomOutputFreq    = 3600. _d 0
-      bomPickupFreq    = 86400. _d 0
+      bomPickupFreq    = 0. _d 0
       bomSeed           = 20240801
       bomMaxParticles   = 0
       bomInitialFile    = ' '
+      bomLeewayWindCoeff = 0. _d 0
+      bomWindSource       = 'NONE'
+      bomStokesSource     = 'NONE'
+      bomWetWeightMin     = 0.5 _d 0
+      bomAdvCFL           = 0.5 _d 0
+      bomMaxHop            = 8
+      bomInitGlobalLimit   = bomMaxInitRecords
+      bomCheckEverySubstep = .TRUE.
 
       WRITE(msgBuf,'(A)') 'BOM_READPARMS: opening data.bom'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -62,6 +77,14 @@ C--   Safe Phase-0 defaults: compile and configure, but move no particles.
      I                     myThid )
 
       READ(UNIT=iUnit,NML=BOM_PARM01)
+      READ(UNIT=iUnit,NML=BOM_PARM02,IOSTAT=iErr)
+      IF ( iErr.GT.0 ) THEN
+        WRITE(msgBuf,'(A,I8)')
+     &       'BOM_READPARMS: invalid BOM_PARM02, IOSTAT=', iErr
+        CALL PRINT_ERROR( msgBuf, myThid )
+        CALL ALL_PROC_DIE( 0 )
+        STOP 'ABNORMAL END: S/R BOM_READPARMS'
+      ENDIF
       WRITE(msgBuf,'(A)')
      &    'BOM_READPARMS: finished reading data.bom'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,

@@ -4,7 +4,7 @@
 
 | 项目 | 值 |
 |---|---|
-| 设计版本 | 1.0 |
+| 设计版本 | 1.1（P1.1 实现修订） |
 | 日期 | 2026-08-23 |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
@@ -253,7 +253,7 @@ Phase 1 拒绝包含极点或使 `cos(phi)` 小于安全阈值的网格。
 
 Phase 1 采用 BOM 独立的 MDS 风格全局二进制文件，不复用 FLT 文件。前缀由 `bomInitialFile` 给出，包含：
 
-- `<prefix>.meta`：标准维度、精度和记录数元数据，并记录 BOM schema；
+- `<prefix>.meta`：标准维度、精度和记录数元数据，并以 `fldList(1)='BOMV0001'` 记录 BOM schema；
 - `<prefix>.data`：big-endian IEEE 64-bit 记录。
 
 第一个记录为 8 个 `_RL` 头字段：
@@ -286,7 +286,9 @@ Phase 1 采用 BOM 独立的 MDS 风格全局二进制文件，不复用 FLT 文
 
 P1.1 可让各 rank 读取同一个小型 verification 全局文件，再只保留属于本 rank/tile 的记录，但必须受 `bomInitGlobalLimit` 硬上限保护；超过上限时明确停止。生产可扩展的分片读取属于 P1.5 前必须完成的设计复核项，不能把百万粒子永久 gather 到 rank 0，也不能让所有 ranks 永久读取完整生产文件。
 
-读取后执行：schema、记录数、有限数、ID 正数且全局唯一、状态、release time、坐标域、湿单元、全局上限和每 tile 容量检查。错误输入不得部分接受。
+读取前必须交叉验证 meta 和头记录计数，并要求 `<prefix>.data` 的实际长度精确等于 `(nParticles+1) * fieldsPerParticle * 8` 字节；截断、完整额外记录和任意残缺尾随字节均为致命错误。读取后执行：schema、有限数、ID 正数且全局唯一、状态、release time、坐标域、湿单元、全局上限和每 tile 容量检查。错误输入不得部分接受。
+
+为使 P1.1 的初值分发可独立验收，允许本工作包提供只服务于规则网格初始 owner 判定的 `BOM_LOCATE_INITIAL`。它不提供周期规范化、stage-time 映射、反向坐标变换或插值 stencil，不能替代 P1.2 的完整映射接口。
 
 ## 8. 环境场接口
 
@@ -333,7 +335,7 @@ Phase 1 只支持：
 
 映射算法可参考 `FLT_MAP_XY2IJLOCAL` 和 `FLT_MAP_IJLOCAL2XY`，但使用独立的 `BOM_` 例程、独立 mask 语义和错误处理，不在运行时调用 FLT 例程。
 
-边界恰好命中时采用半开区间：西/南含边界，东/北不含边界；tile 角点按全局 tile 编号最小者拥有。周期经度先规范化到模型域，再执行相同判定。
+边界恰好命中时采用 `[west,east) x [south,north)` 半开区间。内部边界因此归属于以该点为西/南边界的东/北侧 tile；内部角点归属于东北侧 tile，不再另设“全局 tile 编号最小”这一相互矛盾的 tie-break。若数值误差仍产生多个候选 owner，必须停止。周期经度在 P1.2 先规范化到模型域，再执行相同判定。
 
 ### 9.2 RK 定义
 
@@ -443,6 +445,8 @@ drift_east, drift_north, owner_rank, owner_tile
 | P1-D010 | Phase 1 pickup 限相同分解 | 先建立确定性重启，再设计可扩展重分片读取 |
 | P1-D011 | 海岸插值失败在 Phase 1 为致命错误 | 搁浅状态和岸线策略必须在 Phase 4 统一验证 |
 | P1-D012 | Phase 1 先验收 MPI-only | OpenMP 共享状态安全在功能正确后单独加固 |
+| P1-D013 | P1.1 使用受限初值 locator，并以 `[west,east) x [south,north)` 唯一定义内部边界 owner | 初值读取必须能独立验收；同时消除“西/南含边界”与“最小 tile 编号”的冲突，完整映射仍留在 P1.2 |
+| P1-D014 | 初始 `.data` 物理长度必须精确等于 `(nParticles+1)*8*8` 字节 | meta/header 计数一致仍不能证明文件完整；截断、完整额外记录和残缺尾随字节必须在接受粒子前失败 |
 
 ## 14. 进入实现前的冻结检查
 

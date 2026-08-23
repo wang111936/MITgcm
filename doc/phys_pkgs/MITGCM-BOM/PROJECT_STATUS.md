@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-01-design` |
-| 当前阶段 PR | `wang111936/MITgcm#7`（draft，P1.0 设计冻结） |
+| 当前任务分支 | `MITGCM-BOM/phase-01-state` |
+| 当前阶段 PR | `wang111936/MITgcm#8`（Ready，P1.1 状态与初值） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.0：需求、状态、环境场、FLT 共存边界和测试设计 |
-| 下一工作包 | P1.0 评审合并后建立 P1.1 状态与初值实现分支 |
-| 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
+| 当前工作包 | P1.1：状态、参数、初始文件、64 位 ID 与容量门禁 |
+| 下一工作包 | 等待明确的 PR #8 合并授权；获准集成后建立 P1.2 映射与环境场分支 |
+| 当前阻塞 | 无；P1.1 最终独立复审已通过，PR #8 已进入 Ready 并等待明确的合并授权 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对 `MITGCM-BOM-v0.1` 指向集成提交 `b2f3ecf1081f7bab25749c4a6004730175d99955`；
-2. 在 draft PR #7 上继续 P1.0 Markdown-only 设计评审；
-3. 以 [BOM-Lite 设计规格](BOM_LITE_DESIGN.md) 为接口权威，以 [需求追踪](../../../verification/bom/phase01-bom-lite/REQUIREMENTS_TRACEABILITY.md) 和 [测试计划](../../../verification/bom/phase01-bom-lite/TEST_PLAN.md) 为验收权威；
-4. P1.0 不修改 Fortran、脚本、输入或 Phase 0 证据；
-5. P1.0 合并后，从更新的集成分支建立 P1.1，仅实现状态与初值。
+1. 核对当前分支基线为 PR #7 的 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
+2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对 `p11-physical-size-fix-attempt01` 与 `p11-physical-size-fix-phase0-attempt01`；
+3. 最终独立复审已完成且 PR #8 已标记 Ready：五项阻断均关闭，31 文件差异未发现剩余源码或测试问题；
+4. 未经明确授权不合并 PR；获准后使用 merge commit 并复跑集成门禁；
+5. 在 P1.1 合并和集成回归前不开始 P1.2、不创建 v0.2 标签。
 
 开始前执行：
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 设计冻结：源码实现尚未开始 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 已合并；P1.1 五项阻断均关闭且最终独立复审通过，PR #8 已 Ready 并等待合并授权 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -139,6 +139,23 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - Phase 1 已进入 P1.0 设计冻结，尚未修改粒子运动源码；
 - 详细记录见 `verification/bom/phase00-final-gate/INTEGRATION_RESULTS.md`。
 
+### P1.1 状态与初值本地退出
+
+- PR #7 已以 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` 合并到 `MITGCM-BOM/development`；
+- 从该提交创建 `MITGCM-BOM/phase-01-state`，未混入其他项目文件；
+- 建立紧凑每 tile SoA、稳定状态码、schema 1 初值、32 位高低字到正 64 位 ID 的精确恢复和受限初值 owner locator；
+- 明确拒绝非有限数、损坏/重复 ID、坏状态/release、域外/干点、全局/tile 容量溢出和提前启用 Stokes；
+- 正式审查的四项阻断已由提交 `2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65` 修复：locator 边界、MDS meta 契约、逐字段断言和 BOM 关闭/未编译矩阵；
+- 第五项物理长度阻断已由提交 `40f5754b3b00ea4bb6a9b20c64c10e968080ad24` 修复；
+- 权威 `p11-physical-size-fix-attempt01`：8/8 构建、14/14 正向、20/20 负向、104/104 适用 checkpoint 哈希通过；
+- 最终 `p11-physical-size-fix-phase0-attempt01`：锁定参考、离线 Julia、专用 smoke 和 P0.4 总门禁全部通过；
+- P1-D013 允许 P1.1 受限初值 locator，并将内部边界统一为 `[west,east) x [south,north)`；P1-D014 要求初始 `.data` 物理长度精确匹配 schema；
+- 最终独立复审未发现剩余源码或测试问题；额外 bare-prefix 优先级探针正常结束且只有一个 owner，证明物理长度检查与 MDS 读取选择同一文件；
+- 生产代码未加入环境场、插值、粒子运动、迁移、轨迹或 pickup；
+- 功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d` 已推送并创建 draft PR #8；
+- PR #8 已进入 Ready，等待明确的 merge commit 合并授权；
+- 详细证据和非权威尝试见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
+
 ## 4. 未决问题与风险
 
 | ID | 风险 | 当前处理 | 阻塞阶段 |
@@ -150,9 +167,11 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | R-005 | 一般网格迁移不能直接继承 FLT | Phase 6 后置并建立专门拓扑测试 | Phase 6 |
 | R-006 | GitHub 仓库当前关闭 Issues | 暂用阶段分支、提交和本状态账本记录；启用 Issues 后补建阶段 Issue | 不阻塞源码开发 |
 | R-007 | 固定 Julia 提交的自带测试调用不存在的函数；默认场失败时只警告 | 不修改参考源码；保存失败证据，另建 BOM 解析场和 smoke/golden 测试 | Phase 0/2 |
-| R-008 | MITgcm 的 Fortran `STOP` 在负向测试中可能仍返回进程码 0 | 测试驱动必须同时要求正常结束标志，并扫描 `ABNORMAL END`/fatal 日志 | Phase 0/CI |
+| R-008 | MITgcm 的 Fortran `STOP` 可能返回 0，截断文件也可能由运行时直接终止 | 驱动禁止只看退出码，同时识别正常结束、MITgcm 异常和 Fortran runtime error | Phase 0/CI |
 | R-009 | Phase 1 海洋步内冻结环境场，对真实时变驱动不具高阶时间精度 | 输出明确标记 `STEP_END_FROZEN`；Phase 2 以 old/new 快照和 B05 升级 | Phase 2 |
 | R-010 | Phase 1 pickup 只支持相同 MPI/tile 分解 | 写入并核对分解签名；变分解重启明确拒绝，后续单独设计 | Phase 5 |
+| R-011 | P1.1 为小型验证文件采用每 rank 全量读取 | 以 `bomInitGlobalLimit` 硬限制；P1.5 前复核可扩展分片读取，禁止直接用于百万粒子 | Phase 1.5 |
+| R-012 | P1.1 locator 只覆盖规则原生坐标初值分发 | P1.2 独立实现周期规范化、正反映射、stage stencil 和 Cartesian/spherical 测试 | Phase 1.2 |
 
 ## 5. 会话记录
 
@@ -244,6 +263,56 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 发布分支并创建 draft PR #7：`https://github.com/wang111936/MITgcm/pull/7`；
 - GitHub 记录为 6 个 Markdown 文件、766 行新增、14 行删除；
 - 当前工作包只修改 Markdown，未实现粒子运动。
+
+### 2026-08-23：P1.0 集成与 P1.1 状态/初值
+
+- 最终审查 PR #7：2 个提交、6 个 Markdown、相对集成分支 ahead 2/behind 0，无评审线程或状态检查；
+- 将 PR #7 标记 ready，并以 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` 合并；
+- 从更新后的 `MITGCM-BOM/development` 建立 `MITGCM-BOM/phase-01-state`；
+- 实现 Phase 1 每 tile SoA、参数、确定性清零、schema 1 初值读取、64 位 ID 恢复、初值 owner 和容量检查；
+- `p11-state-attempt01` 早期矩阵通过，补齐覆盖后由 attempt05 取代；
+- `p11-state-attempt02` 暴露固定格式 72 列错误，`attempt03` 暴露截断文件运行时错误判据缺口；两个问题均修复且失败证据保留；
+- `p11-state-attempt04` 的扩展矩阵通过；最终文件同步后，权威 `attempt05` 再次完成 4 构建、7 正向、16 负向并全部通过；
+- `p11-phase0-regression-attempt03` 在最终源码上完成 Phase 0 总回归并通过；
+- 形成 P1-D013，拆分 P1-S04/P1-N03 的跨工作包验收边界；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d`，推送阶段分支并创建 draft PR #8；
+- 当前尚未加入 P1.2 环境场/通用映射或 P1.3 粒子运动。
+
+### 2026-08-23：P1.1 正式审查修复
+
+- 正式只读审查发现 locator 对 overlap-one 的潜在越界、MDS meta 未验证、P1-S01/P1-S04a 缺少逐字段证据以及 P1-C01/P1-Z01 当前源码矩阵不完整；
+- 修复 locator owner-cell 循环，并增加 MITgcm 核心约束下的 OL1 locator-only GNU bounds-check 初始化；
+- 使用原生 `MDS_READ_META` 校验维度、float64、记录数和 `BOMV0001`，新增 missing meta、bad meta schema、trailing record 负测；
+- `p11-state-review-fixes-attempt03` 完成 8/8 构建、14/14 正向、19/19 负向和 104/104 适用海洋哈希；
+- `p11-review-fixes-phase0-attempt01` 完成 Phase 0 最终回归；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建审查修复提交 `2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65`；
+- PR #8 保持 draft，未合并、未创建 `MITGCM-BOM-v0.2` 标签，下一步为独立复审。
+
+### 2026-08-23：P1.1 独立复审与物理长度修复
+
+- 独立复审构造 meta/header 均声明 128 字节、实际 `.data` 为 192 字节的输入，程序正常结束并静默忽略额外粒子记录；复现证据为 `p11-rereview-physical-trailing-attempt01`；
+- 在 `BOM_READ_INITIAL` 中镜像全局 MDS 文件名优先级，以 64 位整数校验实际物理长度，要求精确等于 `(nParticles+1)*8*8` 字节；
+- 扩展负测为 64 字节截断、192 字节完整额外记录和 129 字节单字节尾随，三者对 128 字节预期长度均由 BOM 主动拒绝；
+- `p11-physical-size-fix-attempt01` 完成 8/8 构建、14/14 正向、20/20 负向和 104/104 适用海洋哈希；summary SHA-256 为 `93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7`；
+- `p11-physical-size-fix-phase0-attempt01` 完成 Phase 0 最终回归；summary SHA-256 保持 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建物理长度修复提交 `40f5754b3b00ea4bb6a9b20c64c10e968080ad24`；
+- PR #8 继续保持 draft，未合并、未创建标签，下一步为修复后的最终独立复审。
+
+### 2026-08-23：P1.1 最终独立复审与文档同步
+
+- 复审时 PR #8 相对 `MITGCM-BOM/development@acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` 为 6 个提交、31 个文件、ahead 6/behind 0，head 为 `54eb37bd49970091fffed5091ec96939d73b6d7f`；PR 可合并但保持 draft，且无状态检查、工作流、评审或评审线程；
+- 重新核对生产实现、8 项构建、34 项正负运行结果和 13 组 checkpoint 记录，未发现剩余源码或测试问题；
+- 在 `/home/wyl/runs/mitgcm-bom/phase01-state/p11-final-rereview-bare-prefix-attempt01` 以 128 字节 bare prefix 和 192 字节 `.data` 并存探测优先级；程序选择 bare prefix、仅有一个 owner 并正常结束；
+- 发现唯一恢复入口仍引用旧门禁，且权威设计决定表缺少 P1-D014；已仅同步四份 Markdown，不改生产源码、门禁或输入；
+- 权威 P1.1/Phase 0 门禁后的变更仅为文档，因此未重复执行完整编译矩阵；
+- PR #8 保持 draft，未标记 Ready、未合并、未创建标签，等待明确授权。
+
+### 2026-08-23：PR #8 进入 Ready
+
+- 获得用户明确授权后，将 PR #8 从 draft 标记为 Ready for review；
+- 转换前 head 为 `32e6bafeb4d28427bc138d5390a11d86b65d0675`，PR 为 7 个提交、31 个文件、ahead 7/behind 0 且可合并；
+- 未合并 PR、未创建标签、未加入 P1.2+ 范围；
+- 下一步等待明确的 merge commit 合并授权，集成后必须复跑 P1.1 与 Phase 0 门禁。
 
 ## 6. 每次会话结束时必须更新
 

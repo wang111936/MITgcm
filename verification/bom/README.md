@@ -13,8 +13,9 @@ external environmental datasets remain outside the repository.
   negative checks, and requirements traceability;
 - `phase00-final-gate/`: P0.5 locked Julia smoke, fresh P0.4 rerun,
   Phase-0 exit audit, and stacked merge plan;
-- `phase01-bom-lite/`: P1.0 requirements traceability and the staged test
-  plan for particle state, mapping, leeway integration, owner migration,
+- `phase01-bom-lite/`: P1.0 requirements/test baseline plus the P1.1
+  state/initial-file generator, serial/MPI/debug gate, compact results,
+  and the staged plan for mapping, leeway integration, owner migration,
   trajectory output, pickup restart, and FLT coexistence;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.

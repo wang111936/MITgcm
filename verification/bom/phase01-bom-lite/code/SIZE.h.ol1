@@ -1,0 +1,41 @@
+CBOP
+C    !ROUTINE: SIZE.h
+C    !INTERFACE:
+C    include SIZE.h
+C    !DESCRIPTION: \bv
+C     *==========================================================*
+C     | SIZE.h Declare size of underlying computational grid.
+C     *==========================================================*
+C     | P1.1 GNU-debug overlap-one variant of verification/exp2.
+C     | It protects the bounded initial locator against halo OOB.
+C     *==========================================================*
+C     \ev
+CEOP
+      INTEGER sNx
+      INTEGER sNy
+      INTEGER OLx
+      INTEGER OLy
+      INTEGER nSx
+      INTEGER nSy
+      INTEGER nPx
+      INTEGER nPy
+      INTEGER Nx
+      INTEGER Ny
+      INTEGER Nr
+      PARAMETER (
+     &           sNx =  45,
+     &           sNy =  20,
+     &           OLx =   1,
+     &           OLy =   1,
+     &           nSx =   2,
+     &           nSy =   2,
+     &           nPx =   1,
+     &           nPy =   1,
+     &           Nx  = sNx*nSx*nPx,
+     &           Ny  = sNy*nSy*nPy,
+     &           Nr  =  20)
+
+      INTEGER MAX_OLX
+      INTEGER MAX_OLY
+      PARAMETER ( MAX_OLX = OLx,
+     &            MAX_OLY = OLy )

@@ -1,14 +1,16 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.0 设计基线，尚无执行结果
+状态：P1.1 状态与初值门禁已执行；P1.2—P1.5 保持计划状态
+
+P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 
 ## 1. 测试原则与证据布局
 
 所有构建和运行位于仓库外：
 
 ```text
-/home/wyl/build/mitgcm-bom/<test-id>/
-/home/wyl/runs/mitgcm-bom/<test-id>/
+/home/wyl/build/mitgcm-bom/phase01-state/<test-id>/
+/home/wyl/runs/mitgcm-bom/phase01-state/<test-id>/
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/<test-id>/
 ```
 
@@ -41,8 +43,10 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 |---|---|---|---|
 | P1-Z01 | BOM 关闭、编译关闭、零粒子开启；1/2/4 ranks | P1-R01 | MITgcm checkpoint 与冻结基线 SHA-256 一致 |
 | P1-N01 | 非法模式、积分器、负时间步/频率 | P1-R01 | `BOM_CHECK` 输出具体参数并全局停止 |
-| P1-N02 | 坏 schema、截断文件、NaN、坏状态 | P1-R02 | 输入被完整拒绝，无部分粒子进入状态 |
-| P1-N03 | 全局、tile 或交换容量溢出 | P1-R04 | 输出 rank/tile/需要量/上限后停止，不截断 |
+| P1-N02 | 坏 schema/meta、截断/完整或残缺尾随数据、NaN、坏状态 | P1-R02 | meta、头记录与物理长度不一致时完整拒绝，无部分粒子进入状态 |
+| P1-N03 | 容量溢出父项 | P1-R04 | 由 P1-N03a 与 P1-N03b 完成，不静默截断 |
+| P1-N03a | 初值全局或 tile 容量溢出 | P1-R04 | 输出 tile/需要量/上限后停止，不截断 |
+| P1-N03b | 交换发送或接收容量溢出 | P1-R04、P1-R12 | P1.4 输出 rank/方向/需要量/上限后停止 |
 | P1-N04 | rotated、curvilinear、EXCH2 或多线程 | P1-R05 | Phase 1 明确拒绝并说明支持范围 |
 | P1-N05 | 湿权重不足或域外插值 | P1-R07 | 明确停止，不做常数外推或静默搁浅 |
 | P1-N06 | 风系数非零但 source NONE；EXF 未编译/未启用 | P1-R09 | 依赖检查失败，信息包含 source 和系数 |
@@ -55,8 +59,10 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 |---|---|---|---|---|
 | P1-S01 | 0、1、多粒子合法 schema 1 | 1 rank | P1-R02 | 计数、坐标、状态、release time 逐字段一致 |
 | P1-S02 | ID 覆盖 32 位边界和大于 $2^{53}$ | 1/2 ranks | P1-R03 | 高低字往返恢复原 `INTEGER*8`，无重复 |
-| P1-S03 | 粒子恰在 tile 边界与角点 | 1/4 ranks | P1-R04、P1-R05 | 由最小全局 tile 编号唯一拥有 |
-| P1-S04 | 未来 release time | 1 rank | P1-R04、P1-R11 | release 前位置不变，跨 release 子步正确分割 |
+| P1-S03 | 粒子恰在 tile 边界与角点 | 1/4 ranks | P1-R04、P1-R05 | 按 `[west,east) x [south,north)` 唯一归属；内部角点由东北 tile 拥有 |
+| P1-S04 | 未来 release time 父项 | 1 rank | P1-R04、P1-R11 | 由 P1-S04a 与 P1-S04b 共同完成 |
+| P1-S04a | WAITING 初值 | 1 rank | P1-R04 | P1.1 精确保留 future release、WAITING 和零 age |
+| P1-S04b | release 跨子步转换 | 1 rank | P1-R11 | P1.3 验证 release 前位置不变并在 release time 分割子步 |
 
 ## 5. 映射与环境场
 
@@ -109,10 +115,10 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 | 工作包 | 必须通过 |
 |---|---|
 | P1.0 | Markdown-only 范围、链接、ID 和禁词审计 |
-| P1.1 | P1-C01、P1-C03、P1-Z01、P1-N01—N03、P1-N07、P1-S01—S04 |
+| P1.1 | P1-C01、P1-C03、P1-Z01、P1-N01、P1-N02、P1-N03a、P1-N07、P1-S01—S03、P1-S04a |
 | P1.2 | P1-N04—N05、P1-M01—M02、P1-F01—F03，加前序回归 |
-| P1.3 | P1-N06、P1-N08、P1-I01—I06，加前序回归 |
-| P1.4 | P1-X01—X04，加 1/2/4 ranks 前序回归 |
+| P1.3 | P1-S04b、P1-N06、P1-N08、P1-I01—I06，加前序回归 |
+| P1.4 | P1-N03b、P1-X01—X04，加 1/2/4 ranks 前序回归 |
 | P1.5 | P1-O01—O02、P1-P01—P03、P1-K01—K02、P1-G01 |
 
 ### P1-G01 最终集成门禁
