@@ -175,7 +175,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 插值提交为 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；`BOM_INTERP_WET_PAIR` 使用共同湿权重并以显式无效结果处理未就绪、缺 stencil、非有限和湿权重不足；
 - `p12-interp-20260824-a` 通过 9/9 summary 行，覆盖 P1-F03 全湿/部分湿和 P1-N05 串行/MPI4；summary SHA-256 为 `75fcde1ce34ceb1b43cb2ef8dcc6e323948db1edb6df2d4fb90329d8395be81a`；
 - 插值后的字段 7/7、映射 15/15、P1.1 42/42 和 Phase 0 4/4 回归全部通过；
-- P1-R05—P1-R07 的生产实现与全回归完成；P1.2 仍待范围审计和独立复审，证据见 `verification/bom/phase01-interp/TEST_RESULTS.md`。
+- P1.2 组件门禁与全回归均通过，但最终审计发现两个必须修复项：`BOM_MAIN` 尚未接入非移动映射/插值诊断与上下文终止，映射初始化的累计/派生有限性和末端 face 防护不足；P1-R06 保持完成，P1-R05/P1-R07 重新开放，详见 `verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md`。
 
 ## 4. 未决问题与风险
 
@@ -193,6 +193,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | R-010 | Phase 1 pickup 只支持相同 MPI/tile 分解 | 写入并核对分解签名；变分解重启明确拒绝，后续单独设计 | Phase 5 |
 | R-011 | P1.1 为小型验证文件采用每 rank 全量读取 | 以 `bomInitGlobalLimit` 硬限制；P1.5 前复核可扩展分片读取，禁止直接用于百万粒子 | Phase 1.5 |
 | R-012 | P1.1 locator 只覆盖规则原生坐标初值分发 | 已由 P1.2 映射核心与兼容包装关闭；完整映射、P1.1 和 Phase 0 门禁已通过 | 已关闭 |
+| R-013 | P1.2 插值组件未接入 `BOM_MAIN` 的已有粒子诊断路径 | 在 P1.2 内增加非移动映射/插值调用、上下文集体终止及权威状态 bitwise 不变门禁 | P1.2 |
+| R-014 | 映射初始化未完整拒绝累计溢出、派生非有限量和末端非有限 face | 补强有限性检查，并增加非有限/溢出几何与极端有限周期输入负测 | P1.2 |
 
 ## 5. 会话记录
 
@@ -411,6 +413,16 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - P1-R07 标记完成，P1-R05—P1-R07 的生产实现和执行证据已齐备；
 - 未实现粒子 RHS、位置推进、owner 迁移、风或 Stokes，也未开始 P1.3；
 - PR #10 保持 Draft，不创建 `MITGCM-BOM-v0.2` 标签；下一步只做 P1.2 最终范围审计和独立复审。
+
+### 2026-08-24：P1.2 最终范围与契约审计
+
+- 冻结审计快照为 `development@320a07d5eb2e2795ddd1e0b93ceaddd6c32a1621..f9b6098d657b6749130cdbdbb0ce091f73c99a9c`；PR #10 为 Draft、可合并，10 个提交、56 个文件，无评审或未解决线程；
+- 完整 diff 仅位于 `pkg/bom`、`verification/bom` 和 `doc/phys_pkgs/MITGCM-BOM`，`git diff --check` 通过，未触及核心调度、FLT、其他工程或生成物；
+- 重算插值、字段、映射、P1.1、Phase 0 和嵌套 P0.4 的六个 summary SHA-256，均与记录一致；P1.1 104/104 和 P0.4 24/24 checkpoint 均为 `OK`；
+- 审计发现阻断项 R-013：`BOM_MAIN` 非零粒子路径只构造字段，未执行冻结契约要求的已有位置映射/插值诊断，也没有调用层 P1-N05 上下文终止；
+- 审计发现必须修复项 R-014：映射累计 span、派生界限/容差及末端 stored face 的有限性防护与负测不完整；
+- P1-R06 保持完成；P1-R05/P1-R07 在修复和新证据通过前重新开放；PR #10 继续保持 Draft，不合并、不打标签、不开始 P1.3；
+- 下一步唯一任务是在 P1.2 范围内先补生产诊断调用层和对应生命周期/P1-N05 门禁，再补映射有限性防护，随后按风险复跑全部前序门禁并更新审计为 PASS。
 
 ## 6. 每次会话结束时必须更新
 

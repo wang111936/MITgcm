@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.1 状态与初值门禁已执行；P1.2 接口和判据已冻结、执行待开始；P1.3—P1.5 保持计划状态
+状态：P1.1 已验收；P1.2 组件门禁与前序回归已执行，最终审计两项修复待完成；P1.3—P1.5 保持计划状态
 
 P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 

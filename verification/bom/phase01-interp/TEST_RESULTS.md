@@ -1,6 +1,6 @@
 # P1.2 wet-pair interpolation results
 
-Status: **PASS**
+Status: **COMPONENT GATE PASS; P1.2 WORK-PACKAGE REVIEW BLOCKED**
 
 ## Authoritative interpolation gate
 
@@ -56,8 +56,9 @@ overwritten.
 
 ## Scope boundary
 
-P1-R05, P1-R06, and P1-R07 now have production implementations and executable
-evidence.  P1.2 still requires its final scope audit and independent review
-before PR #10 can leave Draft.  No particle RHS, position update, owner
-migration, wind or Stokes field, trajectory, pickup, P1.3 code, or v0.2 tag is
-included.
+The wet-pair component has executable P1-F03/P1-N05 evidence.  The final review
+in `../phase01-bom-lite/P1.2_SCOPE_AUDIT.md` found that the production
+`BOM_MAIN` diagnostic caller and its contextual invalid-result stop are still
+missing, so P1-R07 and the P1.2 work package remain open.  No particle RHS,
+position update, owner migration, wind or Stokes field, trajectory, pickup,
+P1.3 code, or v0.2 tag is included.
