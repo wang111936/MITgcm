@@ -13,7 +13,7 @@
 | 当前阶段 PR | `wang111936/MITgcm#8`（draft，P1.1 状态与初值） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.1：状态、参数、初始文件、64 位 ID 与容量门禁 |
-| 下一工作包 | P1.1 评审集成后建立 P1.2 映射与环境场分支 |
+| 下一工作包 | 独立复审 P1.1 修复；获准集成后建立 P1.2 映射与环境场分支 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
 ## 1. 当前恢复点
@@ -21,8 +21,8 @@
 下一次继续开发时，从以下任务开始：
 
 1. 核对当前分支基线为 PR #7 的 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
-2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对 `p11-state-attempt05` 与 `p11-phase0-regression-attempt03`；
-3. 审查 draft PR #8 的 30 文件独立差异、base/head SHA、评审线程和状态检查；
+2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对 `p11-state-review-fixes-attempt03` 与 `p11-review-fixes-phase0-attempt01`；
+3. 独立复审 draft PR #8 的 31 文件差异、四项修复、base/head SHA、评审线程和状态检查；
 4. 未经明确授权不把 PR 标记 ready 或合并；获准后使用 merge commit 并复跑集成门禁；
 5. 在 P1.1 合并和集成回归前不开始 P1.2、不创建 v0.2 标签。
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 已合并；P1.1 本地实现与门禁完成，待评审集成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 已合并；P1.1 审查阻断已修复并通过扩展门禁，待独立复审 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -145,8 +145,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 从该提交创建 `MITGCM-BOM/phase-01-state`，未混入其他项目文件；
 - 建立紧凑每 tile SoA、稳定状态码、schema 1 初值、32 位高低字到正 64 位 ID 的精确恢复和受限初值 owner locator；
 - 明确拒绝非有限数、损坏/重复 ID、坏状态/release、域外/干点、全局/tile 容量溢出和提前启用 Stokes；
-- 权威 `p11-state-attempt05`：4/4 构建、7/7 正向、16/16 负向通过，所有正向运行保持 8/8 冻结 checkpoint 哈希；
-- 最终 `p11-phase0-regression-attempt03`：锁定参考、离线 Julia、专用 smoke 和 P0.4 总门禁全部通过；
+- 正式审查的四项阻断已由提交 `2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65` 修复：locator 边界、MDS meta 契约、逐字段断言和 BOM 关闭/未编译矩阵；
+- 权威 `p11-state-review-fixes-attempt03`：8/8 构建、14/14 正向、19/19 负向、104/104 适用 checkpoint 哈希通过；
+- 最终 `p11-review-fixes-phase0-attempt01`：锁定参考、离线 Julia、专用 smoke 和 P0.4 总门禁全部通过；
 - P1-D013 允许 P1.1 受限初值 locator，并将内部边界统一为 `[west,east) x [south,north)`；
 - 生产代码未加入环境场、插值、粒子运动、迁移、轨迹或 pickup；
 - 功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d` 已推送并创建 draft PR #8；
@@ -273,6 +274,16 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 形成 P1-D013，拆分 P1-S04/P1-N03 的跨工作包验收边界；
 - 以 `WangYuLin <wang111936@outlook.com>` 创建功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d`，推送阶段分支并创建 draft PR #8；
 - 当前尚未加入 P1.2 环境场/通用映射或 P1.3 粒子运动。
+
+### 2026-08-23：P1.1 正式审查修复
+
+- 正式只读审查发现 locator 对 overlap-one 的潜在越界、MDS meta 未验证、P1-S01/P1-S04a 缺少逐字段证据以及 P1-C01/P1-Z01 当前源码矩阵不完整；
+- 修复 locator owner-cell 循环，并增加 MITgcm 核心约束下的 OL1 locator-only GNU bounds-check 初始化；
+- 使用原生 `MDS_READ_META` 校验维度、float64、记录数和 `BOMV0001`，新增 missing meta、bad meta schema、trailing record 负测；
+- `p11-state-review-fixes-attempt03` 完成 8/8 构建、14/14 正向、19/19 负向和 104/104 适用海洋哈希；
+- `p11-review-fixes-phase0-attempt01` 完成 Phase 0 最终回归；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建审查修复提交 `2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65`；
+- PR #8 保持 draft，未合并、未创建 `MITGCM-BOM-v0.2` 标签，下一步为独立复审。
 
 ## 6. 每次会话结束时必须更新
 

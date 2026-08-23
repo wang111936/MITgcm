@@ -7,8 +7,9 @@ Status: **PASS**
 | Date | 2026-08-23 |
 | Branch | `MITGCM-BOM/phase-01-state` |
 | Base/PR #7 merge | `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
-| P1.1 feature commit | `c5ee5549a504ed428f152bbc5022368095a1752d`; tests ran immediately before this commit from identical production code, gate, generator, and inputs |
-| Working tree during execution | intentionally dirty with the uncommitted P1.1 work package; build and run products were outside the repository |
+| Initial P1.1 feature commit | `c5ee5549a504ed428f152bbc5022368095a1752d` |
+| Review-fix commit | `2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65`; authoritative tests ran immediately before this commit from identical production code, gate, generator, and inputs |
+| Working tree during execution | intentionally dirty only with the subsequently committed review fixes; all build and run products were outside the repository |
 
 ## 1. Locked references and environment
 
@@ -30,46 +31,50 @@ Status: **PASS**
 Command:
 
 ```bash
-MITGCM_BOM_TEST_ID=p11-state-attempt05 \
+MITGCM_BOM_TEST_ID=p11-state-review-fixes-attempt03 \
   verification/bom/phase01-bom-lite/run_state_gate.sh
 ```
 
 Evidence roots:
 
 ```text
-/home/wyl/build/mitgcm-bom/phase01-state/p11-state-attempt05
-/home/wyl/runs/mitgcm-bom/phase01-state/p11-state-attempt05
+/home/wyl/build/mitgcm-bom/phase01-state/p11-state-review-fixes-attempt03
+/home/wyl/runs/mitgcm-bom/phase01-state/p11-state-review-fixes-attempt03
 ```
 
 Summary SHA-256:
 
 ```text
-aaed7084bcc1b8df7def4c4020f6b7afc0e9158bcc75d994e60b3bd605a79c19  summary.tsv
+4d0a29d4e1fed8f91abaaf162be2c22aa163d2e9f342616232d27d3411f4f5bb  summary.tsv
 ```
 
 | Group | Result | Coverage |
 |---|---:|---|
-| Builds | 4/4 PASS | serial, MPI2, MPI4, GNU debug; link contains all four P1.1 routines |
-| Positive runs | 7/7 PASS | zero, one, two, three particles; serial, MPI2, MPI4, debug |
-| Negative runs | 16/16 PASS | ID/schema/state/finite/release/file/domain/capacity/Stokes/parameter failures |
-| Ocean regression per positive run | 8/8 PASS | every frozen exp2 checkpoint hash unchanged |
+| Builds | 8/8 PASS | BOM serial/MPI2/MPI4/debug/OL1-debug plus BOM-uncompiled serial/MPI2/MPI4 |
+| Positive runs | 14/14 PASS | state cases, OL1 locator init, compiled-disabled and uncompiled 1/2/4 ranks |
+| Negative runs | 19/19 PASS | ID/schema/meta/state/finite/release/file/domain/capacity/Stokes/parameter failures |
+| Ocean regressions | 104/104 PASS | 13 applicable runs each preserved all 8 frozen exp2 checkpoint hashes; OL1 is an initialization-only bounds test |
 
 Positive-state assertions include:
 
 - exact owner counts for zero, one, two, and three particles;
 - exact restoration of IDs `1`, `4294967301`, and `9007199254740993`;
-- preservation of two ALIVE plus one WAITING state and the future release time;
+- exact decimal restoration of every tested `x`, `y`, status, release time, and age field;
+- preservation of two ALIVE plus one WAITING state, future release `216000`, and WAITING age zero;
 - exactly one owner in serial, MPI2, and MPI4;
 - the `(180,0)` internal corner belongs to PID 3, the north-east half-open tile, in MPI4;
+- `OLx=OLy=1` initialization completes under GNU bounds checking with momentum and tracer stepping disabled, as required by the MITgcm core overlap guard;
+- compiled-disabled and BOM-uncompiled configurations preserve the baseline on 1/2/4 ranks;
 - normal MITgcm termination and no fatal marker.
 
-Negative cases are: duplicate ID, bad schema, fractional ID word, reserved biological status, NaN coordinate, infinite age, negative release time, truncated MDS file, outside domain, per-tile capacity 65 > 64, global input 10001 > 10000, premature Stokes source, unsupported mode, unsupported integrator, non-positive step, and negative output frequency. The driver does not trust Fortran `STOP` status 0; it requires expected log text and either a MITgcm abnormal marker or a Fortran runtime-error marker while rejecting any normal-end marker.
+Negative cases are: duplicate ID, bad data schema, fractional ID word, reserved biological status, NaN coordinate, infinite age, negative release time, truncated MDS file, missing MDS meta, bad meta schema, a trailing data record exposed by meta/header count mismatch, outside domain, per-tile capacity 65 > 64, global input 10001 > 10000, premature Stokes source, unsupported mode, unsupported integrator, non-positive step, and negative output frequency. The driver does not trust Fortran `STOP` status 0; it requires expected log text and either a MITgcm abnormal marker or a Fortran runtime-error marker while rejecting any normal-end marker.
 
 ## 3. Gate source hashes
 
 ```text
-82b98ffa4e73a37a4c0aaa5afe5ea4c031ed67cd37d0240b529f93b1f325a979  run_state_gate.sh
-b656bce24233a82d611401c370bef9c68e89b5bfbbabf6b8af08a761df7e4040  make_initial.py
+5eb03beab5f419cc9c93c686754df1cb4db9af0893a626b94f1137bc37e74609  run_state_gate.sh
+63876d10c28969c72b265d4ae5b023d857968eaea1ca0871f25ec6953bd1ef1d  make_initial.py
+86ab79d0e30937f0eb58d8577ca2efd2fb68c9b100406981519bbf5455480f73  code/SIZE.h.ol1
 61bfdd0d299c725b167b48095d2fe487706a991e1fa0ad4d3986b965de934901  input/data.bom.valid
 46355cb1764d9780f40f9ef266a60faf50cf01c40b856d559c0af1ee3b0d23b8  input/data.bom.one
 ad5069b34c7a10defc9d9b883aca6d071068194d3a943674c6e71fb76e88c772  input/data.bom.two
@@ -87,14 +92,14 @@ ff06dbed654ee04bdf5fe22b37960c259f1d6d9832b879a5b3e03c975979db4c  input/data.bom
 Command:
 
 ```bash
-MITGCM_BOM_TEST_ID=p11-phase0-regression-attempt03 \
+MITGCM_BOM_TEST_ID=p11-review-fixes-phase0-attempt01 \
   verification/bom/phase00-final-gate/run_gate.sh
 ```
 
 Result root:
 
 ```text
-/home/wyl/runs/mitgcm-bom/phase00-final-gate/p11-phase0-regression-attempt03
+/home/wyl/runs/mitgcm-bom/phase00-final-gate/p11-review-fixes-phase0-attempt01
 ```
 
 Summary SHA-256:
@@ -113,7 +118,11 @@ Locked references, offline Julia instantiation, BOM-specific Julia smoke, and th
 | `p11-state-attempt02` | serial compile failed | fixed-form line exceeded column 72; source corrected |
 | `p11-state-attempt03` | production cases passed through truncated input; harness then stopped | truncated file produced a GNU Fortran runtime error instead of MITgcm `ABNORMAL END`; log-aware predicate corrected |
 | `p11-state-attempt04` | expanded gate passed | superseded by attempt05 after final source/document synchronization |
-| `p11-phase0-regression-attempt01`—`attempt02` | Phase 0 gates passed | superseded because source or records were subsequently finalized |
+| `p11-state-attempt05` | initial P1.1 gate passed | superseded by the review-expanded attempt03 |
+| `p11-state-review-fixes-attempt01` | all eight builds passed; first nonzero run stopped in native meta parser | generator dimList spacing was not standard MDS fixed width; corrected |
+| `p11-state-review-fixes-attempt02` | all original state cases passed; OL1 run stopped in CONFIG_CHECK | MITgcm requires overlap >=2 with momentum stepping; OL1 became a zero-step locator-only debug run |
+| `p11-ol1-preflight-attempt01` | OL1 locator initialization passed under bounds checking | non-authoritative focused validation before the full attempt03 |
+| previous Phase 0 attempts | passed | superseded by `p11-review-fixes-phase0-attempt01` on the review-fix source |
 
 No evidence directory was overwritten or removed.
 
