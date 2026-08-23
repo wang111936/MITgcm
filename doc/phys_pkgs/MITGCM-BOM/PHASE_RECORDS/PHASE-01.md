@@ -7,7 +7,7 @@
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
 | 当前分支 | `MITGCM-BOM/phase-01-state-integration-record` |
-| 当前 PR | 待创建（P1.1 集成记录） |
+| 当前 PR | `wang111936/MITgcm#9`（draft，P1.1 集成记录） |
 | 当前工作包 | P1.1 集成记录 |
 | 状态 | PR #8 已合并，P1.1 与 Phase 0 集成回归通过，正在固化证据 |
 | 开始日期 | 2026-08-23 |
@@ -157,7 +157,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 从 `MITGCM-BOM/phase-01-state-integration-record` 恢复：
 
 1. 核对 PR #8 merge commit 为 `ab30b3dc530404fda796189e50b8de776bf4441d`，并复核两套集成测试 ID 与摘要哈希；
-2. 完成集成记录 Markdown 的范围、链接、状态和禁词审计，推送分支并创建 draft PR；
+2. 独立复审 draft PR #9 相对 `MITGCM-BOM/development` 的 3 个 Markdown、base/head、状态检查和评审线程；
 3. 集成记录 PR 不加入环境场、通用映射、粒子运动或交换等 P1.2+ 范围；
-4. 集成记录获准合并后，从最新 `MITGCM-BOM/development` 创建独立 P1.2“映射与环境场”分支；
+4. 未经明确授权不把 PR #9 标记 Ready 或合并；获准集成后从最新 `MITGCM-BOM/development` 创建独立 P1.2“映射与环境场”分支；
 5. `MITGCM-BOM-v0.2` 仅在 P1.1—P1.5 全部完成并通过 Phase 1 退出审计后创建。

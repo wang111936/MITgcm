@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-01-state-integration-record` |
-| 当前阶段 PR | 待创建（P1.1 集成记录） |
+| 当前阶段 PR | `wang111936/MITgcm#9`（draft，P1.1 集成记录） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.1：已集成，固化 merge commit 与集成回归证据 |
-| 下一工作包 | 复审并集成 P1.1 集成记录；随后建立 P1.2 映射与环境场分支 |
+| 下一工作包 | 独立复审 draft PR #9；获准集成后建立 P1.2 映射与环境场分支 |
 | 当前阻塞 | 无；PR #8 已合并，集成 P1.1 与 Phase 0 门禁全部通过 |
 
 ## 1. 当前恢复点
@@ -23,8 +23,8 @@
 1. 核对 `MITGCM-BOM/development` 包含 PR #8 merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；
 2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对集成 ID `p11-integrated-pr8-attempt01` 与 `p11-integrated-pr8-phase0-attempt01`；
 3. 确认集成 P1.1 为 8/8 构建、14/14 正向、20/20 负向、104/104 checkpoint，Phase 0 总门禁全部通过；
-4. 完成 P1.1 集成记录分支的 Markdown 审计、提交、推送和独立复审，不加入 P1.2 源码；
-5. 集成记录获准合并后建立独立 P1.2 分支；`MITGCM-BOM-v0.2` 仍须等待 P1.1—P1.5 全部完成。
+4. 独立复审 draft PR #9 相对 `MITGCM-BOM/development` 的 3 个 Markdown、base/head、状态检查与评审线程，不加入 P1.2 源码；
+5. 未经明确授权不把 PR #9 标记 Ready 或合并；获准集成后建立独立 P1.2 分支，`MITGCM-BOM-v0.2` 仍须等待 P1.1—P1.5 全部完成。
 
 开始前执行：
 
@@ -323,7 +323,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - `p11-integrated-pr8-attempt01` 在集成提交上通过 8/8 构建、14/14 正向、20/20 负向和 104/104 checkpoint；证据位于 `/home/wyl/{build,runs}/mitgcm-bom/phase01-state/p11-integrated-pr8-attempt01`；
 - `p11-integrated-pr8-phase0-attempt01` 通过锁定参考、离线 Julia、BOM smoke 与 P0.4 的 4 构建、3 正向、24 checkpoint 和 2 负向；证据位于 `/home/wyl/runs/mitgcm-bom/phase00-final-gate/p11-integrated-pr8-phase0-attempt01`；
 - 两个主摘要 SHA-256 分别为 `93ee38612edbfd5511fe897d9685c05c08d1f9dd4664b34f929396463f01a9d7` 和 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`，与合并前权威结果一致；
-- 从集成提交建立 `MITGCM-BOM/phase-01-state-integration-record`，仅记录集成证据；未创建标签、未开始 P1.2。
+- 从集成提交建立 `MITGCM-BOM/phase-01-state-integration-record`，以提交 `804d80e1820a7a00376b659a372182373e215249` 记录集成证据并创建 draft PR #9；未创建标签、未开始 P1.2。
 
 ## 6. 每次会话结束时必须更新
 
