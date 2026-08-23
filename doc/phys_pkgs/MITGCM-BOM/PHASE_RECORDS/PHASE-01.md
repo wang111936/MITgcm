@@ -9,7 +9,7 @@
 | 当前分支 | `MITGCM-BOM/phase-01-mapping-environment` |
 | 当前 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前工作包 | P1.2 映射与环境场 |
-| 状态 | P1.2 首个映射增量及 P1.1/Phase 0 回归通过；locator 包装与环境场待实现 |
+| 状态 | P1.2 映射与 locator 包装及回归通过；环境场构造与插值待实现 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -25,7 +25,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 进行中 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Draft） | 首个映射增量提交 `633d3f9af75b4a052303ec0d0a06edf40677e18c`；映射与回归门禁通过 |
+| P1.2 映射与环境场 | 进行中 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Draft） | 映射 `633d3f9af75b4a052303ec0d0a06edf40677e18c`、locator 包装 `14636cda2bc9da61da784752b1dec11e54d518f1`；P1-R05 完成 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -157,10 +157,10 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 从 `MITGCM-BOM/phase-01-mapping-environment` 恢复：
 
-1. 核对当前分支包含已验收功能提交 `633d3f9af75b4a052303ec0d0a06edf40677e18c`；
+1. 核对当前分支包含最新已验收功能提交 `14636cda2bc9da61da784752b1dec11e54d518f1`；
 2. 以 [`P1.2_INTERFACE_FREEZE.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md) 和 [`phase01-mapping/TEST_RESULTS.md`](../../../../verification/bom/phase01-mapping/TEST_RESULTS.md) 作为接口与已执行证据入口；
-3. 下一增量只把 `BOM_LOCATE_INITIAL` 收敛为 `BOM_MAP_XY2IJLOCAL` 的兼容包装，不建立环境场、不移动粒子；
-4. 完成后复跑映射、完整 P1.1 与 Phase 0 门禁；通过后再实现 `BOM_BUILD_FIELDS` 与 `BOM_INTERP_WET_PAIR`；
+3. 下一增量加入冻结的四个单层 C-grid 数组并实现 `BOM_BUILD_FIELDS`，先通过 P1-F01/P1-F02，不实现湿点 pair 插值、不移动粒子；
+4. 完成后复跑映射、完整 P1.1 与 Phase 0 门禁；再以独立增量实现 `BOM_INTERP_WET_PAIR` 与 P1-F03/P1-N05；
 5. P1.2 完整门禁和独立复审前不开始 P1.3，不创建 `MITGCM-BOM-v0.2` 标签。
 
 ## 9. P1.2 启动记录
@@ -200,3 +200,14 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - `p12-regression-p05-20260824` 与嵌套 `p12-regression-p05-20260824-p04` 通过 Phase 0 总门禁；
 - 功能提交为 `633d3f9af75b4a052303ec0d0a06edf40677e18c`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；
 - 本增量未修改 `BOM_LOCATE_INITIAL`，未构造环境场、未插值、未移动粒子；PR #10 保持 Draft，不创建标签、不开始 P1.3。
+
+### 9.5 P1.2 locator 兼容包装
+
+- `BOM_LOCATE_INITIAL` 保留原公共接口，内部改为调用 `BOM_MAP_XY2IJLOCAL`；
+- 继续用 `NINT(ix/jy)` 和 owner 中心 `maskC` 判定初值湿点，不把四点 stage stencil 变成初值要求；
+- 门禁增加包装源审计，确认没有旧 `xG/yG` 搜索或未来 `BOM_INTERP_WET_PAIR` 调用；
+- `p12-locator-20260824-a` 通过 15/15 summary 行，summary SHA-256 为 `24ee80deb67395b9a8c14662d26e1da66be30b76ffc284ba409f15fc66c725d7`；
+- `p12-locator-regression-p11-20260824` 通过 8/8 构建、14/14 正向、20/20 负向、104/104 checkpoint；
+- `p12-locator-regression-p05-20260824` 与嵌套 `-p04` 通过 Phase 0 总门禁；
+- 功能提交为 `14636cda2bc9da61da784752b1dec11e54d518f1`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；
+- P1-R05 完成，但 P1-R06/P1-R07 未实现；PR #10 保持 Draft，不创建标签、不开始 P1.3。
