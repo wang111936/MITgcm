@@ -9,7 +9,7 @@
 | 当前分支 | `MITGCM-BOM/phase-01-state` |
 | 当前 PR | `wang111936/MITgcm#8`（draft） |
 | 当前工作包 | P1.1 状态与初值 |
-| 状态 | 独立复审发现的物理长度阻断已修复并通过扩展门禁，待最终复审 |
+| 状态 | 五项阻断均关闭且最终独立复审通过，等待明确的 Ready 授权 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -24,7 +24,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | 工作包 | 状态 | 分支/PR | 结论 |
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
-| P1.1 状态与初值 | 待复审 | `MITGCM-BOM/phase-01-state` / PR #8 | 5 项审查阻断已关闭；扩展门禁与 Phase 0 回归通过 |
+| P1.1 状态与初值 | 待授权 | `MITGCM-BOM/phase-01-state` / PR #8 | 5 项审查阻断已关闭；最终独立复审、扩展门禁与 Phase 0 回归通过 |
 | P1.2 映射与环境场 | 未开始 | 待建立 | 等待 P1.1 门禁 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
@@ -96,6 +96,8 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - `9007199254740993`（大于 $2^{53}$）在串行/MPI 中精确恢复；
 - MPI4 的 `(180,0)` 内部角点按半开区间唯一归属 PID 3 的东北 tile；
 - 最终 Phase 0 回归 ID：`p11-physical-size-fix-phase0-attempt01`，锁定参考、离线 Julia、8/8 smoke、P0.4 的 4 构建/3 正向/2 负向全部通过；
+- 最终独立复审未发现剩余源码或测试问题；复审时 PR #8 为 6 个提交、31 个文件、ahead 6/behind 0、可合并但保持 draft，且无状态检查、工作流、评审或评审线程；
+- bare-prefix 优先级探针位于 `/home/wyl/runs/mitgcm-bom/phase01-state/p11-final-rereview-bare-prefix-attempt01`；128 字节 bare prefix 与 192 字节 `.data` 并存时程序选择 bare prefix、仅有一个 owner 并正常结束；
 - 完整路径、校验和和失败尝试说明见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
 
 ### 6.3 实现中形成的决定
@@ -144,8 +146,8 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 从 draft PR #8 恢复：
 
-1. 推送物理长度修复和记录提交后，复核 PR #8 相对 `MITGCM-BOM/development` 的 31 文件独立差异和设计边界；
-2. 最终复审五项阻断的修复、评审线程、提交状态与 base/head SHA，不把 draft 自动标记 ready；
-3. 评审期间不加入环境场、通用映射、粒子运动或交换；
+1. 最终独立复审已完成；先确认 PR #8 仍为 draft、相对 `MITGCM-BOM/development` 保持 31 文件独立差异；
+2. 等待明确的 Ready 授权，不自动改变 draft 状态；
+3. 本 PR 不加入环境场、通用映射、粒子运动或交换等 P1.2+ 范围；
 4. 获得明确合并授权后使用 merge commit，并在集成分支复跑 P1.1 与 Phase 0 门禁；
 5. 集成通过前不创建 `MITGCM-BOM-v0.2` 标签；通过后创建独立 P1.2“映射与环境场”分支。

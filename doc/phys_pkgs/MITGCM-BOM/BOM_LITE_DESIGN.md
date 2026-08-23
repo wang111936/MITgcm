@@ -446,6 +446,7 @@ drift_east, drift_north, owner_rank, owner_tile
 | P1-D011 | 海岸插值失败在 Phase 1 为致命错误 | 搁浅状态和岸线策略必须在 Phase 4 统一验证 |
 | P1-D012 | Phase 1 先验收 MPI-only | OpenMP 共享状态安全在功能正确后单独加固 |
 | P1-D013 | P1.1 使用受限初值 locator，并以 `[west,east) x [south,north)` 唯一定义内部边界 owner | 初值读取必须能独立验收；同时消除“西/南含边界”与“最小 tile 编号”的冲突，完整映射仍留在 P1.2 |
+| P1-D014 | 初始 `.data` 物理长度必须精确等于 `(nParticles+1)*8*8` 字节 | meta/header 计数一致仍不能证明文件完整；截断、完整额外记录和残缺尾随字节必须在接受粒子前失败 |
 
 ## 14. 进入实现前的冻结检查
 

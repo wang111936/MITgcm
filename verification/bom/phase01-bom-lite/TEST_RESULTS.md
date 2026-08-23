@@ -125,11 +125,20 @@ Locked references, offline Julia instantiation, BOM-specific Julia smoke, and th
 | `p11-ol1-preflight-attempt01` | OL1 locator initialization passed under bounds checking | non-authoritative focused validation before the full attempt03 |
 | `p11-state-review-fixes-attempt03` | 8/8 builds, 14/14 positive, and 19/19 then-defined negative gates passed | superseded after independent re-review exposed an unannounced physical trailing record |
 | `p11-rereview-physical-trailing-attempt01` | 192-byte data with meta/header declaring 128 bytes ended normally and silently ignored the extra record | retained as the reproducer that triggered the physical-length fix |
+| `p11-final-rereview-bare-prefix-attempt01` | bare prefix was 128 bytes while the suffixed `.data` was 192 bytes; the run ended normally with exactly one owner | confirms the reader and physical-size check share bare-prefix-first precedence |
 | previous Phase 0 attempts | passed | superseded by `p11-physical-size-fix-phase0-attempt01` on the physical-length fix source |
 
 No evidence directory was overwritten or removed.
 
-## 6. Deferred by work-package boundary
+## 6. Final independent re-review
+
+- Remote snapshot at review time: base `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`, head `54eb37bd49970091fffed5091ec96939d73b6d7f`, 6 commits, 31 files, ahead 6/behind 0, mergeable and draft, with no statuses, workflows, reviews, or review threads.
+- The review revalidated 8 builds, 34 positive/negative run outcomes, all 13 applicable groups of 8 checkpoint records, the three physical-length failures, and the focused bare-prefix probe.
+- Focused probe SHA-256 values: run log `4c3eb78a04534ba55d3b756684f26d157240de5af19080781d4d093268329ff3`, bare input `a6ac5b6dcd5c57f80269276dc59090f461f7bc3ab80a49026ef80c2ee41c29e5`, suffixed `.data` `4f27a263be24f755a08d2ac6afd29c0c0068dcbc809ed7ef4a6e949d57b8e41f`, and meta `0c25dcf630576b4dc38570f0a330a667a0cf22d7958b2dcbc5b44e5fb573a942`.
+- No remaining source or test blocker was found. The only findings were stale recovery text and the missing P1-D014 row in the authoritative design-decision table; both are corrected in the documentation-only follow-up.
+- The full build matrix was not repeated after this follow-up because production source, gate scripts, generators, and inputs are unchanged from the authoritative runs; Markdown scope and consistency are checked statically.
+
+## 7. Deferred by work-package boundary
 
 - P1-S04a (WAITING initialization) is complete; P1-S04b (release-time substep split) requires P1.3 motion.
 - P1-N03a (initial global/tile capacity) is complete; P1-N03b requires P1.4 exchange buffers.

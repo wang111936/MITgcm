@@ -13,17 +13,17 @@
 | 当前阶段 PR | `wang111936/MITgcm#8`（draft，P1.1 状态与初值） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.1：状态、参数、初始文件、64 位 ID 与容量门禁 |
-| 下一工作包 | 独立复审 P1.1 修复；获准集成后建立 P1.2 映射与环境场分支 |
-| 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
+| 下一工作包 | 等待明确授权将 PR #8 标记 Ready；获准集成后建立 P1.2 映射与环境场分支 |
+| 当前阻塞 | 无；P1.1 最终独立复审已通过，PR #8 保持 draft 并等待明确的 Ready/合并授权 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
 1. 核对当前分支基线为 PR #7 的 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f`；
-2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对 `p11-state-review-fixes-attempt03` 与 `p11-review-fixes-phase0-attempt01`；
-3. 独立复审 draft PR #8 的 31 文件差异、四项修复、base/head SHA、评审线程和状态检查；
-4. 未经明确授权不把 PR 标记 ready 或合并；获准后使用 merge commit 并复跑集成门禁；
+2. 以 [P1.1 测试结果](../../../verification/bom/phase01-bom-lite/TEST_RESULTS.md) 核对 `p11-physical-size-fix-attempt01` 与 `p11-physical-size-fix-phase0-attempt01`；
+3. 最终独立复审已完成：五项阻断均关闭，31 文件差异未发现剩余源码或测试问题，设计决定和恢复文档已同步；
+4. 未经明确授权不把 PR 标记 Ready 或合并；获准后使用 merge commit 并复跑集成门禁；
 5. 在 P1.1 合并和集成回归前不开始 P1.2、不创建 v0.2 标签。
 
 开始前执行：
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 已合并；P1.1 审查阻断已修复并通过扩展门禁，待独立复审 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 已合并；P1.1 五项阻断均关闭且最终独立复审通过，PR #8 等待明确授权 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -146,11 +146,14 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 建立紧凑每 tile SoA、稳定状态码、schema 1 初值、32 位高低字到正 64 位 ID 的精确恢复和受限初值 owner locator；
 - 明确拒绝非有限数、损坏/重复 ID、坏状态/release、域外/干点、全局/tile 容量溢出和提前启用 Stokes；
 - 正式审查的四项阻断已由提交 `2c688a7e90d1bdd814a8bd8b0ef5db63c7d67a65` 修复：locator 边界、MDS meta 契约、逐字段断言和 BOM 关闭/未编译矩阵；
-- 权威 `p11-state-review-fixes-attempt03`：8/8 构建、14/14 正向、19/19 负向、104/104 适用 checkpoint 哈希通过；
-- 最终 `p11-review-fixes-phase0-attempt01`：锁定参考、离线 Julia、专用 smoke 和 P0.4 总门禁全部通过；
-- P1-D013 允许 P1.1 受限初值 locator，并将内部边界统一为 `[west,east) x [south,north)`；
+- 第五项物理长度阻断已由提交 `40f5754b3b00ea4bb6a9b20c64c10e968080ad24` 修复；
+- 权威 `p11-physical-size-fix-attempt01`：8/8 构建、14/14 正向、20/20 负向、104/104 适用 checkpoint 哈希通过；
+- 最终 `p11-physical-size-fix-phase0-attempt01`：锁定参考、离线 Julia、专用 smoke 和 P0.4 总门禁全部通过；
+- P1-D013 允许 P1.1 受限初值 locator，并将内部边界统一为 `[west,east) x [south,north)`；P1-D014 要求初始 `.data` 物理长度精确匹配 schema；
+- 最终独立复审未发现剩余源码或测试问题；额外 bare-prefix 优先级探针正常结束且只有一个 owner，证明物理长度检查与 MDS 读取选择同一文件；
 - 生产代码未加入环境场、插值、粒子运动、迁移、轨迹或 pickup；
 - 功能提交 `c5ee5549a504ed428f152bbc5022368095a1752d` 已推送并创建 draft PR #8；
+- PR #8 保持 draft，等待明确的 Ready/合并授权；
 - 详细证据和非权威尝试见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
@@ -294,6 +297,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - `p11-physical-size-fix-phase0-attempt01` 完成 Phase 0 最终回归；summary SHA-256 保持 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`；
 - 以 `WangYuLin <wang111936@outlook.com>` 创建物理长度修复提交 `40f5754b3b00ea4bb6a9b20c64c10e968080ad24`；
 - PR #8 继续保持 draft，未合并、未创建标签，下一步为修复后的最终独立复审。
+
+### 2026-08-23：P1.1 最终独立复审与文档同步
+
+- 复审时 PR #8 相对 `MITGCM-BOM/development@acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` 为 6 个提交、31 个文件、ahead 6/behind 0，head 为 `54eb37bd49970091fffed5091ec96939d73b6d7f`；PR 可合并但保持 draft，且无状态检查、工作流、评审或评审线程；
+- 重新核对生产实现、8 项构建、34 项正负运行结果和 13 组 checkpoint 记录，未发现剩余源码或测试问题；
+- 在 `/home/wyl/runs/mitgcm-bom/phase01-state/p11-final-rereview-bare-prefix-attempt01` 以 128 字节 bare prefix 和 192 字节 `.data` 并存探测优先级；程序选择 bare prefix、仅有一个 owner 并正常结束；
+- 发现唯一恢复入口仍引用旧门禁，且权威设计决定表缺少 P1-D014；已仅同步四份 Markdown，不改生产源码、门禁或输入；
+- 权威 P1.1/Phase 0 门禁后的变更仅为文档，因此未重复执行完整编译矩阵；
+- PR #8 保持 draft，未标记 Ready、未合并、未创建标签，等待明确授权。
 
 ## 6. 每次会话结束时必须更新
 
