@@ -4,7 +4,7 @@ C     !INTERFACE:
 C     #include "BOM.h"
 
 C     !DESCRIPTION:
-C     Runtime controls, compact owner state, and Phase-1.2 mapping state.
+C     Runtime controls, compact owner state, and Phase-1.2 grid fields.
 CEOP
 
       CHARACTER*8  bomMode
@@ -81,8 +81,7 @@ C--   Valid owner records occupy slots 1:bomNPartTile on each tile.
      &       bomVEast, bomVNorth, bomWindEast, bomWindNorth,
      &       bomDriftEast, bomDriftNorth
 
-C--   Static regular-grid mapping state.  Environmental fields remain
-C     unavailable until the later P1.2 field-construction increment.
+C--   Static regular-grid mapping and surface-field publication state.
       _RL bomMapXLo
       _RL bomMapXHi
       _RL bomMapYLo
@@ -100,5 +99,18 @@ C     unavailable until the later P1.2 field-construction increment.
       LOGICAL bomMapPeriodicX
       LOGICAL bomFieldsReady
       COMMON /BOM_MAP_L/ bomMapPeriodicX, bomFieldsReady
+
+C--   Single-level C-grid work arrays and geographic C-point fields.
+      _RL bomGridUWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomGridVWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomGridVEast(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomGridVNorth(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_FIELD_R/
+     &       bomGridUWork, bomGridVWork,
+     &       bomGridVEast, bomGridVNorth
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|

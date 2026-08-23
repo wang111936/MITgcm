@@ -8,8 +8,8 @@ C !INTERFACE:
       SUBROUTINE BOM_INIT_STATE( myThid )
 
 C !DESCRIPTION:
-C     Reset all Phase-1.1 owner slots deterministically.  Valid records
-C     will later occupy the compact range 1:bomNPartTile on each tile.
+C     Reset owner slots and Phase-1.2 surface fields deterministically.
+C     Valid records later occupy 1:bomNPartTile on each tile.
 
 C !USES:
       IMPLICIT NONE
@@ -24,12 +24,23 @@ CEOP
 
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
-      INTEGER bi, bj, ip
+      INTEGER bi, bj, i, j, ip
 
       _BEGIN_MASTER(myThid)
+      bomFieldsReady = .FALSE.
+      bomFieldTime = 0. _d 0
+      bomFieldIter = 0
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = 0
+        DO j=1-OLy,sNy+OLy
+         DO i=1-OLx,sNx+OLx
+          bomGridUWork(i,j,1,bi,bj) = 0. _d 0
+          bomGridVWork(i,j,1,bi,bj) = 0. _d 0
+          bomGridVEast(i,j,1,bi,bj) = 0. _d 0
+          bomGridVNorth(i,j,1,bi,bj) = 0. _d 0
+         ENDDO
+        ENDDO
         DO ip=1,bomMaxPartTile
           bomId(ip,bi,bj)          = 0
           bomStatus(ip,bi,bj)      = BOM_UNUSED
