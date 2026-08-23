@@ -253,7 +253,7 @@ Phase 1 拒绝包含极点或使 `cos(phi)` 小于安全阈值的网格。
 
 Phase 1 采用 BOM 独立的 MDS 风格全局二进制文件，不复用 FLT 文件。前缀由 `bomInitialFile` 给出，包含：
 
-- `<prefix>.meta`：标准维度、精度和记录数元数据，并记录 BOM schema；
+- `<prefix>.meta`：标准维度、精度和记录数元数据，并以 `fldList(1)='BOMV0001'` 记录 BOM schema；
 - `<prefix>.data`：big-endian IEEE 64-bit 记录。
 
 第一个记录为 8 个 `_RL` 头字段：

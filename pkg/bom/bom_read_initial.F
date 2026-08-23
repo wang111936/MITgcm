@@ -40,9 +40,15 @@ C !LOCAL VARIABLES:
       INTEGER nWaitingLocal, nWaitingGlobal
       INTEGER nFoundLocal, statusValue
       INTEGER errCount, globalErrCount, idError, k
+      INTEGER metaFilePrec, metaNDims, metaNFlds, metaNTimRec
+      INTEGER metaDimList(3,3), metaNRecords, metaFileIter
       _RL ix, jy, ownerIx, ownerJy
+      _RL metaTimList(1), metaMissingValue
       LOGICAL isLocal, isWet, recordValid, headerFinite, ownerWet
+      LOGICAL useCurrentDir
       CHARACTER*(MAX_LEN_MBUF) msgBuf
+      CHARACTER*(MAX_LEN_MBUF) metaSimulation, metaTitle
+      CHARACTER*8 metaFieldList(1)
 
       nInput = 0
       nAssignedLocal = 0
@@ -51,6 +57,71 @@ C !LOCAL VARIABLES:
       errCount = 0
 
       _BEGIN_MASTER(myThid)
+
+C--   The BOM initial-file contract requires a standard MDS meta file.
+C     fldList(1) carries the BOM schema independently of the data header.
+      metaNDims = 3
+      metaNFlds = 1
+      metaNTimRec = 0
+      useCurrentDir = .TRUE.
+      CALL MDS_READ_META(
+     I     bomInitialFile,
+     O     metaSimulation, metaTitle, metaFilePrec,
+     U     metaNDims, metaNFlds, metaNTimRec,
+     O     metaDimList, metaFieldList, metaTimList,
+     O     metaMissingValue, metaNRecords, metaFileIter,
+     I     useCurrentDir, myThid )
+
+      IF ( metaNFlds.LT.0 ) THEN
+        WRITE(msgBuf,'(A)')
+     &       'BOM_READ_INITIAL: required MDS meta file is missing'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSE
+        IF ( metaNDims.NE.3 ) THEN
+          WRITE(msgBuf,'(A,I4,A)')
+     &         'BOM_READ_INITIAL: meta nDims=', metaNDims,
+     &         ' expected=3'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSEIF (
+     &       metaDimList(1,1).NE.1 .OR.
+     &       metaDimList(2,1).NE.1 .OR.
+     &       metaDimList(3,1).NE.1 .OR.
+     &       metaDimList(1,2).NE.1 .OR.
+     &       metaDimList(2,2).NE.1 .OR.
+     &       metaDimList(3,2).NE.1 .OR.
+     &       metaDimList(1,3).NE.bomRecordSize .OR.
+     &       metaDimList(2,3).NE.1 .OR.
+     &       metaDimList(3,3).NE.bomRecordSize ) THEN
+          WRITE(msgBuf,'(A)')
+     &         'BOM_READ_INITIAL: invalid MDS meta dimList'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+        IF ( metaFilePrec.NE.precFloat64 ) THEN
+          WRITE(msgBuf,'(A,I4,A,I4)')
+     &         'BOM_READ_INITIAL: meta precision=', metaFilePrec,
+     &         ' expected=', precFloat64
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+        IF ( metaNFlds.NE.1 .OR.
+     &       metaFieldList(1).NE.'BOMV0001' ) THEN
+          WRITE(msgBuf,'(A,I4,A,A)')
+     &         'BOM_READ_INITIAL: meta schema fields=', metaNFlds,
+     &         ' schema=', metaFieldList(1)
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+        IF ( metaNRecords.LT.2 ) THEN
+          WRITE(msgBuf,'(A,I8)')
+     &         'BOM_READ_INITIAL: invalid meta record count=',
+     &         metaNRecords
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+      ENDIF
 
       ioUnit = -1
       bi = 0
@@ -134,6 +205,15 @@ C     precision, reserved, reserved.
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
        ENDIF
+      ENDIF
+
+      IF ( nInput.GT.0 .AND.
+     &     metaNRecords.NE.nInput+1 ) THEN
+        WRITE(msgBuf,'(A,I8,A,I8)')
+     &       'BOM_READ_INITIAL: meta records=', metaNRecords,
+     &       ' expected from header=', nInput+1
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
       ENDIF
 
       IF ( errCount.EQ.0 ) THEN
@@ -309,12 +389,14 @@ C     precision, reserved, reserved.
               IF ( statusValue.EQ.BOM_WAITING )
      &             nWaitingLocal = nWaitingLocal + 1
               IF ( nInput.LE.16 ) THEN
-                WRITE(msgBuf,'(A,I20,A,I6,A,2I4,A,I3,A,2F12.4)')
+                WRITE(msgBuf,1000)
      &               'BOM_READ_INITIAL: id=', particleId,
      &               ' rank=', myProcId,
      &               ' tile=', ownerBi, ownerBj,
      &               ' status=', statusValue,
-     &               ' xy=', record(3), record(4)
+     &               ' xy=', record(3), record(4),
+     &               ' release-age=', record(5), record(7),
+     &               ' ij=', ownerIx, ownerJy
                 CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                              SQUEEZE_RIGHT, myThid )
               ENDIF
@@ -373,6 +455,8 @@ C     precision, reserved, reserved.
      &                      SQUEEZE_RIGHT, myThid )
       ENDIF
       _END_MASTER(myThid)
+ 1000 FORMAT(A,I20,A,I6,A,2I4,A,I3,A,2F24.16,
+     &       A,2F24.16,A,2F24.16)
 #endif
 
       RETURN

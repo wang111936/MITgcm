@@ -46,6 +46,12 @@ def scenario_records(name: str) -> tuple[tuple[float, ...], list[tuple[float, ..
     elif name == "two":
         records = valid[:2]
         header = (1.0, 8.0, 2.0, 1.0, 1.0, 64.0, 0.0, 0.0)
+    elif name in ("missing-meta", "bad-meta-schema"):
+        records = valid[:1]
+        header = (1.0, 8.0, 1.0, 1.0, 1.0, 64.0, 0.0, 0.0)
+    elif name == "trailing-record":
+        records = valid[:2]
+        header = (1.0, 8.0, 1.0, 1.0, 1.0, 64.0, 0.0, 0.0)
     elif name == "duplicate":
         records = [valid[0], valid[0]]
         header = (1.0, 8.0, 2.0, 1.0, 1.0, 64.0, 0.0, 0.0)
@@ -88,16 +94,20 @@ def scenario_records(name: str) -> tuple[tuple[float, ...], list[tuple[float, ..
     return header, records
 
 
-def write_meta(path: Path, nrecords: int) -> None:
+def write_meta(path: Path, nrecords: int, schema: str = "BOMV0001") -> None:
     text = f""" nDims = [   3 ];
  dimList = [
-  1,    1,    1,
-  1,    1,    1,
-  8,    1,    8
+     1,    1,    1,
+     1,    1,    1,
+     8,    1,    8
  ];
  dataprec = [ 'float64' ];
  nrecords = [ {nrecords:5d} ];
  timeStepNumber = [          0 ];
+ nFlds = [    1 ];
+ fldList = {{
+ '{schema}'
+ }};
 """
     path.write_text(text, encoding="ascii")
 
@@ -110,6 +120,9 @@ def main() -> None:
             "valid",
             "one",
             "two",
+            "missing-meta",
+            "bad-meta-schema",
+            "trailing-record",
             "duplicate",
             "bad-schema",
             "bad-id",
@@ -134,7 +147,11 @@ def main() -> None:
     with data_path.open("wb") as stream:
         for record in [header, *records]:
             stream.write(struct.pack(">8d", *record))
-    if args.scenario == "truncated":
+    if args.scenario == "missing-meta":
+        return
+    if args.scenario == "bad-meta-schema":
+        write_meta(meta_path, len(records) + 1, schema="BOMV0002")
+    elif args.scenario == "truncated":
         write_meta(meta_path, 2)
     else:
         write_meta(meta_path, len(records) + 1)

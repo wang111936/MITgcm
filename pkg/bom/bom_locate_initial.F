@@ -44,7 +44,7 @@ C !LOCAL VARIABLES:
       IF ( usingCartesianGrid .OR.
      &     usingSphericalPolarGrid .AND. .NOT.rotateGrid ) THEN
         j = 1
-        DO i=0,sNx+1
+        DO i=1,sNx
           IF ( ix.EQ.-1. _d 0 ) THEN
             IF ( xG(i,j,bi,bj).LE.xx .AND.
      &           xx.LT.xG(i+1,j,bi,bj) ) THEN
@@ -58,7 +58,7 @@ C !LOCAL VARIABLES:
         ENDDO
 
         i = 1
-        DO j=0,sNy+1
+        DO j=1,sNy
           IF ( jy.EQ.-1. _d 0 ) THEN
             IF ( yG(i,j,bi,bj).LE.yy .AND.
      &           yy.LT.yG(i,j+1,bi,bj) ) THEN
