@@ -1,6 +1,6 @@
 # Phase 0：参考基线与骨架设计
 
-状态：`进行中`
+状态：`完成`
 
 目标版本：`MITGCM-BOM-v0.1`
 
@@ -8,31 +8,33 @@
 
 P0.1 提交：`ff1ab313d348fc0219e6e192bcbab928eb49e7e7`
 
-P0.1 PR：`https://github.com/wang111936/MITgcm/pull/1`
+P0.1 PR：`https://github.com/wang111936/MITgcm/pull/1`，merge commit `ccaf4f81243ae7ded8d09be0bd2074aced4600d8`
 
 P0.2 分支：`MITGCM-BOM/phase-00-skeleton`
 
 P0.2 提交：`eee711c9b5aea0644ffb54fc5a08c544d2d7919e`
 
-P0.2 draft PR：`https://github.com/wang111936/MITgcm/pull/2`
+P0.2 PR：`https://github.com/wang111936/MITgcm/pull/2`，merge commit `db9610264b21c7c55c4cce7a94fb6d357fbe9459`
 
 P0.3 分支：`MITGCM-BOM/phase-00-lifecycle`
 
 P0.3 提交：`7e156a418b6d3f345298edeadbe7af73c938a1c7`
 
-P0.3 draft PR：`https://github.com/wang111936/MITgcm/pull/3`
+P0.3 PR：`https://github.com/wang111936/MITgcm/pull/3`，merge commit `81b53387d6c941b23177f23774e705dd200d940e`
 
 P0.4 分支：`MITGCM-BOM/phase-00-zero-particle`
 
 P0.4 提交：`1e5bda7e4375db5520446fb715849e199725642a`
 
-P0.4 draft PR：`https://github.com/wang111936/MITgcm/pull/4`
+P0.4 PR：`https://github.com/wang111936/MITgcm/pull/4`，merge commit `d5e18cec22ed1be9c300bdd79ff908b6bd452e0c`
 
 P0.5 分支：`MITGCM-BOM/phase-00-final-gate`
 
 P0.5 功能提交：`6d705ed68d8d497597984d6c266a4954cd3b7ab8`
 
-P0.5 draft PR：`https://github.com/wang111936/MITgcm/pull/5`
+P0.5 PR：`https://github.com/wang111936/MITgcm/pull/5`，merge commit `2baea214fe1f898e16df4953892c142a07b82111`
+
+集成门禁：`p05-integrated-attempt01`，在 `2baea214fe1f898e16df4953892c142a07b82111` 上通过
 
 ## 1. 范围
 
@@ -227,16 +229,38 @@ P0.2 没有加入 `useBOM`，也没有改动 `model/src`、`model/inc`、验证�
 - [x] `data.bom` 参数默认值和错误检查通过；
 - [x] Julia 参考环境能加载并执行基础测试；
 - [x] 需求—实现—测试追踪表已更新；
-- [ ] 阶段 PR 合并到 `MITGCM-BOM/development`。
+- [x] 阶段 PR 已按顺序合并到 `MITGCM-BOM/development`，最终集成提交为 `2baea214fe1f898e16df4953892c142a07b82111`。
 
-## 9. 下一任务：Phase 0 集成
+## 9. Phase 0 集成结果
 
-P0.5 发布后只完成：
+经用户明确批准后，PR #1—#5 按以下顺序使用 merge commit 合并：
 
-- 创建堆叠在 PR #4 上的 P0.5 draft PR；
-- 审查 PR #1—#5 的范围、测试和变更文件；
-- 取得明确批准后按 `MERGE_PLAN.md` 逐个合并；
-- 在 `MITGCM-BOM/development` 上以新 ID 重跑最终门禁；
-- 集成门禁通过后再标记 Phase 0 完成并决定是否创建 v0.1 标签。
+| 顺序 | PR | Merge commit |
+|---:|---|---|
+| 1 | #1 | `ccaf4f81243ae7ded8d09be0bd2074aced4600d8` |
+| 2 | #2 | `db9610264b21c7c55c4cce7a94fb6d357fbe9459` |
+| 3 | #3 | `81b53387d6c941b23177f23774e705dd200d940e` |
+| 4 | #4 | `d5e18cec22ed1be9c300bdd79ff908b6bd452e0c` |
+| 5 | #5 | `2baea214fe1f898e16df4953892c142a07b82111` |
 
-当前不得自动合并 PR、创建标签或开始 Phase 1 粒子运动实现。
+每次合并前均将当前 PR 基分支调整为 `MITGCM-BOM/development`，核对阶段独立文件范围、mergeability 和固定 head SHA 后再合并。
+
+在最终集成提交上以新 ID `p05-integrated-attempt01` 重跑 P0.5：
+
+- 锁定源码、注册表、Project 和 Manifest：通过；
+- Julia 1.10.12 / SargassumBOMB 0.7.14 smoke：8/8 通过；
+- P0.4 构建：4/4 通过；
+- 串行、2-rank MPI、4-rank MPI 正向运行：3/3 通过；
+- checkpoint SHA-256：24/24 匹配；
+- 负向门禁：2/2 按预期拒绝；
+- 同名测试 ID：在覆盖证据前拒绝。
+
+Phase 0 的可执行、追踪和集成退出条件全部满足，状态标记为 `完成`。详细证据见 `verification/bom/phase00-final-gate/INTEGRATION_RESULTS.md`。
+
+## 10. 下一任务
+
+- 审查并合并只含文档的 Phase 0 集成记录 PR；
+- 单独决定是否从确认后的开发分支创建 `MITGCM-BOM-v0.1` 标签；
+- 标签决定和 Phase 1 设计准备分开处理。
+
+当前未创建标签，也未开始 Phase 1 粒子运动实现。

@@ -19,6 +19,14 @@ goldens. Those are not required to close Phase 0 and remain explicit Phase 2
 work. The Julia reference lock therefore remains `PROVISIONAL` until analytical
 inputs and golden trajectories are established.
 
+## Records
+
+- `TEST_RESULTS.md` records the pre-merge P0.5 run `p05-attempt01`;
+- `MERGE_PLAN.md` records the planned and executed PR #1—#5 merge sequence;
+- `PHASE0_EXIT_AUDIT.md` records the final exit-criterion decision;
+- `INTEGRATION_RESULTS.md` records the post-merge run
+  `p05-integrated-attempt01` at the verified development commit.
+
 ## Run
 
 From the repository root:
@@ -42,3 +50,7 @@ Optional environment variables:
 
 The driver refuses to reuse any P0.5 result directory or derived P0.4
 build/run directory. Runtime evidence is kept outside the source repository.
+
+The integrated run used the same command with
+`MITGCM_BOM_TEST_ID=p05-integrated-attempt01`. It passed before this
+documentation-only record was created. No version tag is created by the gate.

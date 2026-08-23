@@ -82,11 +82,46 @@ Reusing `MITGCM_BOM_TEST_ID=p05-attempt01` was rejected before Julia or P0.4
 execution because the P0.5 result root already existed. Historical evidence was
 not overwritten.
 
+## Post-merge integrated rerun
+
+After PR #1 through #5 were merged in order, the complete gate was rerun from
+the updated `MITGCM-BOM/development` branch.
+
+Verified commit:
+`2baea214fe1f898e16df4953892c142a07b82111`
+
+Test ID: `p05-integrated-attempt01`
+
+```bash
+MITGCM_BOM_TEST_ID=p05-integrated-attempt01 \
+MITGCM_BOM_MAKE_JOBS=4 \
+  verification/bom/phase00-final-gate/run_gate.sh
+```
+
+| Gate | Integrated result |
+|---|---|
+| locked references | passed |
+| offline Julia instantiate | passed |
+| Julia smoke | 8/8 passed |
+| P0.4 builds | 4/4 passed |
+| positive serial/MPI runs | 3/3 passed |
+| rank normal-end logs | 1/1, 2/2, and 4/4 |
+| checkpoint SHA-256 | 24/24 matched |
+| negative gates | 2/2 expected rejection |
+| reused P0.5 test ID | rejected before overwrite |
+
+The integrated result root is
+`/home/wyl/runs/mitgcm-bom/phase00-final-gate/p05-integrated-attempt01`.
+Its derived P0.4 build and run ID is `p05-integrated-attempt01-p04`.
+See `INTEGRATION_RESULTS.md` for the merge-commit map and full integration
+decision.
+
 ## Verdict
 
 `P0.5 GATE PASS`
 
-All executable Phase-0 exit criteria are satisfied. Phase 0 remains marked
-`in progress` until the stacked PR chain is reviewed and merged into
-`MITGCM-BOM/development`. The Julia reference remains `PROVISIONAL` for
-trajectory-golden purposes; that limitation belongs to later physics validation.
+All executable Phase-0 exit criteria are satisfied, the stacked PR chain is
+integrated, and the post-merge gate passed. Phase 0 is marked `complete`. The
+Julia reference remains `PROVISIONAL` for trajectory-golden purposes; that
+limitation belongs to later physics validation. No version tag was created as
+part of the gate or this record.

@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-00-final-gate` |
-| 当前阶段 PR | `wang111936/MITgcm#5`（draft，堆叠在 PR #4） |
-| 当前阶段 | Phase 0：参考基线与骨架设计 |
-| 当前工作包 | P0.5：Phase 0 最终门禁、Julia smoke 与合并准备（完成，PR #5 待审查） |
-| 下一工作包 | Phase 0 审查与顺序合并（需要用户明确批准） |
+| 当前任务分支 | `MITGCM-BOM/phase-00-integration-record` |
+| 当前阶段 PR | `wang111936/MITgcm#6`（Phase 0 集成记录，draft，待审查） |
+| 当前阶段 | Phase 0：参考基线与骨架设计（完成） |
+| 当前工作包 | Phase 0 集成记录：PR #1—#5 已合并，集成门禁已通过 |
+| 下一工作包 | 审查并合并 Phase 0 集成记录；之后单独决定是否创建 `MITGCM-BOM-v0.1` 标签 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 审查 PR #1—#5 的范围、文件和测试，不自动合并；
-2. 获得明确批准后，按 `MERGE_PLAN.md` 从 PR #1 开始逐个合并；
-3. 每次合并后将下一个 PR 调整到 `MITGCM-BOM/development` 并复核差异；
-4. PR #5 合并后在集成分支上用新测试 ID 重跑 P0.5；
-5. 只有集成门禁通过后才将 Phase 0 标记完成并考虑 `MITGCM-BOM-v0.1` 标签。
+1. 审查 Phase 0 集成记录 PR #6，确认它只包含文档；
+2. 获得明确批准后，将 PR #6 合并到 `MITGCM-BOM/development`；
+3. 合并后核对开发分支包含集成记录，且模型源码与已验证提交一致；
+4. 单独决定是否从确认后的开发分支创建 `MITGCM-BOM-v0.1` 标签；
+5. 在 Phase 1 开始前建立 BOM-Lite 的需求、接口和最小测试设计。
 
 开始前执行：
 
@@ -39,8 +39,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | 阶段 | 状态 | 目标版本 | 当前结论 | 详细记录 |
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
-| Phase 0 参考与骨架 | 进行中 | v0.1 | P0.1—P0.5 可执行门禁完成；等待五个 PR 审查和集成 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 未开始 | v0.2 | 等待 Phase 0 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-1bom-lite--leeway) |
+| Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#5 已顺序合并；集成 P0.5 门禁通过 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
+| Phase 1 BOM-Lite | 未开始 | v0.2 | 等待 Phase 0 集成记录与版本决策 | [开发手册](DEVELOPMENT_MANUAL.md#phase-1bom-lite--leeway) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -62,7 +62,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 ### P0.1 参考版本锁
 
 - 本地/GitHub 提交：`ff1ab313d348fc0219e6e192bcbab928eb49e7e7`；
-- GitHub PR：`https://github.com/wang111936/MITgcm/pull/1`；
+- GitHub PR：`https://github.com/wang111936/MITgcm/pull/1`，已合并为 `ccaf4f81243ae7ded8d09be0bd2074aced4600d8`；
 - Julia 参考源码固定到 `156557359185e4413ce82829f3ed26a4eb8c6283`；
 - 自定义注册表固定到 `02961aced4cfa2b3430ebd4b44cdb7a3056e7175`；
 - 已为 Julia 1.10.12 重建根级 Manifest；
@@ -74,7 +74,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 ### P0.2 可编译空包骨架
 
 - 本地/GitHub 提交：`eee711c9b5aea0644ffb54fc5a08c544d2d7919e`；
-- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/2`；
+- GitHub PR：`https://github.com/wang111936/MITgcm/pull/2`，已合并为 `db9610264b21c7c55c4cce7a94fb6d357fbe9459`；
 - 新增 `pkg/bom` 的 options、size、控制参数、读取/检查和空生命周期例程；
 - `pkg/pkg_depend` 登记 `mdsio`、`mom_common` 强依赖；
 - 串行与双进程 MPI 均完成 `genmake2`、`make depend`、编译和链接；
@@ -87,7 +87,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 ### P0.3 生命周期注册
 
 - 本地/GitHub 提交：`7e156a418b6d3f345298edeadbe7af73c938a1c7`；
-- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/3`；
+- GitHub PR：`https://github.com/wang111936/MITgcm/pull/3`，已合并为 `81b53387d6c941b23177f23774e705dd200d940e`；
 - 在 `PARAMS.h` 和 `data.pkg` 的 `PACKAGES` namelist 中注册 `useBOM`，默认关闭；
 - 将读取、检查、固定初始化、变量初始化和空 `BOM_MAIN` 挂接到 MITgcm；
 - `BOM_MAIN` 位于 FLT 之后、嵌套和 monitor 之前；
@@ -101,7 +101,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 ### P0.4 正式零粒子门禁
 
 - 本地/GitHub 提交：`1e5bda7e4375db5520446fb715849e199725642a`；
-- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/4`；
+- GitHub PR：`https://github.com/wang111936/MITgcm/pull/4`，已合并为 `d5e18cec22ed1be9c300bdd79ff908b6bd452e0c`；
 - 固化 BOM 开启/关闭包清单、零粒子输入和 2 x 2 MPI 网格配置；
 - 新增仓库外、唯一测试 ID 的自动测试驱动，并拒绝覆盖既有证据目录；
 - `bash -n` 与 `shellcheck` 均通过；
@@ -116,16 +116,26 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 ### P0.5 Phase 0 最终门禁
 
 - 本地/GitHub 功能提交：`6d705ed68d8d497597984d6c266a4954cd3b7ab8`；
-- GitHub draft PR：`https://github.com/wang111936/MITgcm/pull/5`；
+- GitHub PR：`https://github.com/wang111936/MITgcm/pull/5`，已合并为 `2baea214fe1f898e16df4953892c142a07b82111`；
 - 精确核对 Julia 源码、自定义注册表提交和锁定 Project/Manifest SHA-256；
 - 专用 Julia depot 在离线模式下完成依赖实例化；
 - Julia 1.10.12 / SargassumBOMB 0.7.14 的基础 smoke 8/8 断言通过；
 - smoke 只覆盖加载、坐标/时间往返和纯工具函数，不依赖默认环境场或陈旧示例入口；
 - 从全新目录重跑 P0.4，4/4 构建、3/3 正向、24/24 哈希、2/2 负向再次通过；
 - 相同测试 ID 在覆盖历史证据前被拒绝；
-- Phase 0 可执行退出条件全部满足，合并退出条件仍待 PR #1—#5 审查和集成；
+- Phase 0 可执行退出条件全部满足，PR #1—#5 已完成顺序集成；
 - 已记录顺序合并方案及集成后重跑/标记条件；
 - 详细证据见 `verification/bom/phase00-final-gate/TEST_RESULTS.md`。
+
+### Phase 0 集成结果
+
+- PR #1—#5 均重定向到 `MITGCM-BOM/development`，复核独立差异后使用 merge commit 顺序合并；
+- 五个 merge commit 依次为 `ccaf4f81243ae7ded8d09be0bd2074aced4600d8`、`db9610264b21c7c55c4cce7a94fb6d357fbe9459`、`81b53387d6c941b23177f23774e705dd200d940e`、`d5e18cec22ed1be9c300bdd79ff908b6bd452e0c` 和 `2baea214fe1f898e16df4953892c142a07b82111`；
+- 在最终集成提交 `2baea214fe1f898e16df4953892c142a07b82111` 上运行 `p05-integrated-attempt01`；
+- Julia 离线实例化、8/8 smoke、4/4 构建、3/3 正向运行、24/24 checkpoint 哈希和 2/2 负向门禁全部通过；
+- 复用相同测试 ID 在覆盖历史证据前被拒绝；
+- 本次集成未创建标签，Phase 1 也未开始；
+- 详细记录见 `verification/bom/phase00-final-gate/INTEGRATION_RESULTS.md`。
 
 ## 4. 未决问题与风险
 
@@ -204,6 +214,16 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 创建并发布 P0.5 功能提交 `6d705ed68d8d497597984d6c266a4954cd3b7ab8`；
 - 创建 draft PR #5，基分支暂为 P0.4 分支，确保差异只包含 P0.5；
 - PR #4 合并后，应将 PR #5 基分支调整到当时的集成基线。
+
+### 2026-08-23：Phase 0 顺序集成与合并后门禁
+
+- PR #1—#5 依次重定向、复核并使用 merge commit 合并到 `MITGCM-BOM/development`；
+- 最终集成提交为 `2baea214fe1f898e16df4953892c142a07b82111`；
+- 使用唯一测试 ID `p05-integrated-attempt01` 在最终集成提交上完成 P0.5 全量门禁；
+- Julia 8/8、P0.4 的 4/4 构建、3/3 正向运行、24/24 哈希和 2/2 负向门禁全部通过；
+- 同名测试 ID 的再次运行在写入前按预期拒绝，开发工作树保持干净；
+- 创建 `MITGCM-BOM/phase-00-integration-record`，只记录集成事实和阶段状态；
+- 未创建 `MITGCM-BOM-v0.1` 标签，未开始 Phase 1。
 
 ## 6. 每次会话结束时必须更新
 
