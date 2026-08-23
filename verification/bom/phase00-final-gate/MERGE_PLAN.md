@@ -1,47 +1,58 @@
-# Phase-0 stacked merge plan
+# Phase-0 stacked merge plan and execution record
 
-Snapshot date: 2026-08-23
+Plan date: 2026-08-23
 
-No merge or tag is authorized by this plan. Each merge remains an explicit
-review decision.
+Execution date: 2026-08-23
 
-## Current stack
+The original plan required explicit authorization, ordered merge commits, an
+independent diff review before every merge, and a fresh P0.5 run after the
+stack reached `MITGCM-BOM/development`. The user authorized that operation; the
+sequence below records the actual result.
 
-| Order | PR | Head | Current base | State |
+## Executed stack
+
+| Order | PR | Head | Merge commit | Result |
 |---:|---|---|---|---|
-| 1 | #1 | `MITGCM-BOM/phase-00-reference-lock` | `MITGCM-BOM/development` | open, ready, mergeable |
-| 2 | #2 | `MITGCM-BOM/phase-00-skeleton` | P0.1 branch | open, draft, mergeable |
-| 3 | #3 | `MITGCM-BOM/phase-00-lifecycle` | P0.2 branch | open, draft, mergeable |
-| 4 | #4 | `MITGCM-BOM/phase-00-zero-particle` | P0.3 branch | open, draft, mergeable |
-| 5 | #5 | `MITGCM-BOM/phase-00-final-gate` | P0.4 branch | open, draft, mergeable |
+| 1 | #1 | `MITGCM-BOM/phase-00-reference-lock` | `ccaf4f81243ae7ded8d09be0bd2074aced4600d8` | merged |
+| 2 | #2 | `MITGCM-BOM/phase-00-skeleton` | `db9610264b21c7c55c4cce7a94fb6d357fbe9459` | merged |
+| 3 | #3 | `MITGCM-BOM/phase-00-lifecycle` | `81b53387d6c941b23177f23774e705dd200d940e` | merged |
+| 4 | #4 | `MITGCM-BOM/phase-00-zero-particle` | `d5e18cec22ed1be9c300bdd79ff908b6bd452e0c` | merged |
+| 5 | #5 | `MITGCM-BOM/phase-00-final-gate` | `2baea214fe1f898e16df4953892c142a07b82111` | merged |
 
-## Required sequence
-
-1. Review and merge PR #1 into `MITGCM-BOM/development`.
-2. Retarget PR #2 to `MITGCM-BOM/development`, verify that only P0.2 remains,
-   rerun required checks, mark it ready, then merge.
-3. Retarget PR #3 to `MITGCM-BOM/development`, verify the P0.3-only diff and
-   lifecycle evidence, mark it ready, then merge.
-4. Retarget PR #4 to `MITGCM-BOM/development`, verify the P0.4-only diff and
-   formal zero-particle evidence, mark it ready, then merge.
-5. Retarget PR #5 to `MITGCM-BOM/development`, verify the P0.5-only diff and
-   final-gate evidence, mark it ready, then merge.
-
-A merge commit is recommended for this phase because it preserves the exact
-stage commits and stacked ancestry. Do not force-push, delete phase branches, or
-batch-merge the stack. After each merge, verify the next PR's base, changed-file
-list, mergeability, and required checks before proceeding.
+All five PRs were retargeted to `MITGCM-BOM/development` as their predecessor
+was integrated. Before each merge, the PR was checked for its intended
+stage-only changed-file list, a mergeable state, a non-draft state, and the
+expected immutable head SHA. GitHub created a merge commit for every PR. No
+phase branch was force-pushed or deleted.
 
 ## Final integration gate
 
-After PR #5 is merged, check out the updated `MITGCM-BOM/development` and run:
+The updated development branch was fetched and checked out at:
+
+```text
+2baea214fe1f898e16df4953892c142a07b82111
+```
+
+The fresh post-merge gate used a unique result ID:
 
 ```bash
-MITGCM_BOM_TEST_ID=p05-integrated-YYYYMMDDTHHMMSSZ \
+MITGCM_BOM_TEST_ID=p05-integrated-attempt01 \
+MITGCM_BOM_MAKE_JOBS=4 \
   verification/bom/phase00-final-gate/run_gate.sh
 ```
 
-Only after this fresh run passes, the worktree is clean, and all five PRs show
-the intended merged commits may Phase 0 be marked `complete`. The
-`MITGCM-BOM-v0.1` tag may then be created from the verified development HEAD;
-tagging is not part of P0.5 implementation or publication.
+The gate passed the locked-reference checks, offline Julia instantiate, 8/8
+Julia smoke assertions, four P0.4 builds, three serial/MPI positive runs, 24/24
+checkpoint hashes, and two negative gates. A second invocation with the same
+ID was rejected before overwrite. Full evidence is recorded in
+`INTEGRATION_RESULTS.md`.
+
+## Completion and tag state
+
+The final gate passed, all five PRs report the intended merge commits, and the
+local development worktree was clean. Phase 0 therefore satisfies its recorded
+exit conditions.
+
+No `MITGCM-BOM-v0.1` tag was created during merge or integration testing.
+Tagging remains a separate explicit decision after this documentation-only
+integration record is reviewed.
