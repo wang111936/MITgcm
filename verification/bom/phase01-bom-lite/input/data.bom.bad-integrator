@@ -1,0 +1,22 @@
+# P1.1 rejects an unsupported integrator
+ &BOM_PARM01
+ bomMode='LEEW',
+ bomEquationMode='PAPER2024',
+ bomIntegrator='BAD',
+ bomDeltaTTarget=108000.0,
+ bomOutputFreq=0.0,
+ bomPickupFreq=0.0,
+ bomSeed=20240801,
+ bomMaxParticles=0,
+ bomInitialFile=' ',
+ &
+ &BOM_PARM02
+ bomLeewayWindCoeff=0.0,
+ bomWindSource='NONE',
+ bomStokesSource='NONE',
+ bomWetWeightMin=0.5,
+ bomAdvCFL=0.5,
+ bomMaxHop=8,
+ bomInitGlobalLimit=10000,
+ bomCheckEverySubstep=.TRUE.,
+ &

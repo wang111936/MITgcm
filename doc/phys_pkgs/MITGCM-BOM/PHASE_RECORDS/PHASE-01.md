@@ -6,10 +6,10 @@
 | 目标版本 | `MITGCM-BOM-v0.2` |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
-| 当前分支 | `MITGCM-BOM/phase-01-design` |
-| 当前 PR | `wang111936/MITgcm#7`（draft） |
-| 当前工作包 | P1.0 需求与接口设计 |
-| 状态 | 进行中 |
+| 当前分支 | `MITGCM-BOM/phase-01-state` |
+| 当前 PR | 待创建（P1.1 状态与初值） |
+| 当前工作包 | P1.1 状态与初值 |
+| 状态 | 本地实现与门禁完成，待提交评审 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -23,8 +23,8 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 | 工作包 | 状态 | 分支/PR | 结论 |
 |---|---|---|---|
-| P1.0 设计冻结 | 进行中 | `MITGCM-BOM/phase-01-design` / PR #7 | 设计已发布，等待评审与合并 |
-| P1.1 状态与初值 | 未开始 | 待建立 | 等待 P1.0 合并 |
+| P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
+| P1.1 状态与初值 | 本地完成 | `MITGCM-BOM/phase-01-state` / 待创建 PR | 正式门禁与 Phase 0 回归通过，待评审集成 |
 | P1.2 映射与环境场 | 未开始 | 待建立 | 等待 P1.1 门禁 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
@@ -70,9 +70,49 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - [x] 不含未声明的外部数据或服务器依赖；
 - [x] `PROJECT_STATUS.md` 可作为下一次会话唯一恢复入口；
 - [x] Git 作者身份为 WangYuLin；
-- [x] 远端分支和 draft PR #7 已记录设计提交 `34cad7bd9c0d6bef3c9681dfb254d449cacbd6ac`。
+- [x] 远端分支和 PR #7 已记录设计提交 `34cad7bd9c0d6bef3c9681dfb254d449cacbd6ac`；PR #7 已以 merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` 集成。
 
-## 6. Phase 1 总退出条件
+## 6. P1.1 状态与初值记录
+
+### 6.1 交付
+
+- 在 `BOM.h`/`BOM_SIZE.h` 建立每 tile 紧凑 SoA、稳定状态码、64 位 ID 和静态容量；
+- 增加 `BOM_PARM02`，零粒子旧输入仍可省略该 namelist；
+- 读取受 `bomInitGlobalLimit` 约束的 schema 1 MDS 全局初值文件；
+- 用高/低 32 位字精确恢复正 `INTEGER*8` ID，拒绝重复与损坏 ID；
+- 对有限数、状态、release time、age、域、湿单元、全局计数和 tile 容量做失败即停检查；
+- 提供只供初值分发使用的规则网格 `BOM_LOCATE_INITIAL`，不提前实现 P1.2 的 stage-time 映射与插值；
+- Stokes 在 Phase 1 继续固定为 `NONE`，提前启用时明确失败；
+- 未修改 MITgcm 核心调度、FLT、Phase 0 锁定输入或参考哈希。
+
+### 6.2 正式证据
+
+- 权威 P1.1 测试 ID：`p11-state-attempt05`；
+- 4/4 构建通过：GNU 串行、MPI2、MPI4、GNU debug；
+- 7/7 正向运行通过：零/单/双/三粒子、MPI2、MPI4、debug；
+- 16/16 负向门禁通过：重复 ID、坏 schema/ID/status、NaN、Inf、坏 release、截断、域外、tile/global 容量、Stokes、模式、积分器、步长和频率；
+- 所有正向运行均正常结束并保持 8/8 冻结海洋 checkpoint 哈希；
+- `9007199254740993`（大于 $2^{53}$）在串行/MPI 中精确恢复；
+- MPI4 的 `(180,0)` 内部角点按半开区间唯一归属 PID 3 的东北 tile；
+- 最终 Phase 0 回归 ID：`p11-phase0-regression-attempt03`，锁定参考、离线 Julia、8/8 smoke、P0.4 的 4 构建/3 正向/2 负向全部通过；
+- 完整路径、校验和和失败尝试说明见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
+
+### 6.3 实现中形成的决定
+
+- `P1-D013`：初值必须在 P1.1 可独立分发，因此允许受限 locator；完整周期、正反映射和 stage 插值仍属于 P1.2；
+- 内部边界统一为 `[west,east) x [south,north)`，角点由东北 tile 拥有；删除与之冲突的“最小全局 tile 编号”表述；
+- P1-S04 拆为 P1.1 的 WAITING 初值检查和 P1.3 的 release 跨子步转换；P1-N03 拆为 P1.1 初值容量与 P1.4 交换容量，旧父编号保留；
+- 截断 MDS 文件由 GNU Fortran 运行时直接终止，负向门禁同时识别 MITgcm 主动异常标志和 Fortran runtime error，但仍不单独依赖退出码。
+
+### 6.4 非权威尝试
+
+- `p11-state-attempt01`：早期较小矩阵通过，后被扩展门禁取代；
+- `p11-state-attempt02`：72 列固定格式错误导致串行编译失败，随后修正；
+- `p11-state-attempt03`：生产代码和新增用例均通过到截断文件，测试驱动因只接受 `ABNORMAL END` 而停止，随后补充运行时错误判据；
+- `p11-state-attempt04`：扩展门禁通过；最终文件同步后由 attempt05 再次验证并取代；
+- 上述目录均保留且未覆盖，只有 `p11-state-attempt05` 是 P1.1 权威通过证据。
+
+## 7. Phase 1 总退出条件
 
 - [ ] P1.1—P1.5 全部完成并顺序集成；
 - [ ] 解析、收敛、迁移、重启和 FLT 共存门禁全部通过；
@@ -81,12 +121,12 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - [ ] 目标服务器所需但本地无法验证的条件已单独记录；
 - [ ] 集成分支创建 `MITGCM-BOM-v0.2` 前完成独立退出审计。
 
-## 7. 下一恢复点
+## 8. 下一恢复点
 
-从 draft PR #7 恢复：
+从 `MITGCM-BOM/phase-01-state` 恢复：
 
-1. 只评审设计、需求追踪与测试充分性；
-2. 处理评审意见时继续保持 Markdown-only；
-3. 合并 P1.0 后，从更新的 `MITGCM-BOM/development` 建立 P1.1 状态与初值分支；
-4. P1.1 先实现状态和输入，不同时实现环境场或粒子运动；
-5. 在 P1.1 通过编译、初始化、ID 和容量门禁前不进入 P1.2。
+1. 复核 P1.1 diff 只包含 `pkg/bom`、P1.1 verification 和阶段文档；
+2. 以 `WangYuLin <wang111936@outlook.com>` 提交并推送当前分支，创建面向 `MITGCM-BOM/development` 的 draft PR；
+3. PR 评审期间不加入环境场、通用映射、粒子运动或交换；
+4. P1.1 合并并在集成分支复跑门禁前不创建 `MITGCM-BOM-v0.2` 标签；
+5. P1.1 集成通过后创建独立 P1.2“映射与环境场”分支。
