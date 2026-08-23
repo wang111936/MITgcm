@@ -10,7 +10,7 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-01-design` |
-| 当前阶段 PR | 待创建（P1.0 设计冻结） |
+| 当前阶段 PR | `wang111936/MITgcm#7`（draft，P1.0 设计冻结） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.0：需求、状态、环境场、FLT 共存边界和测试设计 |
 | 下一工作包 | P1.0 评审合并后建立 P1.1 状态与初值实现分支 |
@@ -21,7 +21,7 @@
 下一次继续开发时，从以下任务开始：
 
 1. 核对 `MITGCM-BOM-v0.1` 指向集成提交 `b2f3ecf1081f7bab25749c4a6004730175d99955`；
-2. 在 `MITGCM-BOM/phase-01-design` 继续 P1.0 Markdown-only 设计评审；
+2. 在 draft PR #7 上继续 P1.0 Markdown-only 设计评审；
 3. 以 [BOM-Lite 设计规格](BOM_LITE_DESIGN.md) 为接口权威，以 [需求追踪](../../../verification/bom/phase01-bom-lite/REQUIREMENTS_TRACEABILITY.md) 和 [测试计划](../../../verification/bom/phase01-bom-lite/TEST_PLAN.md) 为验收权威；
 4. P1.0 不修改 Fortran、脚本、输入或 Phase 0 证据；
 5. P1.0 合并后，从更新的集成分支建立 P1.1，仅实现状态与初值。
@@ -240,6 +240,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 冻结 Phase 1 状态、初始文件、环境场、RK、owner 迁移、轨迹、pickup 和 FLT 共存边界；
 - 明确 Julia leeway 不含 Stokes，Phase 1 仅允许 `bomStokesSource='NONE'`；
 - 把实现拆为 P1.1—P1.5，每个工作包有独立门禁；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建设计提交 `34cad7bd9c0d6bef3c9681dfb254d449cacbd6ac`；
+- 发布分支并创建 draft PR #7：`https://github.com/wang111936/MITgcm/pull/7`；
+- GitHub 记录为 6 个 Markdown 文件、766 行新增、14 行删除；
 - 当前工作包只修改 Markdown，未实现粒子运动。
 
 ## 6. 每次会话结束时必须更新
