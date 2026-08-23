@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/development` |
-| 当前阶段 PR | `wang111936/MITgcm#6`（Phase 0 集成记录） |
-| 当前阶段 | Phase 0：参考基线与骨架设计（完成） |
-| 当前工作包 | Phase 0 完成：PR #1—#5 已集成，PR #6 固化集成记录 |
-| 下一工作包 | 单独决定是否创建 `MITGCM-BOM-v0.1` 标签，并准备 Phase 1 需求与接口设计 |
+| 当前任务分支 | `MITGCM-BOM/phase-01-design` |
+| 当前阶段 PR | 待创建（P1.0 设计冻结） |
+| 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
+| 当前工作包 | P1.0：需求、状态、环境场、FLT 共存边界和测试设计 |
+| 下一工作包 | P1.0 评审合并后建立 P1.1 状态与初值实现分支 |
 | 当前阻塞 | 无；Julia 依赖锁为重建版本，需在 golden 测试中继续验证 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对 `MITGCM-BOM/development` 已包含 PR #6 的 Phase 0 集成记录；
-2. 单独决定是否从确认后的开发分支创建 `MITGCM-BOM-v0.1` 标签；
-3. 未获明确批准前不创建标签；
-4. 建立 Phase 1 BOM-Lite 的需求、接口、状态布局和最小测试设计；
-5. 设计评审通过后再建立 Phase 1 实现分支。
+1. 核对 `MITGCM-BOM-v0.1` 指向集成提交 `b2f3ecf1081f7bab25749c4a6004730175d99955`；
+2. 在 `MITGCM-BOM/phase-01-design` 继续 P1.0 Markdown-only 设计评审；
+3. 以 [BOM-Lite 设计规格](BOM_LITE_DESIGN.md) 为接口权威，以 [需求追踪](../../../verification/bom/phase01-bom-lite/REQUIREMENTS_TRACEABILITY.md) 和 [测试计划](../../../verification/bom/phase01-bom-lite/TEST_PLAN.md) 为验收权威；
+4. P1.0 不修改 Fortran、脚本、输入或 Phase 0 证据；
+5. P1.0 合并后，从更新的集成分支建立 P1.1，仅实现状态与初值。
 
 开始前执行：
 
@@ -39,8 +39,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | 阶段 | 状态 | 目标版本 | 当前结论 | 详细记录 |
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
-| Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#5 已顺序合并；集成 P0.5 门禁通过 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 未开始 | v0.2 | 等待 Phase 0 集成记录与版本决策 | [开发手册](DEVELOPMENT_MANUAL.md#phase-1bom-lite--leeway) |
+| Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0 设计冻结：源码实现尚未开始 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -134,7 +134,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 在最终集成提交 `2baea214fe1f898e16df4953892c142a07b82111` 上运行 `p05-integrated-attempt01`；
 - Julia 离线实例化、8/8 smoke、4/4 构建、3/3 正向运行、24/24 checkpoint 哈希和 2/2 负向门禁全部通过；
 - 复用相同测试 ID 在覆盖历史证据前被拒绝；
-- 本次集成未创建标签，Phase 1 也未开始；
+- PR #6 已以 merge commit `b2f3ecf1081f7bab25749c4a6004730175d99955` 集成；
+- 已创建并推送 annotated tag `MITGCM-BOM-v0.1`，tag object 为 `eb3a5e9372fa7f2c437c81384322667a3bb2cfd1`；
+- Phase 1 已进入 P1.0 设计冻结，尚未修改粒子运动源码；
 - 详细记录见 `verification/bom/phase00-final-gate/INTEGRATION_RESULTS.md`。
 
 ## 4. 未决问题与风险
@@ -149,6 +151,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | R-006 | GitHub 仓库当前关闭 Issues | 暂用阶段分支、提交和本状态账本记录；启用 Issues 后补建阶段 Issue | 不阻塞源码开发 |
 | R-007 | 固定 Julia 提交的自带测试调用不存在的函数；默认场失败时只警告 | 不修改参考源码；保存失败证据，另建 BOM 解析场和 smoke/golden 测试 | Phase 0/2 |
 | R-008 | MITgcm 的 Fortran `STOP` 在负向测试中可能仍返回进程码 0 | 测试驱动必须同时要求正常结束标志，并扫描 `ABNORMAL END`/fatal 日志 | Phase 0/CI |
+| R-009 | Phase 1 海洋步内冻结环境场，对真实时变驱动不具高阶时间精度 | 输出明确标记 `STEP_END_FROZEN`；Phase 2 以 old/new 快照和 B05 升级 | Phase 2 |
+| R-010 | Phase 1 pickup 只支持相同 MPI/tile 分解 | 写入并核对分解签名；变分解重启明确拒绝，后续单独设计 | Phase 5 |
 
 ## 5. 会话记录
 
@@ -224,7 +228,19 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 同名测试 ID 的再次运行在写入前按预期拒绝，开发工作树保持干净；
 - 创建 `MITGCM-BOM/phase-00-integration-record`，只记录集成事实和阶段状态；
 - 以 `WangYuLin <wang111936@outlook.com>` 发布记录提交 `4e4f616d7ec97ec6e79a63879a2315e201cf47b1` 并创建 PR #6；
-- 未创建 `MITGCM-BOM-v0.1` 标签，未开始 Phase 1。
+- PR #6 已使用 merge commit 合并，集成分支更新到 `b2f3ecf1081f7bab25749c4a6004730175d99955`；
+- 已由 `WangYuLin <wang111936@outlook.com>` 创建并推送 annotated tag `MITGCM-BOM-v0.1`；
+- tag object 为 `eb3a5e9372fa7f2c437c81384322667a3bb2cfd1`，peeled commit 为 `b2f3ecf1081f7bab25749c4a6004730175d99955`；
+- 未创建 GitHub Release；标签发布后才开始 Phase 1 设计。
+
+### 2026-08-23：P1.0 BOM-Lite 设计冻结
+
+- 从 `MITGCM-BOM-v0.1` 基线创建 `MITGCM-BOM/phase-01-design`；
+- 只读核对当前 BOM 空骨架、FLT 状态/映射/迁移/pickup 和锁定 Julia `Leeway!`；
+- 冻结 Phase 1 状态、初始文件、环境场、RK、owner 迁移、轨迹、pickup 和 FLT 共存边界；
+- 明确 Julia leeway 不含 Stokes，Phase 1 仅允许 `bomStokesSource='NONE'`；
+- 把实现拆为 P1.1—P1.5，每个工作包有独立门禁；
+- 当前工作包只修改 Markdown，未实现粒子运动。
 
 ## 6. 每次会话结束时必须更新
 
