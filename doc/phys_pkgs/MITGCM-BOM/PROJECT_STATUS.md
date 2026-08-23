@@ -12,18 +12,18 @@
 | 当前任务分支 | `MITGCM-BOM/phase-01-mapping-environment` |
 | 当前阶段 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.2：映射与 locator 包装完成；环境场构造与插值待实现 |
-| 下一工作包 | 增加表层 C-grid 字段存储并实现 `BOM_BUILD_FIELDS`，通过 P1-F01/P1-F02 |
+| 当前工作包 | P1.2：映射、locator 包装与表层环境场构造完成；湿点 pair 插值待实现 |
+| 下一工作包 | 实现 `BOM_INTERP_WET_PAIR`，通过 P1-F03/P1-N05 |
 | 当前阻塞 | 无；P1.2 只支持规则 Cartesian 与未旋转 spherical-polar，其他拓扑按阶段边界明确拒绝 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment`，最新已验收功能提交为 `14636cda2bc9da61da784752b1dec11e54d518f1`；
-2. 读取 [P1.2 接口冻结](../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md)和[映射与 locator 结果](../../../verification/bom/phase01-mapping/TEST_RESULTS.md)；
-3. 下一增量加入冻结的四个单层 C-grid 数组并实现 `BOM_BUILD_FIELDS`，先通过 P1-F01/P1-F02；不实现 `BOM_INTERP_WET_PAIR`，不移动粒子；
-4. 字段构造门禁后复跑映射、P1.1 与 Phase 0；再以独立增量实现湿点 pair 插值和 P1-F03/P1-N05；
+1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment`，最新已验收功能提交为 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`；
+2. 读取 [P1.2 接口冻结](../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md)、[映射与 locator 结果](../../../verification/bom/phase01-mapping/TEST_RESULTS.md)和[字段构造结果](../../../verification/bom/phase01-fields/TEST_RESULTS.md)；
+3. 下一独立增量只实现 `BOM_INTERP_WET_PAIR`，先建立 P1-F03/P1-N05 常数、线性、部分湿和失败门禁；不移动粒子；
+4. 湿点 pair 门禁后复跑字段、映射、P1.1 与 Phase 0，再进行 P1.2 范围审计与独立复审；
 5. P1.2 完整门禁和独立复审前不开始 P1.3，不创建 `MITGCM-BOM-v0.2`。
 
 开始前执行：
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 和集成记录已合并；P1.2 映射与 locator 包装完成，环境场构造与插值待实现 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.2 映射、locator 包装与表层环境场构造完成，湿点 pair 插值待实现 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -158,7 +158,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 集成 `p11-integrated-pr8-phase0-attempt01` 再次通过锁定参考、离线 Julia、smoke 和 P0.4 总门禁；summary SHA-256 为 `e835570901ff57a5c04743297b25c1ab2159858cf11e86322aece872e5b114f2`；
 - 详细证据和非权威尝试见 `verification/bom/phase01-bom-lite/TEST_RESULTS.md`。
 
-### P1.2 映射与 locator 包装
+### P1.2 映射、locator 包装与表层环境场构造
 
 - 映射核心提交：`633d3f9af75b4a052303ec0d0a06edf40677e18c`；locator 包装提交：`14636cda2bc9da61da784752b1dec11e54d518f1`；
 - 新增规则网格映射状态、只针对完整 360° spherical-polar 域的经度规范化，以及正反局部映射；
@@ -168,7 +168,10 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 当前映射 summary SHA-256 为 `24ee80deb67395b9a8c14662d26e1da66be30b76ffc284ba409f15fc66c725d7`；
 - `p12-locator-regression-p11-20260824` 通过 8/8 构建、14/14 正向、20/20 负向和 104/104 checkpoint；
 - `p12-locator-regression-p05-20260824` 通过 Phase 0 总门禁，嵌套 P0.4 为 4 构建、3 正向、2 负向和 24/24 checkpoint；
-- P1-R05 已完成；尚未建立环境场、插值或粒子运动，详细证据见 `verification/bom/phase01-mapping/TEST_RESULTS.md`。
+- 字段构造提交为 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`；四个真实单层数组只复制 `k=1`，经真实旋转后以两次标量交换发布；
+- `p12-field-20260824-a` 通过 7/7 summary 行，覆盖串行/MPI4 `Nr=2` 构建、P1-F01 均匀场和 P1-F02 旋转、干点及 halo；summary SHA-256 为 `97d21381200a8c8314de96302d790bb4aa995092a100bb9b83e42f27840d4492`；
+- 本增量后的映射 15/15、P1.1 42/42 与 Phase 0 4/4 回归均通过；
+- P1-R05/P1-R06 已完成；湿点 pair 插值与粒子运动尚未建立，详细证据见 `verification/bom/phase01-mapping/TEST_RESULTS.md` 和 `verification/bom/phase01-fields/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
 
@@ -386,6 +389,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 以 `WangYuLin <wang111936@outlook.com>` 创建功能提交 `14636cda2bc9da61da784752b1dec11e54d518f1`；
 - P1-R05 标记完成，P1.2 仍进行中；PR #10 保持 Draft，不创建标签、不开始 P1.3；
 - 下一增量只实现表层 C-grid 字段存储与 `BOM_BUILD_FIELDS`，建立 P1-F01/P1-F02 证据。
+
+### 2026-08-24：P1.2 表层环境场构造
+
+- 在冻结形状上增加 `bomGridUWork/bomGridVWork/bomGridVEast/bomGridVNorth`，初始化与重建状态均为确定值；
+- 实现 `BOM_BUILD_FIELDS`：复制表层、真实 C-grid colocation/旋转、east/north 两次标量 halo exchange、非有限与干点检查，最后发布 metadata；
+- `p12-field-20260824-a` 首轮通过 7/7 字段门禁；`p12-20260823T214951Z-501860`、`20260823T215044Z-548609` 和 `20260823T215320Z-668561` 分别通过映射 15/15、P1.1 42/42 和 Phase 0 4/4；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建功能提交 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`；
+- P1-R06 标记完成；未实现 `BOM_INTERP_WET_PAIR`、P1-F03/P1-N05 或任何粒子运动；
+- PR #10 保持 Draft，不创建 `MITGCM-BOM-v0.2` 标签，不开始 P1.3；下一增量只处理湿点 pair 插值。
 
 ## 6. 每次会话结束时必须更新
 

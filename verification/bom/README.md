@@ -19,6 +19,8 @@ external environmental datasets remain outside the repository.
   trajectory output, pickup restart, and FLT coexistence;
 - `phase01-mapping/`: P1.2 regular Cartesian/spherical mapping, 360-degree
   longitude normalization, inverse mapping, and unsupported-grid guards;
+- `phase01-fields/`: P1.2 single-level C-grid surface-field construction,
+  east/north rotation, dry masking, and serial/MPI scalar-halo gates;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 
