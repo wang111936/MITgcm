@@ -24,7 +24,8 @@ release-time integration, authoritative transactional commits, and the compact
 global state budget are implemented and tested. P1.4 owner location,
 halo-aware integration, same-rank/cross-rank migration, periodic X, exact-ID
 exchange, deterministic ordering, and capacity-safe commit are also complete.
-Output, pickup, and FLT coexistence remain P1.5.
+The P1.5 output, pickup, restart-transaction, and FLT coexistence interfaces
+are frozen; production implementation and execution evidence remain pending.
 
 ## Run
 
@@ -88,6 +89,13 @@ The driver refuses to reuse build or run roots. Defaults are:
   recorded under `../phase01-owner-migration/`.
 - `P1.4_SCOPE_AUDIT.md` records the final P1.4 source, transaction, scope, and
   evidence audit while retaining the independent Ready review for Draft PR #14.
+- `P1.5_INTERFACE_FREEZE.md` freezes post-migration output scheduling and its
+  24-field schema, core-suffix pickup files, exact-ID transactional restore,
+  same-decomposition signatures, and strict FLT/BOM isolation.
+- `P1.5_DESIGN_AUDIT.md` records the source-backed lifecycle, MDS I/O,
+  precision, restart and coexistence decisions before implementation.
+- `../phase01-output-pickup-coexistence/TEST_PLAN.md` is the executable
+  P1-O01—O02, P1-P01—P03, P1-K01—K02 and P1-G01 acceptance plan.
 
 ## Input schema 1
 

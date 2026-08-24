@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 需求追踪
 
-状态：P1.1、P1.2 已验收；P1.3 单 tile 生产实现、157/157 精确头矩阵及最终审计完成；P1.4 owner 迁移生产实现、36/36 专属门禁、157/157 前序回归及最终审计完成；P1.3/P1.4 独立 Ready 复审仍保留；P1.5 待实现
+状态：P1.1、P1.2 已验收；P1.3 单 tile 生产实现、157/157 精确头矩阵及最终审计完成；P1.4 owner 迁移生产实现、36/36 专属门禁、157/157 前序回归及最终审计完成；P1.3/P1.4 独立 Ready 复审仍保留；P1.5 接口与测试计划已冻结，生产实现与执行证据待完成
 
 本表是 Phase 1 需求、计划例程和测试之间的权威映射。实现阶段不得把“已有代码”当作完成证据；只有对应测试通过并在 `TEST_RESULTS.md` 记录后，需求状态才能改为完成。
 
@@ -20,9 +20,9 @@
 | P1-R10 | Stokes 在 Phase 1 固定关闭，误配置失败 | `BOM_READPARMS`、`BOM_CHECK` | P1-N07 | P1.1 | P1.1 完成 |
 | P1-R11 | 固定子步、显式中点 RK2 和经典 RK4 | `BOM_MAIN`、`BOM_RK2`、`BOM_RK4` | P1-S04b、P1-I05、P1-I06 | P1.3 | 完成；等长子步、精确 release 分割、生产事务调用、P1-I05 1.9885/1.9942 与 P1-I06 3.9858/3.9931 均通过 |
 | P1-R12 | 每个子步后完成唯一 owner tile/rank 迁移 | `BOM_PARTICLE_EXCHANGE`、`BOM_LOCATE_OWNER` | P1-X01—P1-X04 | P1.4 | 完成；同 rank/MPI2/MPI4、周期 X、多子步、大 ID、容量与 hop 门禁 36/36 通过 |
-| P1-R13 | 轨迹使用独立 schema/前缀并可按 ID 重组 | `BOM_OUTPUT` | P1-O01、P1-O02 | P1.5 | 未实现 |
-| P1-R14 | 相同分解 pickup 连续/重启状态 bitwise 一致 | `BOM_READ_PICKUP`、`BOM_WRITE_PICKUP` | P1-P01、P1-P02 | P1.5 | 未实现 |
-| P1-R15 | FLT 与 BOM 状态、例程、I/O 独立且可共存 | BOM namespace、核心调度 | P1-K01、P1-K02 | P1.5 | 部分骨架，待完整验证 |
+| P1-R13 | 轨迹使用独立 schema/前缀并可按 ID 重组 | `BOM_OUTPUT`、`BOM_WRITE_TRAJECTORY` | P1-O01、P1-O02 | P1.5 | 24-field schema、双字 ID、非整除调度和 `bom_traj` 前缀已冻结；实现待完成 |
+| P1-R14 | 相同分解 pickup 连续/重启状态 bitwise 一致 | `BOM_READ_PICKUP`、`BOM_WRITE_PICKUP` | P1-P01、P1-P02、P1-P03 | P1.5 | 核心 suffix、全局分解签名、scratch 后提交和输出调度恢复已冻结；实现待完成 |
+| P1-R15 | FLT 与 BOM 状态、例程、I/O 独立且可共存 | BOM namespace、核心调度 | P1-K01、P1-K02 | P1.5 | 四组合、独立 COMMON/入口/前缀及双向不变性判据已冻结；实现与验证待完成 |
 | P1-R16 | 运行中检查有限数、CFL、owner 数和状态预算 | `BOM_RHS_LEEWAY`、`BOM_CHECK_STATE`、`BOM_MAIN` | P1-N08、P1-X03、P1-G01 | P1.3–P1.5 | P1.3 生产调用层、全局 owner/ID/状态预算与回滚完成；P1.4 halo/stencil/hop/容量事务完成；P1-G01 待 P1.5 |
 
 ### P1.1 反向追踪
@@ -76,6 +76,16 @@
 | `BOM_MAIN` 的每子步迁移调用 | P1-R11、P1-R12 | P1-X03 连续 16 子步逐步 hop，serial/MPI4 最终状态 bitwise 一致 |
 
 权威接口见 [`P1.4_INTERFACE_FREEZE.md`](P1.4_INTERFACE_FREEZE.md)，执行证据见 [`../phase01-owner-migration/TEST_RESULTS.md`](../phase01-owner-migration/TEST_RESULTS.md)，最终审计见 [`P1.4_SCOPE_AUDIT.md`](P1.4_SCOPE_AUDIT.md)。
+
+### P1.5 计划反向追踪
+
+| 计划生产例程/接口 | 需求 | 冻结验收 |
+|---|---|---|
+| `BOM_INIT_OUTPUT_SCHEDULE`、`BOM_OUTPUT`、`BOM_WRITE_TRAJECTORY` | P1-R13、P1-R16 | P1-O01/O02：迁移后写出、24-field schema、非整除频率、无重复 `(time,id)` |
+| `BOM_WRITE_PICKUP`、`BOM_READ_PICKUP` | P1-R03、P1-R14、P1-R16 | P1-P01—P03：核心 suffix、双字 ID、相同分解 bitwise、改变分解早期拒绝 |
+| `DO_THE_MODEL_IO`、`PACKAGES_WRITE_PICKUP` 的独立 BOM 分支 | P1-R13—P1-R15 | P1-K01/K02：neither/FLT/BOM/both 构建运行与双向文件/状态不变性 |
+
+权威设计见 [`P1.5_INTERFACE_FREEZE.md`](P1.5_INTERFACE_FREEZE.md)，源码架构审计见 [`P1.5_DESIGN_AUDIT.md`](P1.5_DESIGN_AUDIT.md)，执行计划见 [`../phase01-output-pickup-coexistence/TEST_PLAN.md`](../phase01-output-pickup-coexistence/TEST_PLAN.md)。设计冻结不是完成证据。
 
 ## 2. 上层验证编号映射
 
