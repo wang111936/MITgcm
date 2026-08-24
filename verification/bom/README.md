@@ -27,6 +27,9 @@ external environmental datasets remain outside the repository.
 - `phase01-setup/`: P1.3 first production increment for trap-safe setup
   preflight, immutable expected-owner initialization, and frozen `NONE`/EXF
   wind snapshots in serial and MPI4;
+- `phase01-rhs/`: P1.3 stateless SI Leeway RHS, Cartesian/spherical native
+  coordinate rates, end-to-end EXF wind composition, stable failure/stage
+  codes, stage CFL, and locked Julia algebra in serial and MPI4;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 
