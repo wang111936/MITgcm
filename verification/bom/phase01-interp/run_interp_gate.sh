@@ -84,7 +84,7 @@ build_case() {
     || fail "missing executable: ${case_name}"
   nm "${build_dir}/mitgcmuv" > "${build_dir}/symbols.txt"
   for symbol in bom_interp_wet_pair_ bom_verify_interp_ \
-                bom_verify_main_diagnostic_; do
+                bom_check_state_; do
     grep -q "${symbol}" "${build_dir}/symbols.txt" \
       || fail "missing ${symbol} in ${case_name}"
   done
@@ -131,7 +131,6 @@ run_case() {
   local combined_log="${run_dir}/combined.log"
   local rank
   local rank_log
-  local rank_err
 
   log "run ${run_name}"
   prepare_run "${run_name}" "${build_name}" "${scenario}"
@@ -160,68 +159,10 @@ run_case() {
     >> "${RUN_ROOT}/summary.tsv"
 }
 
-run_negative() {
-  local run_name="$1"
-  local build_name="$2"
-  local ranks="$3"
-  local scenario="$4"
-  local run_dir="${RUN_ROOT}/${run_name}"
-  local combined_log="${run_dir}/combined.log"
-  local process_status
-  local rank
-  local rank_log
-
-  log "run expected failure ${run_name}"
-  prepare_run "${run_name}" "${build_name}" "${scenario}"
-  set +e
-  if [[ "${ranks}" -eq 1 ]]; then
-    (
-      cd "${run_dir}"
-      ./mitgcmuv > run.log 2>&1
-    )
-    process_status=$?
-    cp "${run_dir}/run.log" "${combined_log}"
-  else
-    (
-      cd "${run_dir}"
-      mpirun -np "${ranks}" ./mitgcmuv > mpi-launch.log 2>&1
-    )
-    process_status=$?
-    cp "${run_dir}/mpi-launch.log" "${combined_log}"
-    for ((rank=0; rank<ranks; rank++)); do
-      printf -v rank_log '%s/STDOUT.%04d' "${run_dir}" "${rank}"
-      if [[ -f "${rank_log}" ]]; then
-        cat "${rank_log}" >> "${combined_log}"
-      fi
-      printf -v rank_err '%s/STDERR.%04d' "${run_dir}" "${rank}"
-      if [[ -f "${rank_err}" ]]; then
-        cat "${rank_err}" >> "${combined_log}"
-      fi
-    done
-  fi
-  set -e
-
-  if grep -q 'PROGRAM MAIN: Execution ended Normally' "${combined_log}"; then
-    fail "negative gate ended normally: ${run_name}"
-  fi
-  for expected_text in \
-      'BOM_MAIN: invalid diagnostic ip=' \
-      'BOM_MAIN: xMap/ix/jy/wetWeight=' \
-      'BOM_MAIN: owner/stencil/interpValid=' \
-      'fatal P1.2 particle diagnostic error(s)'; do
-    grep -q "${expected_text}" "${combined_log}" \
-      || fail "missing caller diagnostic in ${run_name}: ${expected_text}"
-  done
-  grep -Eq 'ABNORMAL END|S/R ALL_PROC_DIE|Error termination' \
-    "${combined_log}" \
-    || fail "failure marker missing: ${run_name}"
-  printf '%s\tPASS\tcaller rejected; process status=%s\n' \
-    "${run_name}" "${process_status}" >> "${RUN_ROOT}/summary.tsv"
-}
-
 log 'audit production/test separation and interpolation contract'
 readonly INTERP_SOURCE="${REPO_ROOT}/pkg/bom/bom_interp_wet_pair.F"
 readonly MAIN_SOURCE="${REPO_ROOT}/pkg/bom/bom_main.F"
+readonly CHECK_SOURCE="${REPO_ROOT}/pkg/bom/bom_check_state.F"
 grep -q 'SUBROUTINE BOM_INTERP_WET_PAIR' "${INTERP_SOURCE}" \
   || fail 'production interpolation routine is missing'
 for contract_text in bomFieldsReady bomWetWeightMin maskC \
@@ -230,14 +171,12 @@ for contract_text in bomFieldsReady bomWetWeightMin maskC \
   grep -q "${contract_text}" "${INTERP_SOURCE}" \
     || fail "missing interpolation contract: ${contract_text}"
 done
-grep -q 'CALL BOM_MAP_XY2IJLOCAL' "${MAIN_SOURCE}" \
-  || fail 'production BOM_MAIN does not map existing records'
-grep -q 'CALL BOM_INTERP_WET_PAIR' "${MAIN_SOURCE}" \
-  || fail 'production BOM_MAIN does not interpolate existing records'
-if rg -n 'bom(X|Y|Age|Status|ReleaseTime)\(ip,bi,bj\)[[:space:]]*=' \
-    "${MAIN_SOURCE}"; then
-  fail 'P1.2 BOM_MAIN modifies authoritative particle state'
-fi
+grep -q 'CALL BOM_MAP_XY2IJLOCAL' "${CHECK_SOURCE}" \
+  || fail 'production state budget does not map existing records'
+grep -q 'CALL BOM_INTERP_WET_PAIR' "${CHECK_SOURCE}" \
+  || fail 'production state budget does not interpolate existing records'
+grep -q 'CALL BOM_CHECK_STATE' "${MAIN_SOURCE}" \
+  || fail 'production BOM_MAIN does not enforce the mapped wet-pair budget'
 if rg -n 'CALL FLT_|BOM_VERIFY_INTERP|P1-F03|P1-N05' \
     "${REPO_ROOT}/pkg/bom"; then
   fail 'FLT call or verification marker leaked into production'
@@ -260,20 +199,11 @@ run_case n05-serial serial 1 P1-N05-INVALID \
   'P1-N05 PASS: invalid interpolation contracts'
 run_case n05-mpi4 mpi4 4 P1-N05-INVALID \
   'P1-N05 PASS: invalid interpolation contracts'
-run_case lifecycle-serial serial 1 P1-P12-LIFECYCLE \
-  'P1.2 LIFECYCLE PASS: non-moving production diagnostics'
-run_case lifecycle-mpi4 mpi4 4 P1-P12-LIFECYCLE \
-  'P1.2 LIFECYCLE PASS: non-moving production diagnostics'
-run_negative n05-main-outside-serial serial 1 \
-  P1-N05-MAIN-OUTSIDE
-run_negative n05-main-outside-mpi4 mpi4 4 \
-  P1-N05-MAIN-OUTSIDE
-run_negative n05-main-wet-serial serial 1 \
-  P1-N05-MAIN-WET
-run_negative n05-main-wet-mpi4 mpi4 4 \
-  P1-N05-MAIN-WET
-
-log 'P1.2 INTERP GATE PASS'
+PASS_COUNT="$(grep -c $'\tPASS\t' "${RUN_ROOT}/summary.tsv")"
+readonly PASS_COUNT
+[[ "${PASS_COUNT}" -eq 9 ]] \
+  || fail "expected 9 PASS rows, found ${PASS_COUNT}"
+log 'P1.2 INTERP COMPONENT REGRESSION PASS (9/9)'
 log "build root: ${BUILD_ROOT}"
 log "run root:   ${RUN_ROOT}"
 cat "${RUN_ROOT}/summary.tsv"

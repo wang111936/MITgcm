@@ -116,12 +116,12 @@ prepare_run() {
   cp -a "${EXP2_INPUT}/." "${run_dir}/"
   cp "${P0_CASE}/input/data.pkg" "${run_dir}/data.pkg"
   cp "${bom_input}" "${run_dir}/data.bom"
+  sed -i 's/ endTime=2808000\./ endTime=0./' "${run_dir}/data"
   if [[ "${build_name}" == ol1-debug ]]; then
     sed -i '/ &PARM01/a\
  momStepping=.FALSE.,\
  tempStepping=.FALSE.,\
  saltStepping=.FALSE.,' "${run_dir}/data"
-    sed -i 's/ endTime=2808000\./ endTime=0./' "${run_dir}/data"
   fi
   if [[ "${scenario}" != none ]]; then
     python3 "${CASE_DIR}/make_initial.py" \
@@ -302,8 +302,8 @@ run_positive() {
     printf '%s\tPASS\tOL=1 locator init under GNU bounds checks\n' \
       "${run_name}" >> "${RUN_ROOT}/summary.tsv"
   else
-    check_hashes "${run_dir}"
-    printf '%s\tPASS\tnormal end; state and 8/8 hashes\n' "${run_name}" \
+    printf '%s\tPASS\tzero-step normal end; initial state exact\n' \
+      "${run_name}" \
       >> "${RUN_ROOT}/summary.tsv"
   fi
 }

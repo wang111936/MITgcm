@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 1 verification index
 
-This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, the accepted P1.2 evidence records, the frozen P1.3 single-tile integration contract, and accepted P1.3 setup/stateless-RHS/stateless-RK2/stateless-RK4 increment records. Build trees, runtime output, and generated binary evidence remain outside Git.
+This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, accepted P1.2 evidence, the frozen P1.3 single-tile contract, and the P1.3 setup, RHS, RK2, RK4, release, caller-commit, and state-budget records. Build trees, runtime output, and generated binary evidence remain outside Git.
 
 ## Executable P1.1 gate scope
 
@@ -11,7 +11,18 @@ This directory is the source-controlled Phase 1 BOM-Lite verification index. It 
 - input finite-value, uniqueness, state, release-time, wet-cell, count, and capacity checks;
 - serial, MPI2, MPI4, GNU debug, zero-impact, and negative gates.
 
-The P1.1 driver does not itself implement environmental-field construction, general stage-time mapping, interpolation, particle motion, owner exchange, trajectory output, or pickup. P1.2 production functionality is recorded by its separate accepted evidence. P1.3 setup preflight, expected-owner initialization, frozen wind snapshots, the stateless Leeway RHS, and stateless RK2/RK4 trial kernels are implemented and tested; release-time integration, authoritative particle motion/commit, and the full state budget remain later P1.3 increments.
+BOM-active positive P1.1 runs stop after initialization (`endTime=0`) so this
+gate measures schema, owner selection, compact state, and exact IDs without
+silently depending on the not-yet-implemented P1.4 owner migration. The
+BOM-disabled 1/2/4-rank runs still execute the full ocean baseline and require
+all eight checkpoint hashes.
+
+The P1.1 driver does not itself implement environmental fields, interpolation,
+particle motion, owner exchange, trajectory output, or pickup. P1.2 evidence
+is recorded separately. P1.3 setup, frozen fields, Leeway RHS, RK2/RK4,
+release-time integration, authoritative transactional commits, and the compact
+global state budget are implemented and tested. Owner exchange remains P1.4;
+output, pickup, and FLT coexistence remain P1.5.
 
 ## Run
 

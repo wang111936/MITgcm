@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.1 已验收；P1.2 生产生命周期、组件门禁、前序回归、最终审计及 PR #10—#12 收口已全部完成；P1.3 接口与验收判据已冻结但尚未实现，P1.4—P1.5 保持计划状态
+状态：P1.1、P1.2 已验收；P1.3 已完成 setup、环境场、Leeway RHS、RK2/RK4、release 分割、事务提交及全局状态预算的生产实现，正在进行最终回归与审计；P1.4—P1.5 保持计划状态
 
 P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 
@@ -59,6 +59,10 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 | P1-N08 | 非有限坐标率/度量、半格 CFL tie、stage CFL 超限、stage/final 离开当前 owner、age 溢出、计数/ID/状态预算损坏 | P1-R04、P1-R16 | 按冻结优先级输出首个 failCode、粒子 ID、substep、stage 和局部量后全局停止；失败粒子子步不提交 |
 
 ## 4. 状态、ID 与初值
+
+P1.1 的 BOM-active 正向用例在初始化完成后零步结束，避免初值门禁
+依赖 P1.4 才提供的跨 owner 迁移；BOM-disabled 1/2/4-rank 用例仍运行
+完整基线并验证 8/8 checkpoint 哈希。P1.3 生命周期运动由独立门禁负责。
 
 | ID | 场景 | 分解 | 需求 | 判据 |
 |---|---|---|---|---|
