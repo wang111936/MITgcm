@@ -11,7 +11,7 @@ C !INTERFACE:
       SUBROUTINE BOM_CHECK( myThid )
 
 C !DESCRIPTION:
-C     Validate the Phase-1.3 setup, state, and initial-file configuration.
+C     Validate the Phase-1.4 setup, state, and migration configuration.
 
 C !USES:
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -41,7 +41,7 @@ C !LOCAL VARIABLES:
       _BEGIN_MASTER(myThid)
 
       WRITE(msgBuf,'(A)')
-     &     'BOM_CHECK: Phase-1.3 setup and initial-state gate'
+     &     'BOM_CHECK: Phase-1.4 setup, state, and migration gate'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
       CALL WRITE_0D_C( bomMode, -1, INDEX_NONE,
@@ -352,7 +352,22 @@ C-      Retain the Phase-0 gate signature while that baseline is frozen.
         errCount = errCount + 1
       ENDIF
 
+      IF ( bomMaxExchange.LT.1 ) THEN
+        WRITE(msgBuf,'(A,I12)')
+     &       'BOM_CHECK: invalid migration capacity=',
+     &       bomMaxExchange
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+
       IF ( bomMaxParticles.GT.0 ) THEN
+        IF ( OLx.LT.2 .OR. OLy.LT.2 ) THEN
+          WRITE(msgBuf,'(A,2I6)')
+     &         'BOM_CHECK: P1.4 migration requires OLx/OLy >= 2:',
+     &         OLx, OLy
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
         IF ( .NOT.usingCartesianGrid .AND.
      &       .NOT.usingSphericalPolarGrid ) THEN
           WRITE(msgBuf,'(A)')
