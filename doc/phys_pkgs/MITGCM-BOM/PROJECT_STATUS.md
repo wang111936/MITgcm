@@ -12,9 +12,9 @@
 | 当前任务分支 | `MITGCM-BOM/phase-01-single-tile-integration` |
 | 当前阶段 PR | `wang111936/MITgcm#13`（Draft，P1.3 单 tile 积分设计冻结） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.3 独立设计复审：5 项 finding 已修订，等待不可变 remediation head 复核 |
-| 下一工作包 | 提交设计修订，重新审计 base-to-head 并记录 finding closure/PASS 结论 |
-| 当前阻塞 | 复核尚未 PASS；此前不开始 P1.3 生产 Fortran |
+| 当前工作包 | P1.3 独立设计复审 PASS：P1.3-A—E 已关闭，PR #13 保持 Draft |
+| 下一工作包 | 等待明确授权；获准后实现首个生产增量：数值 preflight、初始粒子预算与冻结风场 |
+| 当前阻塞 | 无技术设计阻塞；尚未获得 P1.3 生产 Fortran 实现授权 |
 
 ## 1. 当前恢复点
 
@@ -23,8 +23,8 @@
 1. 核对当前分支为 `MITGCM-BOM/phase-01-single-tile-integration`，基线为 PR #12 merge commit `eefca92fe53f1b144bbfca7fcf00dc949a22afb3`；
 2. 读取 [P1.3 接口冻结](../../../verification/bom/phase01-bom-lite/P1.3_INTERFACE_FREEZE.md)、[P1.3 独立设计审计](../../../verification/bom/phase01-bom-lite/P1.3_DESIGN_AUDIT.md) 和 [P1.2 收口记录](../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT.md)；
 3. 核对 P1.3 当前范围只含 Markdown，目标需求为 P1-R01/P1-R04/P1-R08/P1-R09/P1-R11 及 P1-R16 的单 tile 部分；
-4. 在 remediation commit 后重新审计 Draft PR #13，逐项关闭 P1.3-A—P1.3-E，并核对 P1-D030—P1-D033、P1-N01b/P1-N08 和需求反向链接；
-5. 独立复核形成无开放 finding 的 PASS 结论前不实现生产 Fortran，不把 PR #13 标记 Ready，不创建 `MITGCM-BOM-v0.2` 标签，也不提前加入 P1.4 owner 迁移。
+4. 核对设计审计在 remediation head `941c74e5b855753a5700f7b883a56924b57c2fc0` 上为 PASS、无开放 finding；
+5. 只有获得明确实现授权后才开始 `BOM_CHECK` 数值 preflight、`bomNPartExpected` 与冻结风场生产增量；授权前不修改生产 Fortran，不把 PR #13 标记 Ready，不创建 `MITGCM-BOM-v0.2` 标签，也不提前加入 P1.4 owner 迁移。
 
 开始前执行：
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0—P1.2 已完成并收口；PR #12 已合并为 `eefca92fe`；P1.3 单 tile 积分接口已冻结，尚无生产实现 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0—P1.2 已完成并收口；P1.3 设计复审 PASS、无开放 finding，尚无生产实现 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -500,6 +500,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 提出 P1.3-A—P1.3-E：不安全的子步整数转换、缺失权威状态预算、CFL tie/度量/球面阈值歧义、失败/候选 age 语义不完整以及收敛 fixture 未固定；
 - 修订接口为 `EPSILON(oneRL)`、可表示 `subRatio`、精确 `bomNPartExpected`/全局 ID 预算、确定性最近 C 点与失败优先级、候选状态/age 事务和固定仿射解析场；
 - 形成 P1-D030—P1-D033 与 `P1.3_DESIGN_AUDIT.md`；下一步先提交 remediation，再从新 head 复核，当前不宣称 PASS。
+- 以 WangYuLin 身份创建整改提交 `941c74e5b855753a5700f7b883a56924b57c2fc0`，从固定基线重新审计 8 个 Markdown、3 个提交、33 项决策、16 条需求与 28 个本地链接；范围、模式、身份、隔离词、标签和 GitHub Draft PR 状态全部通过；
+- P1.3-A—P1.3-E 全部关闭，独立设计复审结论为 PASS、无开放 finding；本轮没有编译或数值运行，因为范围仍为纯 Markdown；
+- PR #13 保持 Draft，不合并、不打标签；下一步等待单独的生产实现授权。
 
 ## 6. 每次会话结束时必须更新
 

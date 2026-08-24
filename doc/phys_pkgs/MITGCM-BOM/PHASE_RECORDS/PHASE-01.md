@@ -6,10 +6,10 @@
 | 目标版本 | `MITGCM-BOM-v0.2` |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
-| 当前分支 | `MITGCM-BOM/phase-01-mapping-environment-closeout` |
-| 当前 PR | `wang111936/MITgcm#12`（Draft，P1.2 收口记录） |
-| 当前工作包 | P1.2 合并后最终收口 |
-| 状态 | PR #10 merge commit `fe51332e1` 与 PR #11 merge commit `34edbc50c` 已集成；PR #11 合并后全门禁及 PR #12 收口独立复审均 PASS；PR #12 保持 Draft |
+| 当前分支 | `MITGCM-BOM/phase-01-single-tile-integration` |
+| 当前 PR | `wang111936/MITgcm#13`（Draft，P1.3 单 tile 积分） |
+| 当前工作包 | P1.3 单 tile 积分设计复审收口 |
+| 状态 | P1.0—P1.2 已集成；P1.3 独立设计复审 PASS、无开放 finding，等待生产实现授权 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -26,7 +26,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
 | P1.2 映射与环境场 | 完成 | PR #10 `fe51332e1` / PR #11 `34edbc50c` / PR #12 `eefca92fe` | 全门禁、两轮集成记录与最终纯文档收口完成 |
-| P1.3 单 tile 积分 | 进行中 | `MITGCM-BOM/phase-01-single-tile-integration` / Draft PR #13 | 独立设计复审 5 项 finding 已修订、待 remediation head 复核；尚无生产实现 |
+| P1.3 单 tile 积分 | 进行中 | `MITGCM-BOM/phase-01-single-tile-integration` / Draft PR #13 | 独立设计复审 PASS、P1.3-A—E 已关闭；尚无生产实现 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
 
@@ -341,3 +341,12 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - P1.3-C—E（medium）：CFL 最近点 tie/度量/球面阈值、首失败与候选 age/端点 release 事务、RK 收敛 fixture 未完全固定；
 - 已用 P1-D030—P1-D033、P1-N01b/P1-N08、`BOM_CHECK_STATE` 契约和固定仿射解析场修订全部 5 项；
 - `P1.3_DESIGN_AUDIT.md` 当前标记 remediation 已应用、独立复核待执行；在新 head 复核前不宣称 PASS，不实现生产 Fortran、不标记 Ready、不合并、不打标签。
+
+### 10.4 独立设计复核 PASS
+
+- 以整改提交 `941c74e5b855753a5700f7b883a56924b57c2fc0` 为不可变复核 head，固定基线与 merge base 均为 `eefca92fe53f1b144bbfca7fcf00dc949a22afb3`；
+- base-to-head 严格为 8 个 Markdown、3 个提交；`git diff --check`、全部 `100644` 模式、33 项唯一决策、16 条需求、28 个本地 Markdown 链接与隔离词检查均通过；
+- 三个提交的作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；本地 head、远端 head 与 GitHub PR head 一致；
+- P1-D030—P1-D033、P1-N01b/P1-N08 和需求反向链接一致，P1.3-A—P1.3-E 全部关闭，结论为 PASS、无开放 finding；
+- PR #13 仍为 open、Draft、未合并，base/head 正确；本地和远端均无 `MITGCM-BOM-v0.2` 标签；
+- 复核范围为纯 Markdown，因此没有执行生产编译或数值矩阵。PASS 只允许请求下一生产增量授权，不自动授权实现、Ready、合并或标签。

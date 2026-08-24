@@ -487,4 +487,4 @@ drift_east, drift_north, owner_rank, owner_tile
 - [x] P1.1 已完成并集成；P1.2 已完成、独立复审并通过 PR #10—#12 收口；
 - [x] P1.2 映射、环境场、插值和失败接口已在独立冻结记录中明确；
 - [x] P1.3 已从 `development@eefca92fe` 建立独立分支并冻结单 tile 积分接口；
-- [ ] P1.3 独立设计复审已提出并修订 P1-D030—P1-D033；修订 head 复核 PASS 后才可请求生产 Fortran 实现授权。
+- [x] P1.3 独立设计复审已关闭 P1.3-A—P1.3-E，修订 head `941c74e5b` 复核 PASS；生产 Fortran 仍需单独授权。

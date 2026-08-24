@@ -49,7 +49,8 @@ The driver refuses to reuse build or run roots. Defaults are:
   P1-N01b/P1-S04b/P1-N06/P1-N08/P1-I01—I06 acceptance contract. It is not
   execution evidence and introduces no production Fortran in the design increment.
 - `P1.3_DESIGN_AUDIT.md` records the independent source-backed review of Draft
-  PR #13, its five design findings, remediation, and immutable recheck status.
+  PR #13, closure of its five design findings, and the immutable no-open-finding
+  PASS result.
 
 ## Input schema 1
 
