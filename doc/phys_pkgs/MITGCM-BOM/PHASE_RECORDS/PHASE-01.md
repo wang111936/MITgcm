@@ -7,9 +7,9 @@
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
 | 当前分支 | `MITGCM-BOM/phase-01-mapping-environment` |
-| 当前 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
+| 当前 PR | `wang111936/MITgcm#10`（Ready for review，P1.2 映射与环境场） |
 | 当前工作包 | P1.2 映射与环境场 |
-| 状态 | P1.2 P1-R05—P1-R07 实现、生产生命周期门禁、全回归和最终审计全部 PASS；PR #10 保持 Draft |
+| 状态 | P1.2 P1-R05—P1-R07 实现、生产生命周期门禁、全回归和最终审计全部 PASS；PR #10 已 Ready |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -25,7 +25,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 待集成 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Draft） | 审计修复 `2f346d98cf978922cae53bff67fc32088cbb8941`；P1-R05—P1-R07、全回归和最终审计 PASS，等待 Ready/合并的分步授权 |
+| P1.2 映射与环境场 | 待集成 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Ready） | 审计修复 `2f346d98cf978922cae53bff67fc32088cbb8941`；P1-R05—P1-R07、全回归和最终审计 PASS，等待单独合并授权 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -159,9 +159,9 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 1. 核对当前分支包含 P1.2 审计修复功能提交 `2f346d98cf978922cae53bff67fc32088cbb8941`；
 2. 以 [`P1.2_INTERFACE_FREEZE.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md) 和 mapping/fields/interp 三份 `TEST_RESULTS.md` 作为接口与证据入口；
-3. 复核 [`P1.2_SCOPE_AUDIT.md`](../../../../verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md) 的 PASS 结论、关闭项和六套权威证据；
-4. 下一步等待明确授权后才可将 PR #10 标记 Ready；Ready 不等于授权合并；
-5. 未获后续授权不合并 PR #10、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
+3. 核对 PR #10 为 Ready for review、open、可合并，head 与远程分支一致；
+4. 下一步等待单独明确的 merge commit 合并授权；合并后必须复跑 P1.2、P1.1 和 Phase 0 集成门禁；
+5. 未获合并授权不合并 PR #10；集成验收前不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
 
 ## 9. P1.2 启动记录
 
@@ -251,3 +251,10 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 回归门禁：字段 `p12-field-auditfix-20260824-a` 7/7，P1.1 `p12-auditfix-p11-20260824-a` 42/42 且 104/104 checkpoint，Phase 0 `p12-auditfix-phase0-20260824-a` 4/4，嵌套 P0.4 `-p04` 9/9 且 24/24 checkpoint；
 - 映射 `-a` 和插值 `-a/-b` 失败尝试保留为非权威证据，没有复用或覆盖目录；
 - 最终审计为 PASS，P1-R05—P1-R07 和 R-013/R-014 全部关闭。未引入 RHS、位置更新、release 转换、owner 迁移、风、Stokes 或 P1.3；PR #10 保持 Draft，不合并、不创建标签。
+
+### 9.10 PR #10 进入 Ready
+
+- 获得用户明确授权后，将 PR #10 从 Draft 标记为 Ready for review；
+- 复核状态为 open、未合并、可合并，head `07f428f9dcf37c2e5f998020a63abadc2df702bf`，13 个提交、58 个变更文件，无 review 或 review thread；
+- PR 说明已同步 Ready 状态，并明确 Ready 不授权合并、标签或 P1.3；
+- 下一步等待单独的 merge commit 合并授权；合并后先执行集成回归，不立即创建标签。
