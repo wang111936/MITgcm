@@ -32,3 +32,9 @@
 ## 4. 回归与证据
 
 P1.4 专属门禁必须生成 `summary.tsv`、源码 head、环境/配置清单和 SHA-256 manifest。随后在同一 clean exact head 运行 P1.3 lifecycle/setup/RHS/RK2/RK4、P1.2 interpolation/fields/mapping、P1.1 state、Phase 0 final gate；各历史结果目录不得覆盖。
+
+P1.4 上运行 P1.3 lifecycle 与 P1.1 state 门禁时必须显式设置
+`MITGCM_BOM_ALLOW_OWNER_MIGRATION=yes`。该兼容模式只记录两项由 P1.4
+冻结契约明确替代的旧判据：严格 K4 owner 拒绝改由 halo RK/迁移门禁覆盖，
+以及 `OL=1` 正向运行改为验证 `OLx/OLy>=2` 的预期启动失败；其余前序
+构建、正例和负例仍须实际执行。默认 `no` 保持原阶段门禁不变。

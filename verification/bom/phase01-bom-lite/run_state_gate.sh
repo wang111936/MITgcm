@@ -12,6 +12,7 @@ readonly BUILD_ROOT="${BUILD_PARENT}/${TEST_ID}"
 readonly RUN_ROOT="${RUN_PARENT}/${TEST_ID}"
 readonly OPTFILE="${MITGCM_BOM_OPTFILE:-${REPO_ROOT}/tools/build_options/linux_amd64_gfortran}"
 readonly MAKE_JOBS="${MITGCM_BOM_MAKE_JOBS:-4}"
+readonly ALLOW_OWNER_MIGRATION="${MITGCM_BOM_ALLOW_OWNER_MIGRATION:-no}"
 readonly EXPECTED_SHA="${REPO_ROOT}/verification/bom/phase00-skeleton/exp2_checkpoint.sha256"
 readonly EXP2_CODE="${REPO_ROOT}/verification/exp2/code"
 readonly EXP2_INPUT="${REPO_ROOT}/verification/exp2/input"
@@ -37,6 +38,9 @@ done
 [[ -x "${REPO_ROOT}/tools/genmake2" ]] || fail "genmake2 is not executable"
 [[ -f "${OPTFILE}" ]] || fail "optfile not found: ${OPTFILE}"
 [[ -f "${EXPECTED_SHA}" ]] || fail "checkpoint manifest not found"
+[[ "${ALLOW_OWNER_MIGRATION}" == yes \
+   || "${ALLOW_OWNER_MIGRATION}" == no ]] \
+  || fail "MITGCM_BOM_ALLOW_OWNER_MIGRATION must be yes or no"
 [[ ! -e "${BUILD_ROOT}" ]] || fail "build root already exists: ${BUILD_ROOT}"
 [[ ! -e "${RUN_ROOT}" ]] || fail "run root already exists: ${RUN_ROOT}"
 
@@ -158,8 +162,15 @@ assert_bom_lifecycle() {
   local log_file="$1"
   grep -Eq 'pkg/bom.*compiled.*used' "${log_file}" \
     || fail "BOM activation evidence missing: ${log_file}"
-  grep -q 'BOM_CHECK: Phase-1.3 setup and initial-state gate' "${log_file}" \
-    || fail "P1.1 check evidence missing: ${log_file}"
+  if [[ "${ALLOW_OWNER_MIGRATION}" == yes ]]; then
+    grep -q 'BOM_CHECK: Phase-1.4 setup, state, and migration gate' \
+      "${log_file}" \
+      || fail "P1.4-compatible check evidence missing: ${log_file}"
+  else
+    grep -q 'BOM_CHECK: Phase-1.3 setup and initial-state gate' \
+      "${log_file}" \
+      || fail "P1.1 check evidence missing: ${log_file}"
+  fi
   grep -q 'BOM_CHECK: done' "${log_file}" \
     || fail "BOM_CHECK completion missing: ${log_file}"
 }
@@ -372,6 +383,34 @@ run_negative() {
     "${run_name}" "${process_status}" >> "${RUN_ROOT}/summary.tsv"
 }
 
+run_ol1_replacement() {
+  local run_name='one-ol1-debug'
+  local run_dir="${RUN_ROOT}/${run_name}"
+  local process_status
+
+  log "run expected P1.4 prerequisite ${run_name}"
+  prepare_run "${run_name}" ol1-debug \
+    "${CASE_DIR}/input/data.bom.one" one
+  set +e
+  (
+    cd "${run_dir}"
+    ./mitgcmuv > run.log 2>&1
+  )
+  process_status=$?
+  set -e
+
+  if grep -q 'PROGRAM MAIN: Execution ended Normally' "${run_dir}/run.log"; then
+    fail "P1.4 OL=1 prerequisite ended normally: ${run_name}"
+  fi
+  grep -q 'P1.4 migration requires OLx/OLy >= 2' \
+    "${run_dir}/run.log" \
+    || fail "P1.4 OL=1 prerequisite diagnostic missing: ${run_name}"
+  grep -Eq 'ABNORMAL END|S/R ALL_PROC_DIE' "${run_dir}/run.log" \
+    || fail "P1.4 OL=1 prerequisite fatal marker missing: ${run_name}"
+  printf '%s\tPASS\tP1.1 OL=1 positive replaced by P1.4 OL>=2; status=%s\n' \
+    "${run_name}" "${process_status}" >> "${RUN_ROOT}/summary.tsv"
+}
+
 build_case serial "${EXP2_CODE}/SIZE.h" no no \
   "${P0_CASE}/code/packages.conf" yes
 build_case mpi2 "${EXP2_CODE}/SIZE.h_mpi" yes no \
@@ -396,7 +435,12 @@ run_positive valid-serial serial 1 "${CASE_DIR}/input/data.bom.valid" valid
 run_positive valid-mpi2 mpi2 2 "${CASE_DIR}/input/data.bom.valid" valid
 run_positive valid-mpi4 mpi4 4 "${CASE_DIR}/input/data.bom.valid" valid
 run_positive valid-debug debug 1 "${CASE_DIR}/input/data.bom.valid" valid
-run_positive one-ol1-debug ol1-debug 1 "${CASE_DIR}/input/data.bom.one" one
+if [[ "${ALLOW_OWNER_MIGRATION}" == yes ]]; then
+  run_ol1_replacement
+else
+  run_positive one-ol1-debug ol1-debug 1 \
+    "${CASE_DIR}/input/data.bom.one" one
+fi
 
 run_disabled compiled-disabled-serial serial 1 yes
 run_disabled compiled-disabled-mpi2 mpi2 2 yes
