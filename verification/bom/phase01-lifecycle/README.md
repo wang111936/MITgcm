@@ -20,6 +20,6 @@ Run from the repository root:
 bash verification/bom/phase01-lifecycle/run_lifecycle_gate.sh
 ```
 
-The gate is expected to report 12 PASS rows: one source contract, two
-GNU debug/IEEE builds, three positive production runs, and six negative
+The gate is expected to report 13 PASS rows: one source contract, two
+GNU debug/IEEE builds, four positive production runs, and six negative
 production runs.

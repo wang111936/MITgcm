@@ -22,7 +22,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       _RL stepStart, dtSub, tSub0, tSub1
       _RL dtActive, ageCandidate
       _RL xSeed(5), ySeed(5), tol
-      LOGICAL isRK2, isRK4, isMPI4
+      LOGICAL isRK2, isRK4, isZeroLife, isMPI4
       LOGICAL isAge, isDuplicate, isCount
       LOGICAL isTail, isStatus, isOwner
       LOGICAL doAdvance, doRefresh, isValid
@@ -33,6 +33,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       tol = 65536. _d 0*EPSILON(oneRL)
       isRK2 = the_run_name.EQ.'P1-S04B-RK2'
       isRK4 = the_run_name.EQ.'P1-S04B-RK4'
+      isZeroLife = the_run_name.EQ.'P1-I01-LIFE'
       isMPI4 = the_run_name.EQ.'P1-LIFE-MPI4'
       isAge = the_run_name.EQ.'P1-N08-AGE'
       isDuplicate = the_run_name.EQ.'P1-N08-DUPID'
@@ -41,7 +42,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       isStatus = the_run_name.EQ.'P1-N08-STATUS'
       isOwner = the_run_name.EQ.'P1-N08-OWNER'
       CALL BOM_VERIFY_LIFECYCLE_ASSERT(
-     &     isRK2 .OR. isRK4 .OR. isMPI4 .OR. isAge
+     &     isRK2 .OR. isRK4 .OR. isZeroLife .OR. isMPI4 .OR. isAge
      &     .OR. isDuplicate .OR. isCount .OR. isTail
      &     .OR. isStatus .OR. isOwner,
      &     'recognized lifecycle scenario', nFail, myThid )
@@ -135,7 +136,35 @@ C     deterministic equal-substep construction before the caller test.
         CALL BOM_VERIFY_LIFECYCLE_ASSERT(
      &       .NOT.isValid .AND. failCode.EQ.BOM_FAIL_NONFINITE,
      &       'age overflow rejected before commit', nFail, myThid )
-        caseCount = caseCount + 6
+
+        CALL BOM_RELEASE_STEP(
+     I       BOM_OUTSIDE, 0. _d 0, 0. _d 0,
+     I       0. _d 0, 300. _d 0,
+     O       statusCandidate, dtActive, ageCandidate,
+     O       doAdvance, doRefresh, failCode, isValid )
+        CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &       .NOT.isValid .AND. failCode.EQ.BOM_FAIL_STATE,
+     &       'invalid status has first-failure precedence',
+     &       nFail, myThid )
+
+        CALL BOM_RELEASE_STEP(
+     I       BOM_ALIVE, 150. _d 0, 0. _d 0,
+     I       0. _d 0, 300. _d 0,
+     O       statusCandidate, dtActive, ageCandidate,
+     O       doAdvance, doRefresh, failCode, isValid )
+        CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &       .NOT.isValid .AND. failCode.EQ.BOM_FAIL_RELEASE,
+     &       'future release on ALIVE rejected', nFail, myThid )
+
+        CALL BOM_RELEASE_STEP(
+     I       BOM_WAITING, 600. _d 0, oneRL,
+     I       0. _d 0, 300. _d 0,
+     O       statusCandidate, dtActive, ageCandidate,
+     O       doAdvance, doRefresh, failCode, isValid )
+        CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &       .NOT.isValid .AND. failCode.EQ.BOM_FAIL_STATE,
+     &       'WAITING nonzero age rejected', nFail, myThid )
+        caseCount = caseCount + 9
       ENDIF
 
       IF ( isRK2 .OR. isRK4 ) THEN
@@ -222,6 +251,67 @@ C     nominal intervals [0,300],...,[900,1200].
           ENDIF
         ENDDO
         caseCount = caseCount + 10
+
+      ELSEIF ( isZeroLife ) THEN
+C--     P1-I01 crosses the complete caller with ALIVE and WAITING
+C     releases while the frozen RHS is exactly zero.
+        CALL BOM_VERIFY_LIFECYCLE_FILL_MODEL(
+     &       0. _d 0, 0. _d 0, myThid )
+        bi = 1
+        bj = 1
+        bomNPartTile(bi,bj) = 4
+        bomNPartExpected = 4
+        bomMaxParticles = 4
+        CALL BOM_VERIFY_LIFECYCLE_PUT(
+     I       1, bi, bj, 201_8, BOM_ALIVE,
+     I       1.7 _d 0, 1.7 _d 0, 0. _d 0, 10. _d 0,
+     O       isValid, myThid )
+        CALL BOM_VERIFY_LIFECYCLE_PUT(
+     I       2, bi, bj, 202_8, BOM_WAITING,
+     I       2.0 _d 0, 1.9 _d 0, 1500. _d 0, 0. _d 0,
+     O       isValid, myThid )
+        CALL BOM_VERIFY_LIFECYCLE_PUT(
+     I       3, bi, bj, 203_8, BOM_WAITING,
+     I       2.3 _d 0, 2.1 _d 0, 300. _d 0, 0. _d 0,
+     O       isValid, myThid )
+        CALL BOM_VERIFY_LIFECYCLE_PUT(
+     I       4, bi, bj, 204_8, BOM_WAITING,
+     I       2.6 _d 0, 2.3 _d 0, 1200. _d 0, 0. _d 0,
+     O       isValid, myThid )
+        DO ip=1,4
+          xSeed(ip) = bomX(ip,bi,bj)
+          ySeed(ip) = bomY(ip,bi,bj)
+        ENDDO
+        CALL BOM_MAIN( 1200. _d 0, 1, myThid )
+        DO ip=1,4
+          CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &         bomX(ip,bi,bj).EQ.xSeed(ip)
+     &         .AND. bomY(ip,bi,bj).EQ.ySeed(ip),
+     &         'zero RHS bitwise position', nFail, myThid )
+          CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &         bomVEast(ip,bi,bj).EQ.0. _d 0
+     &         .AND. bomVNorth(ip,bi,bj).EQ.0. _d 0
+     &         .AND. bomDriftEast(ip,bi,bj).EQ.0. _d 0
+     &         .AND. bomDriftNorth(ip,bi,bj).EQ.0. _d 0,
+     &         'zero RHS final diagnostics', nFail, myThid )
+        ENDDO
+        CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &       bomStatus(1,bi,bj).EQ.BOM_ALIVE
+     &       .AND. bomAge(1,bi,bj).EQ.1210. _d 0,
+     &       'zero RHS ALIVE age', nFail, myThid )
+        CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &       bomStatus(2,bi,bj).EQ.BOM_WAITING
+     &       .AND. bomAge(2,bi,bj).EQ.0. _d 0,
+     &       'zero RHS future WAITING', nFail, myThid )
+        CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &       bomStatus(3,bi,bj).EQ.BOM_ALIVE
+     &       .AND. bomAge(3,bi,bj).EQ.900. _d 0,
+     &       'zero RHS released age', nFail, myThid )
+        CALL BOM_VERIFY_LIFECYCLE_ASSERT(
+     &       bomStatus(4,bi,bj).EQ.BOM_ALIVE
+     &       .AND. bomAge(4,bi,bj).EQ.0. _d 0,
+     &       'zero RHS final-end release', nFail, myThid )
+        caseCount = caseCount + 12
 
       ELSEIF ( isMPI4 ) THEN
 C--     One record per rank; low words cross the signed 32-bit boundary.
@@ -337,6 +427,9 @@ C--     Each negative run must terminate in production before returning.
         ELSEIF ( isRK4 ) THEN
           WRITE(msgBuf,'(A)')
      &         'P1-S04B RK4 PASS: exact release transactions'
+        ELSEIF ( isZeroLife ) THEN
+          WRITE(msgBuf,'(A)')
+     &         'P1-I01 LIFECYCLE PASS: zero ALIVE and WAITING'
         ELSE
           WRITE(msgBuf,'(A)')
      &         'P1-LIFECYCLE MPI4 PASS: exact global ID budget'

@@ -261,6 +261,7 @@ build_case mpi4 "${FIELD_CASE}/code/SIZE.h.mpi4" yes
 
 run_case s04b-rk2-serial serial 1 P1-S04B-RK2 'P1-S04B RK2 PASS: exact release transactions'
 run_case s04b-rk4-serial serial 1 P1-S04B-RK4 'P1-S04B RK4 PASS: exact release transactions'
+run_case i01-lifecycle-serial serial 1 P1-I01-LIFE 'P1-I01 LIFECYCLE PASS: zero ALIVE and WAITING'
 run_case lifecycle-mpi4 mpi4 4 P1-LIFE-MPI4 'P1-LIFECYCLE MPI4 PASS: exact global ID budget'
 
 run_negative n08-age-serial serial 1 P1-N08-AGE 'stage/code=[[:space:]]+0[[:space:]]+5' 'age overflow rejected before authoritative commit'
@@ -279,8 +280,8 @@ git -C "${REPO_ROOT}" rev-parse HEAD > "${ARTIFACT_ROOT}/source-head.txt"
 
 PASS_COUNT="$(grep -c $'\tPASS\t' "${RUN_ROOT}/summary.tsv")"
 readonly PASS_COUNT
-[[ "${PASS_COUNT}" -eq 12 ]] || fail "expected 12 PASS rows, found ${PASS_COUNT}"
-log 'P1.3 LIFECYCLE GATE PASS (12/12)'
+[[ "${PASS_COUNT}" -eq 13 ]] || fail "expected 13 PASS rows, found ${PASS_COUNT}"
+log 'P1.3 LIFECYCLE GATE PASS (13/13)'
 log "build root:    ${BUILD_ROOT}"
 log "run root:      ${RUN_ROOT}"
 log "artifact root: ${ARTIFACT_ROOT}"

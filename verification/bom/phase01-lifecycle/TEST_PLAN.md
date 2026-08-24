@@ -13,6 +13,7 @@ output, and pickup/restart are not claimed here.
 |---|---|---|
 | P1-S04b RK2 | serial | `[0,1200]` is split into four equal substeps; ALIVE, future WAITING, release-at-boundary, release-inside, and release-at-final-end records have exact displacement, status, age, and final diagnostics |
 | P1-S04b RK4 | serial | same frozen release matrix through the RK4 caller path |
+| P1-I01 lifecycle | serial | exactly zero frozen RHS preserves ALIVE and WAITING positions bitwise while status and age follow the release contract |
 | lifecycle MPI4 | four ranks | one stationary ALIVE owner per rank preserves position and ID, advances age exactly, and passes the owner/ID budget at start and every substep |
 
 The serial verifier also calls the stateless helper directly for release at
