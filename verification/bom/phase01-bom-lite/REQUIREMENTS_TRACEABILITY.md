@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 需求追踪
 
-状态：P1.1 已验收；P1.2 P1-R05—P1-R07 实现、生产生命周期门禁、全回归和最终审计全部通过，PR #10 已以 merge commit 合并且合并后全门禁 PASS，集成记录 PR #11 独立复审 PASS 并保持 Draft
+状态：P1.1 已验收；P1.2 P1-R05—P1-R07 实现、生产生命周期门禁、全回归和最终审计全部通过；PR #10 与集成记录 PR #11 均已使用 merge commit 合并，PR #11 合并后全门禁再次 PASS，PR #12 纯文档收口独立复审 PASS 且无开放 finding
 
 本表是 Phase 1 需求、计划例程和测试之间的权威映射。实现阶段不得把“已有代码”当作完成证据；只有对应测试通过并在 `TEST_RESULTS.md` 记录后，需求状态才能改为完成。
 
@@ -50,7 +50,7 @@
 | `BOM_INTERP_WET_PAIR` | P1-R07 | 组件级 P1-F03/P1-N05 串行/MPI4 及低湿权重生产调用层门禁通过 |
 | `BOM_MAIN` 非移动诊断调用层 | P1-R07 | 串行/MPI4 正向生命周期门禁证明只更新诊断字段；域外/低湿权重负测证明带上下文的集体终止 |
 
-详细调用契约见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)，最终复审结论见 [`P1.2_SCOPE_AUDIT.md`](P1.2_SCOPE_AUDIT.md)。映射、字段构造和插值/生命周期证据分别见 [`../phase01-mapping/TEST_RESULTS.md`](../phase01-mapping/TEST_RESULTS.md)、[`../phase01-fields/TEST_RESULTS.md`](../phase01-fields/TEST_RESULTS.md) 和 [`../phase01-interp/TEST_RESULTS.md`](../phase01-interp/TEST_RESULTS.md)。P1-R05—P1-R07 均已关闭，P1.2 最终审计为 PASS。
+详细调用契约见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)，最终复审结论见 [`P1.2_SCOPE_AUDIT.md`](P1.2_SCOPE_AUDIT.md)，合并后收口证据见 [`P1.2_CLOSEOUT.md`](P1.2_CLOSEOUT.md)。映射、字段构造和插值/生命周期证据分别见 [`../phase01-mapping/TEST_RESULTS.md`](../phase01-mapping/TEST_RESULTS.md)、[`../phase01-fields/TEST_RESULTS.md`](../phase01-fields/TEST_RESULTS.md) 和 [`../phase01-interp/TEST_RESULTS.md`](../phase01-interp/TEST_RESULTS.md)。P1-R05—P1-R07 均已关闭，P1.2 最终审计及两次合并后回归均为 PASS。
 
 ## 2. 上层验证编号映射
 

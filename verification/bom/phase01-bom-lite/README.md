@@ -40,6 +40,10 @@ The driver refuses to reuse build or run roots. Defaults are:
   post-merge P1.2, P1.1, Phase 0, and nested P0.4 evidence.
 - `P1.2_INTEGRATION_AUDIT.md` records the independent review of Draft PR #11
   and its no-finding PASS decision.
+- `P1.2_CLOSEOUT.md` records the PR #11 merge commit and the fresh post-merge
+  P1.2, P1.1, Phase 0, and nested P0.4 evidence used to close the work package.
+- `P1.2_CLOSEOUT_AUDIT.md` records the independent PR #12 review, the corrected
+  immutable merge range, and the final no-open-finding PASS decision.
 
 ## Input schema 1
 
