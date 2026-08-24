@@ -26,7 +26,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
 | P1.2 映射与环境场 | 完成 | PR #10 `fe51332e1` / PR #11 `34edbc50c` / PR #12 `eefca92fe` | 全门禁、两轮集成记录与最终纯文档收口完成 |
-| P1.3 单 tile 积分 | 进行中 | `MITGCM-BOM/phase-01-single-tile-integration` / Draft PR #13 | 接口与测试判据已冻结；等待独立设计复审，尚无生产实现 |
+| P1.3 单 tile 积分 | 进行中 | `MITGCM-BOM/phase-01-single-tile-integration` / Draft PR #13 | 独立设计复审 5 项 finding 已修订、待 remediation head 复核；尚无生产实现 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
 
@@ -328,6 +328,16 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 冻结显式中点 RK2 与经典 RK4，每个 stage 使用完整有效子步作 CFL guard，并要求 stage/final 都留在当前 owner tile；
 - 冻结每粒子每子步试算后提交、最终位置诊断刷新和稳定失败类别；`bomCheckEverySubstep` 不得关闭 stage 硬检查；
 - 形成 P1-D021—P1-D029；P1-D029 单独记录 `LOAD_FIELDS_DRIVER` 在时间更新前请求的 EXF `t0/iter-1` 与 BOM 步末海流 `t1/iter` 标签，详细契约见 `verification/bom/phase01-bom-lite/P1.3_INTERFACE_FREEZE.md`；
-- P1-S04b、P1-N06、P1-N08、P1-I01—I06 的场景、观测阶阈值和前序回归范围已同步；
+- P1-N01b、P1-S04b、P1-N06、P1-N08、P1-I01—I06 的场景、观测阶阈值和前序回归范围已同步；
 - 本增量只修改 Markdown，尚未实现生产 Fortran、门禁脚本或测试输入，因此未运行编译/运行矩阵；范围、链接、编号、隔离词和身份审计均通过；
 - 设计冻结提交为 `5240abcf808835f2163b4b358d4a00e99f3e7645`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；Draft PR #13 已创建，下一步为独立设计复审。
+
+### 10.3 独立设计复审与 remediation
+
+- 从 `development@eefca92fe` 到 PR head `5de9f46c8` 重新审计范围，并以实际 MITgcm/BOM/EXF/FLT、网格度量和锁定 Julia 源码为证据；
+- 时间层与 EXF 结论保持：海流为 `(t1,iter1)`，风为本步 `LOAD_FIELDS_DRIVER` 请求的 `(t0,iter1-1)`；Julia 只裁决 Leeway 代数和单位换算；
+- P1.3-A（high）：`CEILING` 前缺少 finite/range/underflow/endpoint 保护，且 `epsilon(_RL)` 不能直接落地；
+- P1.3-B（high）：完整状态预算没有 `bomNPartExpected`、精确全局 ID 规则与 P1.3 合法状态集合；
+- P1.3-C—E（medium）：CFL 最近点 tie/度量/球面阈值、首失败与候选 age/端点 release 事务、RK 收敛 fixture 未完全固定；
+- 已用 P1-D030—P1-D033、P1-N01b/P1-N08、`BOM_CHECK_STATE` 契约和固定仿射解析场修订全部 5 项；
+- `P1.3_DESIGN_AUDIT.md` 当前标记 remediation 已应用、独立复核待执行；在新 head 复核前不宣称 PASS，不实现生产 Fortran、不标记 Ready、不合并、不打标签。

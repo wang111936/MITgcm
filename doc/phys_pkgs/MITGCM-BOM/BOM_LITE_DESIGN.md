@@ -468,6 +468,10 @@ drift_east, drift_north, owner_rank, owner_tile
 | P1-D027 | `bomCheckEverySubstep` 只控制昂贵的完整预算频率，不得关闭 stage 数值安全检查；海洋步末预算始终执行 | 安全开关不能把 NaN、CFL、湿点或 owner 错误变成可继续运行状态 |
 | P1-D028 | 粒子速度诊断定义为最终已提交位置的冻结场样本，不是 RK 加权平均或最后 stage 缓存 | 输出和后续 pickup 可用一个明确、可重建的诊断语义 |
 | P1-D029 | P1.3 分别记录步末海流 `(t1,iter1)` 与本海洋步 EXF 请求 `(t0,iter1-1)` 的时间标签 | `LOAD_FIELDS_DRIVER` 在时间计数更新前调用 EXF，而 BOM 在更新后调用；不能把风场误标为步末场 |
+| P1-D030 | 在 `CEILING` 前验证 target、CFL、系数、`subRatio` 和时间端点有限且可表示，并在导出后复核 `dtSub>0` | 防止 NaN 绕过范围比较、整数转换溢出和极小 target 导致零子步时长 |
+| P1-D031 | CFL 最近 C 点使用 `floor(index+0.5)`，半格归东/北；度量必须有限正值，球面 `abs(cos(phi))` 下界为 `sqrt(EPSILON(oneRL))` | 消除编译器/舍入相关的 tie、无效 reciprocal metric 和近极点除法歧义 |
+| P1-D032 | P1.3 保存成功初值的 `bomNPartExpected`，完整预算精确检查全局计数与 ID 唯一性；紧凑槽只允许 ALIVE/WAITING | P1.3 不迁移、不增删粒子，必须能检测 owner 丢失、重复 ID 和未授权状态，而非只与容量上限比较 |
+| P1-D033 | RK 收敛使用固定全湿 Cartesian 仿射场、解析指数解和 `T/4—T/32` 四个步长 | 让 RK2/RK4 阶数门禁在实现前可复现，禁止运行后调整 fixture 迎合结果 |
 
 ## 14. 进入实现前的冻结检查
 
@@ -483,4 +487,4 @@ drift_east, drift_north, owner_rank, owner_tile
 - [x] P1.1 已完成并集成；P1.2 已完成、独立复审并通过 PR #10—#12 收口；
 - [x] P1.2 映射、环境场、插值和失败接口已在独立冻结记录中明确；
 - [x] P1.3 已从 `development@eefca92fe` 建立独立分支并冻结单 tile 积分接口；
-- [ ] P1.3 设计独立复审通过后才开始生产 Fortran 实现。
+- [ ] P1.3 独立设计复审已提出并修订 P1-D030—P1-D033；修订 head 复核 PASS 后才可请求生产 Fortran 实现授权。

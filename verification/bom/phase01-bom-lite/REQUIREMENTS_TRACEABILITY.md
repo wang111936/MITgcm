@@ -8,10 +8,10 @@
 
 | ID | 需求 | 计划实现位置 | 验收测试 | 工作包 | 当前状态 |
 |---|---|---|---|---|---|
-| P1-R01 | `ALLOW_BOM`/`useBOM` 独立控制，关闭时零影响 | 已有核心挂接、`BOM_CHECK` | P1-C01、P1-Z01 | P1.1–P1.5 回归 | P1.1 回归通过，后续持续验证 |
+| P1-R01 | `ALLOW_BOM`/`useBOM` 独立控制，关闭时零影响且启动参数安全 | 已有核心挂接、`BOM_CHECK` | P1-C01、P1-Z01、P1-N01b | P1.1–P1.5 回归 | P1.1 回归通过；P1.3 数值 preflight 已冻结、待实现 |
 | P1-R02 | 读取 schema 1 初始文件并拒绝损坏输入 | `BOM_INIT_VARIA`、`BOM_READ_INITIAL` | P1-S01、P1-N02 | P1.1 | P1.1 完成 |
 | P1-R03 | 全局 64 位 ID 唯一且交换/I/O 不失真 | `BOM_ID_FROM_WORDS`、后续 pack/交换/pickup | P1-S02、P1-X04、P1-P02 | P1.1、P1.4、P1.5 | P1.1 初值恢复与唯一性完成；交换/I/O 待后续 |
-| P1-R04 | 每 tile 权威 SoA、紧凑 owner 和容量安全 | `BOM.h`、`BOM_SIZE.h`、`BOM_READ_INITIAL`、后续 `BOM_CHECK_STATE` | P1-S03、P1-S04a、P1-N03a—N03b | P1.1、P1.4 | P1.1 状态/初值容量完成；运行/交换检查待后续 |
+| P1-R04 | 每 tile 权威 SoA、紧凑 owner 和容量安全 | `BOM.h`、`BOM_SIZE.h`、`BOM_READ_INITIAL`、`bomNPartExpected`、`BOM_CHECK_STATE` | P1-S03、P1-S04a、P1-N03a—N03b、P1-N08 | P1.1、P1.3、P1.4 | P1.1 状态/初值容量完成；P1.3 不迁移预算已冻结、待实现；交换检查待 P1.4 |
 | P1-R05 | 支持规则 Cartesian 与未旋转 spherical-polar 映射 | `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、`BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY`、兼容 `BOM_LOCATE_INITIAL` | P1-S03、P1-M01、P1-M02、P1-N04 | P1.1、P1.2 | 完成；19/19 门禁覆盖累计溢出、非有限原点/间距/末端 face 与正负极端有限经度 |
 | P1-R06 | 表层 C-grid U/V 正确转为 C 点 east/north | `BOM_BUILD_FIELDS`、`bomGrid*` 单层数组 | P1-F01、P1-F02 | P1.2 | 完成；`Nr=2` 串行/MPI4 旋转、mask 和标量 halo 门禁及前序回归通过 |
 | P1-R07 | 对湿点做一致的归一化双线性插值 | `BOM_INTERP_WET_PAIR`、`BOM_MAIN` 非移动诊断调用层 | P1-F03、P1-N05 | P1.2 | 完成；串行/MPI4 组件、生产生命周期和调用层异常终止门禁通过，权威粒子状态 bitwise 不变 |
@@ -56,12 +56,13 @@
 
 | 生产例程/接口 | 需求 | 冻结验收 |
 |---|---|---|
-| `BOM_CHECK` 的 EXF 依赖矩阵 | P1-R09 | P1-N06：`ALLOW_EXF`、`useEXF`、`useAtmWind` 与 source/系数组合 |
+| `BOM_CHECK` 的数值 preflight 与 EXF 依赖矩阵 | P1-R01、P1-R09、P1-R11、P1-R16 | P1-N01b/P1-N06：有限 target/系数/CFL、可表示子步和 EXF source/依赖组合 |
 | `bomGridWindEast/bomGridWindNorth`、扩展 `BOM_BUILD_FIELDS` | P1-R09 | P1-I04：格心 10 m east/north 风的冻结、mask、标量 halo 和有限性 |
 | `BOM_RHS_LEEWAY` | P1-R08、P1-R09、P1-R16 | P1-I01—I04、P1-N08：SI Leeway、Cartesian/球面坐标率、stage CFL 与错误类别 |
 | `BOM_RK2` | P1-R11、P1-R16 | P1-I05：显式中点二阶收敛；所有 stage 试算后提交 |
 | `BOM_RK4` | P1-R11、P1-R16 | P1-I06：经典 RK4 四阶收敛；所有 stage 试算后提交 |
-| `BOM_MAIN` 的等长子步和 release 状态机 | P1-R11、P1-R16 | P1-S04b、P1-I01、P1-N08：精确 release 分割、age、单 tile owner 和海洋步末预算 |
+| `BOM_MAIN` 的等长子步和 release 状态机 | P1-R11、P1-R16 | P1-N01b、P1-S04b、P1-I01、P1-N08：安全子步导出、精确 release 分割、候选 age 和单 tile owner |
+| `bomNPartExpected`、`BOM_CHECK_STATE` | P1-R04、P1-R16 | P1-N08：紧凑槽、全局 owner 计数、精确 ID 唯一性、状态/release/age 预算 |
 
 详细契约见 [`P1.3_INTERFACE_FREEZE.md`](P1.3_INTERFACE_FREEZE.md)。本节目前是设计追踪，不是完成证据；只有对应生产实现、门禁、完整前序回归和独立审计均通过后，P1-R08/P1-R09/P1-R11 以及 P1-R16 的 P1.3 部分才能标记完成。
 

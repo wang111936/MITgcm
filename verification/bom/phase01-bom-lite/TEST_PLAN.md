@@ -47,6 +47,7 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 |---|---|---|---|
 | P1-Z01 | BOM 关闭、编译关闭、零粒子开启；1/2/4 ranks | P1-R01 | MITgcm checkpoint 与冻结基线 SHA-256 一致 |
 | P1-N01 | 非法模式、积分器、负时间步/频率 | P1-R01 | `BOM_CHECK` 输出具体参数并全局停止 |
+| P1-N01b | 非有限 target/风系数/CFL、不可表示 `subRatio`、零/非有限 `dtSub` 或时间端点 | P1-R01、P1-R11、P1-R16 | 在 `CEILING` 或推进前输出参数名和值并终止；权威粒子状态不提交 |
 | P1-N02 | 坏 schema/meta、截断/完整或残缺尾随数据、NaN、坏状态 | P1-R02 | meta、头记录与物理长度不一致时完整拒绝，无部分粒子进入状态 |
 | P1-N03 | 容量溢出父项 | P1-R04 | 由 P1-N03a 与 P1-N03b 完成，不静默截断 |
 | P1-N03a | 初值全局或 tile 容量溢出 | P1-R04 | 输出 tile/需要量/上限后停止，不截断 |
@@ -55,7 +56,7 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 | P1-N05 | 域外/缺失 stencil、字段未就绪、非有限字段或湿权重不足 | P1-R07 | 输出 tile、局部索引和湿权重后明确停止，不做夹取、常数外推或静默搁浅 |
 | P1-N06 | 风系数非零但 source NONE；EXF 未编译；`useEXF`/`useAtmWind` 未启用；非法 source | P1-R09 | 依赖检查失败，信息包含 source、系数和具体缺失依赖 |
 | P1-N07 | `bomStokesSource=FILES/COUPLER` | P1-R10 | Phase 1 明确拒绝，不读取外部文件 |
-| P1-N08 | 非有限坐标率、stage CFL 超限、stage/final 离开当前 owner | P1-R16 | 输出粒子 ID、substep、stage、failCode、局部量后全局停止；失败粒子子步不提交 |
+| P1-N08 | 非有限坐标率/度量、半格 CFL tie、stage CFL 超限、stage/final 离开当前 owner、age 溢出、计数/ID/状态预算损坏 | P1-R04、P1-R16 | 按冻结优先级输出首个 failCode、粒子 ID、substep、stage 和局部量后全局停止；失败粒子子步不提交 |
 
 ## 4. 状态、ID 与初值
 
@@ -89,7 +90,7 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 | P1-I05 | 双线性可表示的空间线性平滑 RHS，子步连续减半 | 1 rank | P1-R11 | RK2 最细两组观测阶均在 `[1.8,2.2]` |
 | P1-I06 | 与 I05 相同 RHS | 1 rank | P1-R11 | RK4 最细两组观测阶均在 `[3.5,4.5]` |
 
-收敛测试至少使用四个连续减半的子步尺度，以最细两组的 `log2(E(h)/E(h/2))` 作为观测阶判据。解析场、总时长和步长必须让截断误差明显高于舍入误差，并保证所有 stage 留在同一 owner tile且低于 CFL。阈值在脚本中固定；不能只报告一条“误差很小”的轨迹。
+I05/I06 使用 `P1.3_INTERFACE_FREEZE.md` 固定的全湿 Cartesian 仿射场：在中央 C 点定义 `T=deltaTClock`、局地 `Lx/Ly`，以 `u0=0.04Lx/T`、`ax=0.20/T`、`v0=0.03Ly/T`、`ay=-0.15/T` 和对应指数解析解裁决误差。四个子步尺度固定为 `T/4,T/8,T/16,T/32`，以最细两组的 `log2(E(h)/E(h/2))` 作为观测阶判据。必须预先证明所有 stage 留在同一 owner tile、最近 C 点度量有效且低于 CFL；不能只报告一条“误差很小”的轨迹，也不能运行后调整 fixture。
 
 ## 7. tile/MPI owner 迁移
 
@@ -121,7 +122,7 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 | P1.0 | Markdown-only 范围、链接、ID 和禁词审计 |
 | P1.1 | P1-C01、P1-C03、P1-Z01、P1-N01、P1-N02、P1-N03a、P1-N07、P1-S01—S03、P1-S04a |
 | P1.2 | P1-N04—N05、P1-M01—M02、P1-F01—F03，加前序回归 |
-| P1.3 | P1-C01、P1-C03、P1-Z01、P1-S04b、P1-N06、P1-N08、P1-I01—I06，加 P1.2/P1.1/Phase 0 全部前序回归 |
+| P1.3 | P1-C01、P1-C03、P1-Z01、P1-N01b、P1-S04b、P1-N06、P1-N08、P1-I01—I06，加 P1.2/P1.1/Phase 0 全部前序回归 |
 | P1.4 | P1-N03b、P1-X01—X04，加 1/2/4 ranks 前序回归 |
 | P1.5 | P1-O01—O02、P1-P01—P03、P1-K01—K02、P1-G01 |
 
