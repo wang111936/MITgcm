@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 1 verification index
 
-This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, the accepted P1.2 evidence records, and the frozen P1.3 single-tile integration contract. Build trees, runtime output, and generated binary evidence remain outside Git.
+This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, the accepted P1.2 evidence records, the frozen P1.3 single-tile integration contract, and the accepted P1.3 first setup-increment record. Build trees, runtime output, and generated binary evidence remain outside Git.
 
 ## Executable P1.1 gate scope
 
@@ -11,7 +11,7 @@ This directory is the source-controlled Phase 1 BOM-Lite verification index. It 
 - input finite-value, uniqueness, state, release-time, wet-cell, count, and capacity checks;
 - serial, MPI2, MPI4, GNU debug, zero-impact, and negative gates.
 
-The P1.1 driver does not itself implement environmental-field construction, general stage-time mapping, interpolation, particle motion, owner exchange, trajectory output, or pickup. P1.2 production functionality is recorded by its separate accepted evidence; P1.3 remains design-only at this snapshot.
+The P1.1 driver does not itself implement environmental-field construction, general stage-time mapping, interpolation, particle motion, owner exchange, trajectory output, or pickup. P1.2 production functionality is recorded by its separate accepted evidence. P1.3 setup preflight, expected-owner initialization, and frozen wind snapshots are implemented and tested; the Leeway RHS, release-time integration, RK motion, and full state budget remain later P1.3 increments.
 
 ## Run
 
@@ -51,6 +51,9 @@ The driver refuses to reuse build or run roots. Defaults are:
 - `P1.3_DESIGN_AUDIT.md` records the independent source-backed review of Draft
   PR #13, closure of its five design findings, and the immutable no-open-finding
   PASS result.
+- `../phase01-setup/TEST_RESULTS.md` records the implementation commit, P1.3
+  setup component evidence, all predecessor regressions, resolved numerical
+  findings, and the explicit boundary of the first production increment.
 
 ## Input schema 1
 

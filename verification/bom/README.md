@@ -24,6 +24,9 @@ external environmental datasets remain outside the repository.
 - `phase01-interp/`: P1.2 shared-weight wet-pair interpolation, non-moving
   production lifecycle diagnostics, and caller-level collective failure
   contracts in serial and MPI4 layouts;
+- `phase01-setup/`: P1.3 first production increment for trap-safe setup
+  preflight, immutable expected-owner initialization, and frozen `NONE`/EXF
+  wind snapshots in serial and MPI4;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 
