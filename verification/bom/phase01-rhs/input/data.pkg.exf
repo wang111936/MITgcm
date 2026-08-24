@@ -1,0 +1,4 @@
+ &PACKAGES
+ useBOM=.TRUE.,
+ useEXF=.TRUE.,
+ &

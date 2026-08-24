@@ -56,6 +56,42 @@ C     Phase 4, but their numeric codes must not be reused.
       PARAMETER ( BOM_INVALID  = 5 )
       PARAMETER ( BOM_WAITING  = 6 )
 
+C--   Stable failure values for the Phase-1 particle kernels.  The first
+C     failure in one trial is retained; numeric codes must not be reused.
+      INTEGER BOM_FAIL_NONE
+      INTEGER BOM_FAIL_MAP
+      INTEGER BOM_FAIL_OWNER
+      INTEGER BOM_FAIL_STENCIL
+      INTEGER BOM_FAIL_INTERP
+      INTEGER BOM_FAIL_NONFINITE
+      INTEGER BOM_FAIL_CFL
+      INTEGER BOM_FAIL_STATE
+      INTEGER BOM_FAIL_RELEASE
+      PARAMETER ( BOM_FAIL_NONE      = 0 )
+      PARAMETER ( BOM_FAIL_MAP       = 1 )
+      PARAMETER ( BOM_FAIL_OWNER     = 2 )
+      PARAMETER ( BOM_FAIL_STENCIL   = 3 )
+      PARAMETER ( BOM_FAIL_INTERP    = 4 )
+      PARAMETER ( BOM_FAIL_NONFINITE = 5 )
+      PARAMETER ( BOM_FAIL_CFL       = 6 )
+      PARAMETER ( BOM_FAIL_STATE     = 7 )
+      PARAMETER ( BOM_FAIL_RELEASE   = 8 )
+
+C--   Stable Runge--Kutta diagnostic stage values.  FINAL is the
+C     accepted-position refresh, not an additional integration stage.
+      INTEGER BOM_STAGE_NONE
+      INTEGER BOM_STAGE_K1
+      INTEGER BOM_STAGE_K2
+      INTEGER BOM_STAGE_K3
+      INTEGER BOM_STAGE_K4
+      INTEGER BOM_STAGE_FINAL
+      PARAMETER ( BOM_STAGE_NONE  = 0 )
+      PARAMETER ( BOM_STAGE_K1    = 1 )
+      PARAMETER ( BOM_STAGE_K2    = 2 )
+      PARAMETER ( BOM_STAGE_K3    = 3 )
+      PARAMETER ( BOM_STAGE_K4    = 4 )
+      PARAMETER ( BOM_STAGE_FINAL = 5 )
+
 C--   Valid owner records occupy slots 1:bomNPartTile on each tile.
 C     bomNPartExpected is the immutable successful initial owner budget.
       INTEGER bomNPartTile(nSx,nSy)
