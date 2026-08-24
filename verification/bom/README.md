@@ -33,6 +33,9 @@ external environmental datasets remain outside the repository.
 - `phase01-rk2/`: P1.3 stateless explicit-midpoint RK2, final-position
   diagnostic refresh, overflow-safe trial coordinates, second-order affine
   convergence, and staged rollback in serial and MPI4;
+- `phase01-rk4/`: P1.3 stateless classical RK4, exponent-scaled stage and
+  normalized weighted-final coordinate updates, fourth-order affine
+  convergence, and K1--K4/FINAL rollback attribution in serial and MPI4;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 

@@ -36,9 +36,11 @@ C     !OUTPUT PARAMETERS:
       LOGICAL isValid
 
 C     !LOCAL VARIABLES:
-      _RL scaledRate
+      _RL fractionProduct
+      _RL productFraction
       _RL increment
       _RL hugeRL
+      INTEGER productExponent
 CEOP
 
       trialCoord = baseCoord
@@ -60,19 +62,25 @@ CEOP
         RETURN
       ENDIF
 
-      hugeRL = HUGE(increment)
-      IF ( deltaT .GT. 1. _d 0 ) THEN
-        IF ( ABS(rateCoord) .GT. hugeRL/deltaT ) RETURN
+C--   Decompose all three nonzero factors before multiplying.  Their
+C--   fractions are bounded away from overflow and underflow; exponent
+C--   addition then detects an unrepresentable result before SCALE.
+      fractionProduct = FRACTION(deltaT)*FRACTION(stageFactor)
+      fractionProduct = fractionProduct*FRACTION(rateCoord)
+      productExponent = EXPONENT(deltaT) + EXPONENT(stageFactor)
+     &                + EXPONENT(rateCoord)
+     &                + EXPONENT(fractionProduct)
+      productFraction = FRACTION(fractionProduct)
+      IF ( productExponent.GT.MAXEXPONENT(increment) ) RETURN
+
+      increment = SCALE(productFraction,productExponent)
+      IF ( .NOT. IEEE_IS_FINITE(increment) ) RETURN
+      IF ( increment .EQ. 0. _d 0 ) THEN
+        isValid = .TRUE.
+        RETURN
       ENDIF
 
-      scaledRate = deltaT*rateCoord
-      IF ( .NOT. IEEE_IS_FINITE(scaledRate) ) RETURN
-
-C--   Multiplying the guarded full-step increment by a factor in [0,1]
-C--   cannot overflow and avoids premature underflow of the input rate.
-      increment = stageFactor*scaledRate
-      IF ( .NOT. IEEE_IS_FINITE(increment) ) RETURN
-
+      hugeRL = HUGE(increment)
       IF ( increment .GT. 0. _d 0 ) THEN
         IF ( baseCoord .GT. hugeRL-increment ) RETURN
       ELSEIF ( increment .LT. 0. _d 0 ) THEN
