@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 1 verification index
 
-This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, the accepted P1.2 evidence records, the frozen P1.3 single-tile integration contract, the accepted P1.3 setup and stateless-RHS records, and the stateless-RK2 implementation/gate definition. Build trees, runtime output, and generated binary evidence remain outside Git.
+This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, the accepted P1.2 evidence records, the frozen P1.3 single-tile integration contract, and accepted P1.3 setup, stateless-RHS, and stateless-RK2 increment records. Build trees, runtime output, and generated binary evidence remain outside Git.
 
 ## Executable P1.1 gate scope
 
@@ -11,7 +11,7 @@ This directory is the source-controlled Phase 1 BOM-Lite verification index. It 
 - input finite-value, uniqueness, state, release-time, wet-cell, count, and capacity checks;
 - serial, MPI2, MPI4, GNU debug, zero-impact, and negative gates.
 
-The P1.1 driver does not itself implement environmental-field construction, general stage-time mapping, interpolation, particle motion, owner exchange, trajectory output, or pickup. P1.2 production functionality is recorded by its separate accepted evidence. P1.3 setup preflight, expected-owner initialization, frozen wind snapshots, the stateless Leeway RHS, and a stateless explicit-midpoint RK2 trial kernel are implemented; release-time integration, RK4, authoritative particle motion/commit, and the full state budget remain later P1.3 increments.
+The P1.1 driver does not itself implement environmental-field construction, general stage-time mapping, interpolation, particle motion, owner exchange, trajectory output, or pickup. P1.2 production functionality is recorded by its separate accepted evidence. P1.3 setup preflight, expected-owner initialization, frozen wind snapshots, the stateless Leeway RHS, and the stateless explicit-midpoint RK2 trial kernel are implemented and tested; release-time integration, RK4, authoritative particle motion/commit, and the full state budget remain later P1.3 increments.
 
 ## Run
 
@@ -57,8 +57,9 @@ The driver refuses to reuse build or run roots. Defaults are:
 - `../phase01-rhs/TEST_RESULTS.md` records the stateless RHS implementation
   commit, exact-head serial/MPI4/EXF/Julia evidence, predecessor regressions,
   resolved trap-safety findings, and the remaining RK/release boundary.
-- `../phase01-rk2/TEST_RESULTS.md` is the exact-head evidence record for the
-  stateless RK2 implementation and P1-I05 convergence gate.
+- `../phase01-rk2/TEST_RESULTS.md` records the stateless RK2 implementation
+  commit, exact-head P1-I05/rollback/Julia evidence, predecessor regressions,
+  and the remaining RK4/release/production-commit boundary.
 
 ## Input schema 1
 
