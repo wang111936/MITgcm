@@ -30,6 +30,9 @@ external environmental datasets remain outside the repository.
 - `phase01-rhs/`: P1.3 stateless SI Leeway RHS, Cartesian/spherical native
   coordinate rates, end-to-end EXF wind composition, stable failure/stage
   codes, stage CFL, and locked Julia algebra in serial and MPI4;
+- `phase01-rk2/`: P1.3 stateless explicit-midpoint RK2, final-position
+  diagnostic refresh, overflow-safe trial coordinates, second-order affine
+  convergence, and staged rollback in serial and MPI4;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 
