@@ -298,3 +298,4 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 完整 patch、三提交身份、PR #11 merge 双亲与身份例外、文件模式和限定目录扫描均通过；
 - 六份 summary SHA-256 重算一致且只有 PASS；P1.1 104/104 与 P0.4 24/24 checkpoint 全为 `OK`；
 - 复审结论为 PASS、无开放 finding；PR #12 保持 Draft，不合并、不打标签、不开始 P1.3。
+- 审计记录提交为 `90dc64857ee2411edfcb1905d429fd294785012d`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`。
