@@ -13,18 +13,18 @@
 | 当前阶段 PR | `wang111936/MITgcm#12`（Draft，P1.2 收口记录） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.2 收口：PR #10 与 PR #11 已合并，PR #11 合并后全门禁再次 PASS |
-| 下一工作包 | 独立复审纯文档 Draft PR #12 |
-| 当前阻塞 | 无技术阻塞；PR #12 Ready/合并、标签与 P1.3 均等待后续明确授权 |
+| 下一工作包 | 获得明确授权后将 Draft PR #12 标记 Ready for review |
+| 当前阻塞 | 无技术阻塞；PR #12 Ready、合并、标签与 P1.3 均等待后续明确授权 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
 1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment-closeout`，基线为 PR #11 merge commit `34edbc50c849379e3d4b3456f81c673c7801945b`；
-2. 读取 [P1.2 收口记录](../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT.md)、[合并后集成结果](../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_RESULTS.md) 和 [独立集成复审](../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_AUDIT.md)；
-3. 核对 PR #11 已以 merge commit 合并，六组新 `p12-integrated-pr11-*` 证据全部 PASS，P1.1/P0.4 检查点分别为 104/104 和 24/24；
-4. 下一步只对纯文档 Draft PR #12 做独立范围与证据复审；
-5. 未获后续授权不将 PR #12 标记 Ready、不合并、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
+2. 读取 [P1.2 收口记录](../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT.md)、[收口独立复审](../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT_AUDIT.md) 和 [合并后集成结果](../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_RESULTS.md)；
+3. 核对唯一的 merge-range finding 已由 `b43a702a5197f115a956944973a00a0587a43ebc` 关闭，复审结论为 PASS、无开放 finding；
+4. 下一步等待明确授权后才可将 Draft PR #12 标记 Ready；Ready 不等于合并授权；
+5. 未获后续授权不合并 PR #12、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
 
 开始前执行：
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.2 源码 PR #10 与记录 PR #11 已合并，PR #11 合并后全门禁 PASS，收口记录待独立复审 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.2 源码 PR #10 与记录 PR #11 已合并，PR #11 合并后全门禁及 PR #12 收口独立复审均 PASS | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -471,6 +471,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 从 merge commit 创建 `MITGCM-BOM/phase-01-mapping-environment-closeout` 纯文档分支并新增 `P1.2_CLOSEOUT.md`；
 - 以 `WangYuLin <wang111936@outlook.com>` 创建收口提交 `bea1df4d00fdd2fe562dd8712cc5ca5156ba1af9`，推送分支并创建 Draft PR #12；下一步只做独立范围与证据复审；
 - 未创建 `MITGCM-BOM-v0.2` 标签，未开始 P1.3。
+
+### 2026-08-24：PR #12 收口独立复审与修复
+
+- 初审冻结范围为 `development@34edbc50c849379e3d4b3456f81c673c7801945b..4aea0ca9d375e267f3a583feb2cf02dd452989f2`，完整 patch 为 7 个 Markdown；
+- 初审发现唯一阻断项：`P1.2_CLOSEOUT.md` 使用 `HEAD^1..HEAD` 描述 PR #11 merge diff，在当前 PR head 上实际只返回 3 个文件；
+- 以 WangYuLin 身份创建修复提交 `b43a702a5197f115a956944973a00a0587a43ebc`，改用固定 merge SHA 的 first-parent 范围；该范围稳定返回 PR #11 的 7 个 Markdown；
+- 修复后冻结范围为 `34edbc50c849379e3d4b3456f81c673c7801945b..b43a702a5197f115a956944973a00a0587a43ebc`，ahead 3/behind 0，三个项目提交身份均正确；
+- 六份 summary 哈希重算一致且仅含 PASS；P1.1 104/104 和 P0.4 24/24 checkpoint 全为 `OK`；
+- 复审结论更新为 PASS、无开放 finding；PR #12 保持 Draft，不合并、不打标签、不开始 P1.3。
 
 ## 6. 每次会话结束时必须更新
 
