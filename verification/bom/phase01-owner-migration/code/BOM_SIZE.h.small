@@ -1,0 +1,28 @@
+CBOP
+C     !ROUTINE: BOM_SIZE.h
+C     !INTERFACE:
+C     #include "BOM_SIZE.h"
+C     !DESCRIPTION:
+C     Verification-only P1-N03b packet limit; production uses 10000.
+CEOP
+
+      INTEGER bomMaxPartTile
+      INTEGER bomMaxGhostTile
+      INTEGER bomMaxExchange
+      INTEGER bomMaxNeighbor
+      INTEGER bomMaxEventBuffer
+      INTEGER bomMaxInitRecords
+      INTEGER bomPacketInts
+      INTEGER bomPacketReals
+      INTEGER bomInitialSchema
+      INTEGER bomInitialFields
+      PARAMETER ( bomMaxInitRecords = 10000 )
+      PARAMETER ( bomMaxPartTile    = 64 )
+      PARAMETER ( bomMaxGhostTile   = 1 )
+      PARAMETER ( bomMaxExchange    = 1 )
+      PARAMETER ( bomMaxNeighbor    = bomMaxInitRecords )
+      PARAMETER ( bomMaxEventBuffer = 1 )
+      PARAMETER ( bomPacketInts     = 5 )
+      PARAMETER ( bomPacketReals    = 4 )
+      PARAMETER ( bomInitialSchema  = 1 )
+      PARAMETER ( bomInitialFields  = 8 )

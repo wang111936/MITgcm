@@ -1,0 +1,26 @@
+CBOP
+C    !ROUTINE: SIZE.h
+C    !INTERFACE:
+C    include SIZE.h
+C    !DESCRIPTION:
+C     Four local X tiles for the P1-X03 multi-substep oracle.
+CEOP
+      INTEGER sNx, sNy, OLx, OLy
+      INTEGER nSx, nSy, nPx, nPy
+      INTEGER Nx, Ny, Nr
+      PARAMETER (
+     &           sNx =   2,
+     &           sNy =   3,
+     &           OLx =   2,
+     &           OLy =   2,
+     &           nSx =   4,
+     &           nSy =   1,
+     &           nPx =   1,
+     &           nPy =   1,
+     &           Nx  = sNx*nSx*nPx,
+     &           Ny  = sNy*nSy*nPy,
+     &           Nr  =   2)
+
+      INTEGER MAX_OLX, MAX_OLY
+      PARAMETER ( MAX_OLX = OLx,
+     &            MAX_OLY = OLy )

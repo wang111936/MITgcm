@@ -12,4 +12,5 @@
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p14/<test-id>/
 ```
 
-当前状态：接口冻结，生产实现与门禁待完成。
+当前状态：接口与生产实现已完成，P1.4 专属门禁已实现并通过开发模式
+36/36；clean exact-head 正式证据与全部前序回归待完成。
