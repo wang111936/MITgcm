@@ -228,6 +228,14 @@ run_negative n04-pcoords regular "${CASE_DIR}/input/eedata" \
   P1-N04-PCOORDS 'usingPCoords unsupported in Phase 1' no
 run_negative n04-nonpositive-spacing regular "${CASE_DIR}/input/eedata" \
   P1-N04-DELX 'invalid delX(' no
+run_negative n04-nonfinite-origin regular "${CASE_DIR}/input/eedata" \
+  P1-N04-ORIGIN-INF 'non-finite horizontal origin' no
+run_negative n04-nonfinite-spacing regular "${CASE_DIR}/input/eedata" \
+  P1-N04-DELX-INF 'invalid delX(' no
+run_negative n04-span-overflow regular "${CASE_DIR}/input/eedata" \
+  P1-N04-SPAN-OVERFLOW 'accumulated delX overflow' no
+run_negative n04-terminal-face regular "${CASE_DIR}/input/eedata" \
+  P1-N04-FACE-INF 'invalid tile xG interval' no
 run_negative n04-inconsistent-bound regular "${CASE_DIR}/input/eedata" \
   P1-N04-TILE-BOUND 'inconsistent tile west bound' no
 run_negative n04-openmp omp "${CASE_DIR}/input/eedata.omp2" \

@@ -290,6 +290,211 @@ C--   Restore the zero-step model state after the focused assertions.
       END
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+      SUBROUTINE BOM_VERIFY_MAIN_DIAGNOSTIC( myThid )
+
+      IMPLICIT NONE
+#include "SIZE.h"
+#include "EEPARAMS.h"
+#include "PARAMS.h"
+#include "DYNVARS.h"
+#include "GRID.h"
+#include "BOM_SIZE.h"
+#include "BOM.h"
+
+      INTEGER myThid
+
+#ifdef ALLOW_BOM
+      CHARACTER*(MAX_LEN_MBUF) msgBuf
+      INTEGER bi, bj, i, j, k, gi, gj, ip
+      INTEGER nFail, globalFail, caseCount, globalCaseCount
+      INTEGER originalMax
+      INTEGER nBefore(nSx,nSy), statusBefore(nSx,nSy)
+      INTEGER*8 idBefore(nSx,nSy)
+      _RL xBefore(nSx,nSy), yBefore(nSx,nSy)
+      _RL releaseBefore(nSx,nSy), ageBefore(nSx,nSy)
+      _RL xx, yy, originalWetMin, tol
+      LOGICAL coordValid, isLifecycle, isOutside, isWetFailure
+      LOGICAL insideGlobal, wetPoint
+
+      nFail = 0
+      caseCount = 0
+      tol = 4096. _d 0*EPSILON(oneRL)*100. _d 0
+      isLifecycle = the_run_name.EQ.'P1-P12-LIFECYCLE'
+      isOutside = the_run_name.EQ.'P1-N05-MAIN-OUTSIDE'
+      isWetFailure = the_run_name.EQ.'P1-N05-MAIN-WET'
+      CALL BOM_VERIFY_INTERP_ASSERT(
+     &     isLifecycle .OR. isOutside .OR. isWetFailure,
+     &     'recognized BOM_MAIN diagnostic scenario',
+     &     nFail, myThid )
+
+      originalMax = bomMaxParticles
+      originalWetMin = bomWetWeightMin
+      bomMaxParticles = 1
+      bomWetWeightMin = 0.5 _d 0
+
+C--   Populate exchange-consistent model fields and one record per tile.
+      DO bj=myByLo(myThid),myByHi(myThid)
+       DO bi=myBxLo(myThid),myBxHi(myThid)
+        DO j=1-OLy,sNy+OLy
+         DO i=1-OLx,sNx+OLx
+          gi = myXGlobalLo - 1 + (bi-1)*sNx + i
+          gj = myYGlobalLo - 1 + (bj-1)*sNy + j
+          insideGlobal = gi.GE.1 .AND. gi.LE.Nx
+     &               .AND. gj.GE.1 .AND. gj.LE.Ny
+          wetPoint = .TRUE.
+          IF ( isWetFailure ) THEN
+            wetPoint = insideGlobal
+     &           .AND. MOD(gi-1,sNx).EQ.2
+     &           .AND. MOD(gj-1,sNy).EQ.1
+          ENDIF
+          IF ( wetPoint ) THEN
+            maskC(i,j,1,bi,bj) = 1.
+          ELSE
+            maskC(i,j,1,bi,bj) = 0.
+          ENDIF
+          angleCosC(i,j,bi,bj) = 1.
+          angleSinC(i,j,bi,bj) = 0.
+          DO k=1,Nr
+            uVel(i,j,k,bi,bj) = 0. _d 0
+            vVel(i,j,k,bi,bj) = 0. _d 0
+          ENDDO
+          IF ( .NOT.isWetFailure ) THEN
+            uVel(i,j,1,bi,bj) = 1.25 _d 0
+            vVel(i,j,1,bi,bj) = -2.5 _d 0
+          ENDIF
+         ENDDO
+        ENDDO
+
+        CALL BOM_MAP_IJLOCAL2XY(
+     I       2.25 _d 0, 1.5 _d 0, bi, bj,
+     O       xx, yy, coordValid,
+     I       myThid )
+        CALL BOM_VERIFY_INTERP_ASSERT( coordValid,
+     &       'diagnostic seed coordinate is valid', nFail, myThid )
+        bomNPartTile(bi,bj) = 1
+        ip = 1
+        bomId(ip,bi,bj) = INT(myProcId,8)*1000000
+     &                   + INT(100*bi+bj,8)
+        bomStatus(ip,bi,bj) = BOM_ALIVE
+        IF ( MOD(myProcId+bi+bj,2).EQ.0 )
+     &       bomStatus(ip,bi,bj) = BOM_WAITING
+        bomX(ip,bi,bj) = xx
+        bomY(ip,bi,bj) = yy
+        IF ( isOutside ) bomX(ip,bi,bj) = bomMapXHi + oneRL
+        bomReleaseTime(ip,bi,bj) = 777. _d 0 + DFLOAT(bi+bj)
+        bomAge(ip,bi,bj) = 12.5 _d 0 + DFLOAT(myProcId)
+        bomI(ip,bi,bj) = -901. _d 0
+        bomJ(ip,bi,bj) = -902. _d 0
+        bomVEast(ip,bi,bj) = -903. _d 0
+        bomVNorth(ip,bi,bj) = -904. _d 0
+
+        nBefore(bi,bj) = bomNPartTile(bi,bj)
+        idBefore(bi,bj) = bomId(ip,bi,bj)
+        statusBefore(bi,bj) = bomStatus(ip,bi,bj)
+        xBefore(bi,bj) = bomX(ip,bi,bj)
+        yBefore(bi,bj) = bomY(ip,bi,bj)
+        releaseBefore(bi,bj) = bomReleaseTime(ip,bi,bj)
+        ageBefore(bi,bj) = bomAge(ip,bi,bj)
+       ENDDO
+      ENDDO
+
+      CALL BOM_MAIN( 123.5 _d 0, 7, myThid )
+
+      IF ( isLifecycle ) THEN
+        DO bj=myByLo(myThid),myByHi(myThid)
+         DO bi=myBxLo(myThid),myBxHi(myThid)
+          ip = 1
+          CALL BOM_VERIFY_INTERP_ASSERT(
+     &         bomNPartTile(bi,bj).EQ.nBefore(bi,bj),
+     &         'BOM_MAIN owner count bitwise invariant',
+     &         nFail, myThid )
+          CALL BOM_VERIFY_INTERP_ASSERT(
+     &         bomId(ip,bi,bj).EQ.idBefore(bi,bj) .AND.
+     &         bomStatus(ip,bi,bj).EQ.statusBefore(bi,bj),
+     &         'BOM_MAIN ID and status bitwise invariant',
+     &         nFail, myThid )
+          CALL BOM_VERIFY_INTERP_ASSERT(
+     &         bomX(ip,bi,bj).EQ.xBefore(bi,bj) .AND.
+     &         bomY(ip,bi,bj).EQ.yBefore(bi,bj),
+     &         'BOM_MAIN position bitwise invariant',
+     &         nFail, myThid )
+          CALL BOM_VERIFY_INTERP_ASSERT(
+     &         bomReleaseTime(ip,bi,bj).EQ.releaseBefore(bi,bj)
+     &         .AND. bomAge(ip,bi,bj).EQ.ageBefore(bi,bj),
+     &         'BOM_MAIN release and age bitwise invariant',
+     &         nFail, myThid )
+          CALL BOM_VERIFY_INTERP_ASSERT(
+     &         ABS(bomI(ip,bi,bj)-2.25 _d 0).LE.tol .AND.
+     &         ABS(bomJ(ip,bi,bj)-1.5 _d 0).LE.tol,
+     &         'BOM_MAIN mapping diagnostics', nFail, myThid )
+          CALL BOM_VERIFY_INTERP_ASSERT(
+     &         ABS(bomVEast(ip,bi,bj)-1.25 _d 0).LE.tol
+     &         .AND. ABS(bomVNorth(ip,bi,bj)+2.5 _d 0).LE.tol,
+     &         'BOM_MAIN velocity diagnostics', nFail, myThid )
+          caseCount = caseCount + 1
+         ENDDO
+        ENDDO
+      ELSE
+C--     A negative scenario must have terminated inside production BOM_MAIN.
+        CALL BOM_VERIFY_INTERP_ASSERT( .FALSE.,
+     &       'invalid BOM_MAIN diagnostic returned', nFail, myThid )
+      ENDIF
+
+C--   Restore the zero-step verification state after a positive scenario.
+      DO bj=myByLo(myThid),myByHi(myThid)
+       DO bi=myBxLo(myThid),myBxHi(myThid)
+        bomNPartTile(bi,bj) = 0
+        DO j=1-OLy,sNy+OLy
+         DO i=1-OLx,sNx+OLx
+          maskC(i,j,1,bi,bj) = 1.
+          angleCosC(i,j,bi,bj) = 1.
+          angleSinC(i,j,bi,bj) = 0.
+          DO k=1,Nr
+            uVel(i,j,k,bi,bj) = 0. _d 0
+            vVel(i,j,k,bi,bj) = 0. _d 0
+          ENDDO
+         ENDDO
+        ENDDO
+       ENDDO
+      ENDDO
+      bomFieldsReady = .FALSE.
+      bomFieldTime = 0. _d 0
+      bomFieldIter = 0
+      bomMaxParticles = originalMax
+      bomWetWeightMin = originalWetMin
+
+      globalCaseCount = caseCount
+      CALL GLOBAL_SUM_INT( globalCaseCount, myThid )
+      CALL BOM_VERIFY_INTERP_ASSERT( globalCaseCount.GT.0,
+     &     'BOM_MAIN lifecycle exercised records', nFail, myThid )
+      globalFail = nFail
+      CALL GLOBAL_SUM_INT( globalFail, myThid )
+      IF ( globalFail.GT.0 ) THEN
+        _BEGIN_MASTER(myThid)
+        IF ( myProcId.EQ.0 ) THEN
+          WRITE(msgBuf,'(A,I6)')
+     &         'BOM_VERIFY_MAIN_DIAGNOSTIC: failed=', globalFail
+          CALL PRINT_ERROR( msgBuf, myThid )
+        ENDIF
+        _END_MASTER(myThid)
+        CALL ALL_PROC_DIE( 0 )
+        STOP 'ABNORMAL END: S/R BOM_VERIFY_MAIN_DIAGNOSTIC'
+      ENDIF
+
+      _BEGIN_MASTER(myThid)
+      IF ( myProcId.EQ.0 ) THEN
+        WRITE(msgBuf,'(A)')
+     &       'P1.2 LIFECYCLE PASS: non-moving production diagnostics'
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                      SQUEEZE_RIGHT, myThid )
+      ENDIF
+      _END_MASTER(myThid)
+#endif /* ALLOW_BOM */
+
+      RETURN
+      END
+
+C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       SUBROUTINE BOM_VERIFY_INTERP_INVALID(
      I                 valueEast, valueNorth, wetWeight, isValid,
      I                 expectedWet, label, nFail, myThid )

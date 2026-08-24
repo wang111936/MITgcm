@@ -131,6 +131,18 @@ C--     Negative fractional overlap exercises mathematical floor.
           CALL BOM_VERIFY_ASSERT( isInside .AND.
      &         ABS(xMap-bomMapXLo).LE.tol,
      &         'M02 global xHi normalization', nFail, myThid )
+          CALL BOM_NORMALIZE_X(
+     &         HUGE(oneRL), xMap, isInside, myThid )
+          CALL BOM_VERIFY_ASSERT( isInside .AND.
+     &         xMap.GE.bomMapXLo .AND. xMap.LT.bomMapXHi,
+     &         'M02 huge finite longitude normalization',
+     &         nFail, myThid )
+          CALL BOM_NORMALIZE_X(
+     &         -HUGE(oneRL), xMap, isInside, myThid )
+          CALL BOM_VERIFY_ASSERT( isInside .AND.
+     &         xMap.GE.bomMapXLo .AND. xMap.LT.bomMapXHi,
+     &         'M02 negative huge longitude normalization',
+     &         nFail, myThid )
 
           xx = bomMapXLo + 0.37 _d 0*bomMapXPeriod
           yy = bomMapYLo + 0.63 _d 0*(bomMapYHi-bomMapYLo)

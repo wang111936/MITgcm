@@ -113,6 +113,11 @@ C--   A failed initialization must never leave apparently usable state.
      &         'BOM_INIT_MAPPING: invalid delX(', i, ')=', delX(i)
           CALL PRINT_ERROR( msgBuf, myThid )
           errCount = errCount + 1
+        ELSEIF ( xSpan.GT.HUGE(xSpan)-delX(i) ) THEN
+          WRITE(msgBuf,'(A,I8)')
+     &         'BOM_INIT_MAPPING: accumulated delX overflow at', i
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
         ELSE
           xSpan = xSpan + delX(i)
         ENDIF
@@ -126,20 +131,67 @@ C--   A failed initialization must never leave apparently usable state.
      &         'BOM_INIT_MAPPING: invalid delY(', j, ')=', delY(j)
           CALL PRINT_ERROR( msgBuf, myThid )
           errCount = errCount + 1
+        ELSEIF ( ySpan.GT.HUGE(ySpan)-delY(j) ) THEN
+          WRITE(msgBuf,'(A,I8)')
+     &         'BOM_INIT_MAPPING: accumulated delY overflow at', j
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
         ELSE
           ySpan = ySpan + delY(j)
         ENDIF
       ENDDO
 
       IF ( errCount.EQ.0 ) THEN
+        IF ( xgOrigin.GT.0. _d 0 .AND.
+     &       xSpan.GT.HUGE(xgOrigin)-xgOrigin ) THEN
+          WRITE(msgBuf,'(A)')
+     &         'BOM_INIT_MAPPING: derived x upper bound overflow'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+        IF ( ygOrigin.GT.0. _d 0 .AND.
+     &       ySpan.GT.HUGE(ygOrigin)-ygOrigin ) THEN
+          WRITE(msgBuf,'(A)')
+     &         'BOM_INIT_MAPPING: derived y upper bound overflow'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+      ENDIF
+
+      IF ( errCount.EQ.0 ) THEN
         bomMapXLo = xgOrigin
         bomMapXHi = xgOrigin + xSpan
         bomMapYLo = ygOrigin
         bomMapYHi = ygOrigin + ySpan
+        IF ( bomMapXHi.NE.bomMapXHi .OR.
+     &       ABS(bomMapXHi).GT.HUGE(bomMapXHi) .OR.
+     &       bomMapXHi.LE.bomMapXLo .OR.
+     &       bomMapYHi.NE.bomMapYHi .OR.
+     &       ABS(bomMapYHi).GT.HUGE(bomMapYHi) .OR.
+     &       bomMapYHi.LE.bomMapYLo ) THEN
+          WRITE(msgBuf,'(A)')
+     &         'BOM_INIT_MAPPING: invalid derived horizontal bounds'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+      ENDIF
+
+      IF ( errCount.EQ.0 ) THEN
         scale = MAX( oneRL, ABS(bomMapXLo), ABS(bomMapXHi) )
         scale = MAX( scale, ABS(bomMapYLo), ABS(bomMapYHi) )
         scale = MAX( scale, ABS(xSpan), ABS(ySpan), 360. _d 0 )
         bomMapTol = 64. _d 0*EPSILON(oneRL)*scale
+        IF ( bomMapTol.NE.bomMapTol .OR.
+     &       ABS(bomMapTol).GT.HUGE(bomMapTol) .OR.
+     &       bomMapTol.LE.0. _d 0 ) THEN
+          WRITE(msgBuf,'(A)')
+     &         'BOM_INIT_MAPPING: invalid derived mapping tolerance'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+      ENDIF
+
+      IF ( errCount.EQ.0 ) THEN
         IF ( usingSphericalPolarGrid .AND.
      &       ABS(xSpan-360. _d 0).LE.bomMapTol ) THEN
           bomMapPeriodicX = .TRUE.
@@ -149,25 +201,41 @@ C--   A failed initialization must never leave apparently usable state.
 C--     Check every local tile, including all stored face intervals.
         DO bj=1,nSy
          DO bi=1,nSx
-          DO i=1-OLx,sNx+OLx-1
-            IF ( xG(i,1,bi,bj).NE.xG(i,1,bi,bj) .OR.
-     &           xG(i+1,1,bi,bj).LE.xG(i,1,bi,bj) ) THEN
-              WRITE(msgBuf,'(A,4I6)')
-     &             'BOM_INIT_MAPPING: non-monotone tile xG:',
-     &             i, 1, bi, bj
-              CALL PRINT_ERROR( msgBuf, myThid )
+          DO j=1-OLy,sNy+OLy
+           DO i=1-OLx,sNx+OLx-1
+            IF ( xG(i,j,bi,bj).NE.xG(i,j,bi,bj) .OR.
+     &           ABS(xG(i,j,bi,bj)).GT.HUGE(xG(i,j,bi,bj))
+     &           .OR. xG(i+1,j,bi,bj).NE.xG(i+1,j,bi,bj)
+     &           .OR. ABS(xG(i+1,j,bi,bj))
+     &               .GT.HUGE(xG(i+1,j,bi,bj))
+     &           .OR. xG(i+1,j,bi,bj).LE.xG(i,j,bi,bj) ) THEN
+              IF ( errCount.LT.8 ) THEN
+                WRITE(msgBuf,'(A,4I6)')
+     &               'BOM_INIT_MAPPING: invalid tile xG interval:',
+     &               i, j, bi, bj
+                CALL PRINT_ERROR( msgBuf, myThid )
+              ENDIF
               errCount = errCount + 1
             ENDIF
+           ENDDO
           ENDDO
-          DO j=1-OLy,sNy+OLy-1
-            IF ( yG(1,j,bi,bj).NE.yG(1,j,bi,bj) .OR.
-     &           yG(1,j+1,bi,bj).LE.yG(1,j,bi,bj) ) THEN
-              WRITE(msgBuf,'(A,4I6)')
-     &             'BOM_INIT_MAPPING: non-monotone tile yG:',
-     &             1, j, bi, bj
-              CALL PRINT_ERROR( msgBuf, myThid )
+          DO i=1-OLx,sNx+OLx
+           DO j=1-OLy,sNy+OLy-1
+            IF ( yG(i,j,bi,bj).NE.yG(i,j,bi,bj) .OR.
+     &           ABS(yG(i,j,bi,bj)).GT.HUGE(yG(i,j,bi,bj))
+     &           .OR. yG(i,j+1,bi,bj).NE.yG(i,j+1,bi,bj)
+     &           .OR. ABS(yG(i,j+1,bi,bj))
+     &               .GT.HUGE(yG(i,j+1,bi,bj))
+     &           .OR. yG(i,j+1,bi,bj).LE.yG(i,j,bi,bj) ) THEN
+              IF ( errCount.LT.8 ) THEN
+                WRITE(msgBuf,'(A,4I6)')
+     &               'BOM_INIT_MAPPING: invalid tile yG interval:',
+     &               i, j, bi, bj
+                CALL PRINT_ERROR( msgBuf, myThid )
+              ENDIF
               errCount = errCount + 1
             ENDIF
+           ENDDO
           ENDDO
 
           iG0 = myXGlobalLo - 1 + (bi-1)*sNx
@@ -222,6 +290,13 @@ C--     Check every local tile, including all stored face intervals.
       ENDIF
 
       IF ( errCount.GE.1 ) THEN
+        bomMapXLo       = 0. _d 0
+        bomMapXHi       = 0. _d 0
+        bomMapYLo       = 0. _d 0
+        bomMapYHi       = 0. _d 0
+        bomMapXPeriod   = 0. _d 0
+        bomMapTol       = 0. _d 0
+        bomMapPeriodicX = .FALSE.
         WRITE(msgBuf,'(A,I4,A)')
      &       'BOM_INIT_MAPPING: detected', errCount,
      &       ' fatal error(s); mapping state is unavailable'
