@@ -36,6 +36,12 @@ external environmental datasets remain outside the repository.
 - `phase01-rk4/`: P1.3 stateless classical RK4, exponent-scaled stage and
   normalized weighted-final coordinate updates, fourth-order affine
   convergence, and K1--K4/FINAL rollback attribution in serial and MPI4;
+- `phase01-lifecycle/`: P1.3 release splitting, transactional production
+  caller, compact owner/ID/state budget, and the complete exact-head
+  predecessor regression matrix;
+- `phase01-owner-migration/`: P1.4 same-rank tile and MPI-rank owner
+  migration, periodic-X transfer, exact two-word 64-bit IDs, bounded
+  exchange transactions, and 1/2/4-rank decomposition consistency;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 

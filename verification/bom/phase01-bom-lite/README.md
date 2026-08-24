@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 1 verification index
 
-This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, accepted P1.2 evidence, the frozen P1.3 single-tile contract, and the P1.3 setup, RHS, RK2, RK4, release, caller-commit, and state-budget records. Build trees, runtime output, and generated binary evidence remain outside Git.
+This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, accepted P1.2 evidence, the frozen and implemented P1.3 single-tile contract, and the P1.4 owner-migration interface freeze. Build trees, runtime output, and generated binary evidence remain outside Git.
 
 ## Executable P1.1 gate scope
 
@@ -79,6 +79,11 @@ The driver refuses to reuse build or run roots. Defaults are:
   lifecycle plus predecessor matrix.
 - `P1.3_SCOPE_AUDIT.md` closes the final P1.3 scope, numerical, transaction,
   exclusion, and evidence audit while retaining the independent Ready review.
+- `P1.4_INTERFACE_FREEZE.md` freezes global owner location, halo-aware stage
+  evaluation, direct tile-hop accounting, two-word integer MPI packets,
+  capacity preflight, deterministic ID ordering, and target-owner diagnostic
+  refresh. It is a design contract; P1.4 execution evidence remains under
+  `../phase01-owner-migration/`.
 
 ## Input schema 1
 
