@@ -181,8 +181,9 @@ for contract_text in "${contract_texts[@]}"; do
   grep -Fq "${contract_text}" "${RK2_SOURCE}" || fail "missing RK2 contract: ${contract_text}"
 done
 guard_texts=(
-  'HUGE(increment)'
-  'ABS(rateCoord) .GT. hugeRL/deltaT'
+  'FRACTION(deltaT)*FRACTION(stageFactor)'
+  'productExponent.GT.MAXEXPONENT(increment)'
+  'SCALE(productFraction,productExponent)'
   'trialCoord = baseCoord'
 )
 for guard_text in "${guard_texts[@]}"; do
