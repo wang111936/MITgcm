@@ -209,6 +209,19 @@ C !LOCAL VARIABLES:
         ENDIF
       ENDIF
 
+C--   One step may not cross more than one unavailable sample time.
+      IF ( outputFinite .AND. deltaTFinite ) THEN
+        IF ( bomOutputFreq.GT.0. _d 0 .AND.
+     &       deltaTClock.GT.0. _d 0 .AND.
+     &       bomOutputFreq.LT.deltaTClock ) THEN
+          WRITE(msgBuf,'(A,2(1X,1PE24.16))')
+     &         'BOM_CHECK: output frequency below ocean step=',
+     &         bomOutputFreq, deltaTClock
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+      ENDIF
+
       IF ( bomMaxParticles.LT.0 ) THEN
         WRITE(msgBuf,'(A)')
      &       'BOM_CHECK: bomMaxParticles must be non-negative'

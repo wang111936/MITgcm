@@ -15,6 +15,7 @@ C !USES:
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
+#include "PARAMS.h"
 #include "BOM_SIZE.h"
 #include "BOM.h"
 
@@ -27,6 +28,7 @@ CEOP
       IF ( bomMaxParticles.GT.0 ) THEN
         CALL BOM_READ_INITIAL( myThid )
       ENDIF
+      CALL BOM_INIT_OUTPUT_SCHEDULE( startTime, myThid )
 #endif
 
       RETURN

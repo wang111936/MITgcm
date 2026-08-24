@@ -18,6 +18,8 @@ CEOP
       INTEGER bomPacketReals
       INTEGER bomInitialSchema
       INTEGER bomInitialFields
+      INTEGER bomOutputSchema
+      INTEGER bomOutputFields
       PARAMETER ( bomMaxInitRecords = 10000 )
       PARAMETER ( bomMaxPartTile    = 64 )
       PARAMETER ( bomMaxGhostTile   = 1 )
@@ -28,5 +30,7 @@ CEOP
       PARAMETER ( bomPacketReals    = 4 )
       PARAMETER ( bomInitialSchema  = 1 )
       PARAMETER ( bomInitialFields  = 8 )
+      PARAMETER ( bomOutputSchema   = 1 )
+      PARAMETER ( bomOutputFields   = 24 )
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|

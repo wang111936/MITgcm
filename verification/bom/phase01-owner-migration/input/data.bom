@@ -2,6 +2,7 @@
  bomMode='LEEW',
  bomIntegrator='RK4',
  bomDeltaTTarget=300.,
+ bomOutputFreq=0.,
  bomMaxParticles=0,
  bomInitialFile=' ',
  &
