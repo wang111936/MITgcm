@@ -26,7 +26,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
 | P1.2 映射与环境场 | 完成 | PR #10 `fe51332e1` / PR #11 `34edbc50c` / PR #12 `eefca92fe` | 全门禁、两轮集成记录与最终纯文档收口完成 |
-| P1.3 单 tile 积分 | 进行中 | `MITGCM-BOM/phase-01-single-tile-integration` / Draft PR 待创建 | 接口与测试判据已冻结；尚无生产实现 |
+| P1.3 单 tile 积分 | 进行中 | `MITGCM-BOM/phase-01-single-tile-integration` / Draft PR #13 | 接口与测试判据已冻结；等待独立设计复审，尚无生产实现 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
 
@@ -329,4 +329,5 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 冻结每粒子每子步试算后提交、最终位置诊断刷新和稳定失败类别；`bomCheckEverySubstep` 不得关闭 stage 硬检查；
 - 形成 P1-D021—P1-D029；P1-D029 单独记录 `LOAD_FIELDS_DRIVER` 在时间更新前请求的 EXF `t0/iter-1` 与 BOM 步末海流 `t1/iter` 标签，详细契约见 `verification/bom/phase01-bom-lite/P1.3_INTERFACE_FREEZE.md`；
 - P1-S04b、P1-N06、P1-N08、P1-I01—I06 的场景、观测阶阈值和前序回归范围已同步；
-- 本增量只修改 Markdown，尚未实现生产 Fortran、门禁脚本或测试输入，因此未运行编译/运行矩阵；下一步为 Markdown 独立范围审计与 Draft PR。
+- 本增量只修改 Markdown，尚未实现生产 Fortran、门禁脚本或测试输入，因此未运行编译/运行矩阵；范围、链接、编号、隔离词和身份审计均通过；
+- 设计冻结提交为 `5240abcf808835f2163b4b358d4a00e99f3e7645`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；Draft PR #13 已创建，下一步为独立设计复审。

@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-01-single-tile-integration` |
-| 当前阶段 PR | 待创建（P1.3 单 tile 积分） |
+| 当前阶段 PR | `wang111936/MITgcm#13`（Draft，P1.3 单 tile 积分设计冻结） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.3 接口冻结：Leeway RHS、EXF 风、release、RK2/RK4 与单 tile 安全边界 |
-| 下一工作包 | 提交并推送纯 Markdown 设计增量，创建 Draft PR 后进行独立设计复审 |
+| 下一工作包 | 对 Draft PR #13 进行独立设计复审并记录 finding/PASS 结论 |
 | 当前阻塞 | 无技术阻塞；设计复审通过前不开始 P1.3 生产 Fortran |
 
 ## 1. 当前恢复点
@@ -23,8 +23,8 @@
 1. 核对当前分支为 `MITGCM-BOM/phase-01-single-tile-integration`，基线为 PR #12 merge commit `eefca92fe53f1b144bbfca7fcf00dc949a22afb3`；
 2. 读取 [P1.3 接口冻结](../../../verification/bom/phase01-bom-lite/P1.3_INTERFACE_FREEZE.md)、[P1.2 收口记录](../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT.md) 和 [P1.2 收口独立复审](../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT_AUDIT.md)；
 3. 核对 P1.3 当前范围只含 Markdown，目标需求为 P1-R08/P1-R09/P1-R11 及 P1-R16 的单 tile 部分；
-4. 下一步先完成 Markdown 范围、链接、编号、禁词和身份审计，再以 WangYuLin 身份提交、推送并创建 Draft PR；
-5. 设计独立复审通过前不实现生产 Fortran，不创建 `MITGCM-BOM-v0.2` 标签，也不提前加入 P1.4 owner 迁移。
+4. 核对设计冻结提交 `5240abcf808835f2163b4b358d4a00e99f3e7645`，并对 Draft PR #13 执行时间标签、EXF 依赖、release、RK/CFL、事务提交和工作包边界独立复审；
+5. 独立复审形成无开放 finding 的 PASS 结论前不实现生产 Fortran，不把 PR #13 标记 Ready，不创建 `MITGCM-BOM-v0.2` 标签，也不提前加入 P1.4 owner 迁移。
 
 开始前执行：
 
@@ -494,7 +494,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 只读审计当前 BOM/P1.2 生命周期、MITgcm `forward_step`/FLT、EXF 10 m 风接口和锁定 Julia `Leeway!`；
 - 冻结 `[myTime-deltaTClock,myTime]` 等长子步、精确 release 分割、`water+coeff*wind` SI RHS、Cartesian/球面坐标率、显式中点 RK2、经典 RK4、stage CFL/owner 硬检查和试算后提交；
 - 形成 P1-D021—P1-D029，并把 P1-S04b、P1-N06、P1-N08、P1-I01—I06 反向绑定到计划生产接口；其中 P1-D029 明确记录 EXF 请求时刻 `t0` 与海流步末 `t1`；
-- 本增量只修改 Markdown，不实现 Fortran、脚本或测试输入，因此不运行编译/运行矩阵；下一步为设计范围审计、WangYuLin 提交、推送和 Draft PR。
+- 本增量只修改 Markdown，不实现 Fortran、脚本或测试输入，因此不运行编译/运行矩阵；范围、链接、编号、隔离词和身份审计均通过；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建设计冻结提交 `5240abcf808835f2163b4b358d4a00e99f3e7645`，推送独立分支并创建 Draft PR #13；下一步为独立设计复审。
 
 ## 6. 每次会话结束时必须更新
 
