@@ -6,10 +6,10 @@
 | 目标版本 | `MITGCM-BOM-v0.2` |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
-| 当前分支 | `MITGCM-BOM/phase-01-state-integration-record` |
-| 当前 PR | `wang111936/MITgcm#9`（Ready，P1.1 集成记录） |
-| 当前工作包 | P1.1 集成记录 |
-| 状态 | PR #8 已合并；P1.1/Phase 0 集成回归和 PR #9 最终独立复审通过，PR #9 已 Ready 并等待明确的合并授权 |
+| 当前分支 | `MITGCM-BOM/phase-01-mapping-environment` |
+| 当前 PR | `wang111936/MITgcm#10`（Ready for review，P1.2 映射与环境场） |
+| 当前工作包 | P1.2 映射与环境场 |
+| 状态 | P1.2 P1-R05—P1-R07 实现、生产生命周期门禁、全回归和最终审计全部 PASS；PR #10 已 Ready |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -25,7 +25,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 未开始 | 待建立 | 等待 P1.1 集成记录收口 |
+| P1.2 映射与环境场 | 待集成 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Ready） | 审计修复 `2f346d98cf978922cae53bff67fc32088cbb8941`；P1-R05—P1-R07、全回归和最终审计 PASS，等待单独合并授权 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -155,10 +155,106 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 ## 8. 下一恢复点
 
-从 `MITGCM-BOM/phase-01-state-integration-record` 恢复：
+从 `MITGCM-BOM/phase-01-mapping-environment` 恢复：
 
-1. 核对 PR #8 merge commit 为 `ab30b3dc530404fda796189e50b8de776bf4441d`，并复核两套集成测试 ID 与摘要哈希；
-2. PR #9 最终独立复审已通过并已标记 Ready；确认其相对 `MITGCM-BOM/development` 严格只有 3 个 Markdown；
-3. 集成记录 PR 不加入环境场、通用映射、粒子运动或交换等 P1.2+ 范围；
-4. 等待明确的 merge commit 合并授权，不自动合并；获准集成后从最新 `MITGCM-BOM/development` 创建独立 P1.2“映射与环境场”分支；
-5. `MITGCM-BOM-v0.2` 仅在 P1.1—P1.5 全部完成并通过 Phase 1 退出审计后创建。
+1. 核对当前分支包含 P1.2 审计修复功能提交 `2f346d98cf978922cae53bff67fc32088cbb8941`；
+2. 以 [`P1.2_INTERFACE_FREEZE.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md) 和 mapping/fields/interp 三份 `TEST_RESULTS.md` 作为接口与证据入口；
+3. 核对 PR #10 为 Ready for review、open、可合并，head 与远程分支一致；
+4. 下一步等待单独明确的 merge commit 合并授权；合并后必须复跑 P1.2、P1.1 和 Phase 0 集成门禁；
+5. 未获合并授权不合并 PR #10；集成验收前不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
+
+## 9. P1.2 启动记录
+
+### 9.1 PR #9 合并与基线
+
+- PR #9 已以 merge commit `320a07d5eb2e2795ddd1e0b93ceaddd6c32a1621` 合并；
+- 合并双亲为原 `development@ab30b3dc530404fda796189e50b8de776bf4441d` 与 PR head `09a9590456c6e50072ce707607011fd535c523b3`；
+- 合并范围保持 3 个 Markdown，四个 PR 项目提交作者均为 `WangYuLin <wang111936@outlook.com>`；
+- 本地 `MITGCM-BOM/development` 已快进到合并提交，工作树干净，未创建 `MITGCM-BOM-v0.2`。
+
+### 9.2 P1.2 分支与环境
+
+- 从 `development@320a07d5eb2e2795ddd1e0b93ceaddd6c32a1621` 创建 `MITGCM-BOM/phase-01-mapping-environment`；
+- 仓库 Git 身份固定为 `WangYuLin <wang111936@outlook.com>`；
+- MITGCM-BOM 专用环境自检通过：GNU Fortran 11.4、OpenMPI 4.1.2、NetCDF-C 4.8.1、NetCDF-Fortran 4.5.4、fortls 3.2.2、Julia 1.10.12、MPI smoke；
+- 源码、构建和运行根分别保持 `/home/wyl/projects/mitgcm-bom`、`/home/wyl/build/mitgcm-bom`、`/home/wyl/runs/mitgcm-bom`。
+
+### 9.3 P1.2 接口冻结
+
+- 只读审计 `pkg/flt/flt_mapping.F`、`flt_interp_linear.F`、`model/src/rotate_uv2en.F`、当前 `pkg/bom` 与锁定 Julia checkout；
+- Julia `Leeway!` 只裁决 P1.3 RHS，不裁决 MITgcm C-grid、tile、halo、周期 owner 或湿点插值；
+- 形成 P1-D015—P1-D020：网格/粒子诊断分离命名、只对完整 360° 球面域回绕、east/north 标量交换、pair 插值显式有效性、Julia 映射非权威，以及负分数 overlap 使用数学 floor；
+- 冻结 `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、正反映射、`BOM_BUILD_FIELDS` 和 `BOM_INTERP_WET_PAIR` 的接口与失败边界；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建设计提交 `4d7bfa8dae16e8ca23d96043b6207a4b91a95f3e`，推送分支并创建 Draft PR #10；
+- Draft PR 初始远端范围为 1 个提交、6 个 Markdown、ahead 1/behind 0，无状态检查或工作流；
+- 本次只修改 Markdown，没有实现 Fortran、门禁脚本或测试输入，因此未运行编译矩阵。
+
+### 9.4 P1.2 首个映射实现
+
+- 在 `BOM.h` 建立域界、周期、容差与字段就绪状态；`BOM_INIT_FIXED` 调用新的 `BOM_INIT_MAPPING`；
+- 实现 `BOM_NORMALIZE_X`、`BOM_MAP_XY2IJLOCAL` 和 `BOM_MAP_IJLOCAL2XY`，完整 360° spherical-polar 域使用半开规范区间，区域域不回绕；
+- 映射将 owner 与 overlap stencil 分离，并以数学 floor 处理负分数局部索引；
+- `p12-map-20260824-b` 的 regular debug、实际 OpenMP、实际 EXCH2 构建和 11 项运行/源码检查全部通过，共 14/14 summary 行；
+- 映射 summary SHA-256 为 `52d3e2b26c043d870bcb1c21169dd307b1f96d449bdcba0c76327e258f6d9bde`；
+- `p12-regression-p11-20260824` 通过 8/8 构建、14/14 正向、20/20 负向、104/104 checkpoint；
+- `p12-regression-p05-20260824` 与嵌套 `p12-regression-p05-20260824-p04` 通过 Phase 0 总门禁；
+- 功能提交为 `633d3f9af75b4a052303ec0d0a06edf40677e18c`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；
+- 本增量未修改 `BOM_LOCATE_INITIAL`，未构造环境场、未插值、未移动粒子；PR #10 保持 Draft，不创建标签、不开始 P1.3。
+
+### 9.5 P1.2 locator 兼容包装
+
+- `BOM_LOCATE_INITIAL` 保留原公共接口，内部改为调用 `BOM_MAP_XY2IJLOCAL`；
+- 继续用 `NINT(ix/jy)` 和 owner 中心 `maskC` 判定初值湿点，不把四点 stage stencil 变成初值要求；
+- 门禁增加包装源审计，确认没有旧 `xG/yG` 搜索或未来 `BOM_INTERP_WET_PAIR` 调用；
+- `p12-locator-20260824-a` 通过 15/15 summary 行，summary SHA-256 为 `24ee80deb67395b9a8c14662d26e1da66be30b76ffc284ba409f15fc66c725d7`；
+- `p12-locator-regression-p11-20260824` 通过 8/8 构建、14/14 正向、20/20 负向、104/104 checkpoint；
+- `p12-locator-regression-p05-20260824` 与嵌套 `-p04` 通过 Phase 0 总门禁；
+- 功能提交为 `14636cda2bc9da61da784752b1dec11e54d518f1`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；
+- P1-R05 完成，但 P1-R06/P1-R07 未实现；PR #10 保持 Draft，不创建标签、不开始 P1.3。
+
+### 9.6 P1.2 表层环境场构造
+
+- 新增四个冻结的单层 C-grid 数组，并在 `BOM_INIT_STATE` 中确定性清零；
+- `BOM_BUILD_FIELDS` 只复制 `uVel/vVel` 的 `k=1`，调用真实 `ROTATE_UV2EN_RL`，随后对 east/north 分量各做一次标量 `EXCH_3D_RL`；
+- 旋转、两次交换和有限/干点检查完成后才发布 `bomFieldTime/bomFieldIter/bomFieldsReady`；零粒子 `BOM_MAIN` 保持立即返回；
+- `p12-field-20260824-a` 首轮通过源码契约、串行/MPI4 `Nr=2` 调试构建及四项 P1-F01/P1-F02 运行，共 7/7 summary 行；summary SHA-256 为 `97d21381200a8c8314de96302d790bb4aa995092a100bb9b83e42f27840d4492`；
+- 回归 `p12-20260823T214951Z-501860` 通过映射/locator 15/15，`20260823T215044Z-548609` 通过 P1.1 42/42，`20260823T215320Z-668561` 通过 Phase 0 4/4；
+- 功能提交为 `50dd6a6ab7e92ac5ca26ab4666ce2e45d7495899`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；
+- P1-R06 完成，P1-R07 未实现；未加入湿点 pair 插值、风、Stokes 或粒子运动，PR #10 保持 Draft，不创建标签、不开始 P1.3。
+
+### 9.7 P1.2 湿点 pair 插值
+
+- 新增 `BOM_INTERP_WET_PAIR`，对 east/north C 点 pair 复用同一组 mask 过滤和湿权重归一化；
+- 在整数转换前拒绝非有限或超出 overlap 的实数索引，再以数学 floor 建立四点 stencil，避免巨大有限值的整数转换溢出；
+- 未就绪、缺失 stencil、非有限 pair、湿权重不足或坏 tile 均返回 `isValid=.FALSE.` 和零速度值；湿权重不足时保留实际权重供未来上层诊断；
+- `p12-interp-20260824-a` 首轮通过源码契约、串行/MPI4 debug/bounds 构建和六项 P1-F03/P1-N05 运行，共 9/9 summary 行；summary SHA-256 为 `75fcde1ce34ceb1b43cb2ef8dcc6e323948db1edb6df2d4fb90329d8395be81a`；
+- 回归 `p12-field-20260823T222525Z-392`、`p12-20260823T222622Z-390`、`20260823T222731Z-385` 和 `20260823T223014Z-381` 分别通过字段 7/7、映射 15/15、P1.1 42/42 和 Phase 0 4/4；
+- 功能提交为 `597d1a706de2ca388d1312dd6bb667421ae9adc7`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`；
+- P1-R05—P1-R07 的生产实现与全回归完成；未加入粒子 RHS、运动、迁移、风或 Stokes，PR #10 继续保持 Draft，下一步为 P1.2 范围审计和独立复审。
+
+### 9.8 P1.2 最终范围与契约审计
+
+- 审计基线/头为 `320a07d5eb2e2795ddd1e0b93ceaddd6c32a1621..f9b6098d657b6749130cdbdbb0ce091f73c99a9c`；Draft PR #10 的 10 个提交和 56 个变更文件均在 P1.2 允许路径内；
+- `git diff --check` 通过，没有核心调度、FLT、其他工程、构建产物、运行输出或 P1.3 变更；
+- 六套权威 summary 的 SHA-256 全部重算一致；插值 9/9、字段 7/7、映射 15/15、P1.1 42/42、Phase 0 4/4、嵌套 P0.4 9/9 均无非 PASS 行；
+- P1.1 的 104/104 与嵌套 P0.4 的 24/24 checkpoint 原始记录均为 `OK`，已有证据可信；
+- 最终审计未通过：`BOM_MAIN` 尚未接入非移动的已有粒子映射/插值诊断及调用层上下文终止，故 P1-R07/P1-N05 仍开放；
+- 映射初始化还需补齐累计/派生有限性、末端 face 端点和极端有限周期输入防护及负测，故 P1-R05 重新开放；
+- 审计详情记录于 `verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md`；P1-R06 保持完成；
+- PR #10 保持 Draft，不合并、不创建 `MITGCM-BOM-v0.2` 标签、不开始 P1.3。下一增量只修复上述 P1.2 问题并复跑受影响门禁与全部前序回归。
+
+### 9.9 P1.2 审计修复与 PASS 复审
+
+- 功能提交 `2f346d98cf978922cae53bff67fc32088cbb8941` 在 `BOM_MAIN` 对当前 owner 记录执行非移动映射/湿点 pair 插值，有效时只发布 `bomI/bomJ/bomVEast/bomVNorth`，无效时输出粒子、tile、局地索引和湿权重后集体终止；
+- 同一提交为映射累计、派生边界/容差、stored-face 双端点和周期规范化增加有限性与预溢出防护；初始化失败不发布部分映射状态；
+- 权威门禁：`p12-interp-auditfix-20260824-c` 15/15，summary `aaff9205a4f5faa580d06fe55b18720bbcd42a72667caae7b5f27fd4632c13d4`；`p12-map-auditfix-20260824-b` 19/19，summary `926575f1093bb7353f09e9835e175289a309c13e653ded5a96871e06b3810c02`；
+- 回归门禁：字段 `p12-field-auditfix-20260824-a` 7/7，P1.1 `p12-auditfix-p11-20260824-a` 42/42 且 104/104 checkpoint，Phase 0 `p12-auditfix-phase0-20260824-a` 4/4，嵌套 P0.4 `-p04` 9/9 且 24/24 checkpoint；
+- 映射 `-a` 和插值 `-a/-b` 失败尝试保留为非权威证据，没有复用或覆盖目录；
+- 最终审计为 PASS，P1-R05—P1-R07 和 R-013/R-014 全部关闭。未引入 RHS、位置更新、release 转换、owner 迁移、风、Stokes 或 P1.3；PR #10 保持 Draft，不合并、不创建标签。
+
+### 9.10 PR #10 进入 Ready
+
+- 获得用户明确授权后，将 PR #10 从 Draft 标记为 Ready for review；
+- 复核状态为 open、未合并、可合并，head `07f428f9dcf37c2e5f998020a63abadc2df702bf`，13 个提交、58 个变更文件，无 review 或 review thread；
+- PR 说明已同步 Ready 状态，并明确 Ready 不授权合并、标签或 P1.3；
+- 下一步等待单独的 merge commit 合并授权；合并后先执行集成回归，不立即创建标签。

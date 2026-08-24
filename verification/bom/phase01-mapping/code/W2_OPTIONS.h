@@ -1,0 +1,10 @@
+#ifndef W2_OPTIONS_H
+#define W2_OPTIONS_H
+
+#define W2_USE_E2_SAFEMODE
+#undef W2_E2_DEBUG_ON
+#undef W2_USE_R1_ONLY
+#undef W2_FILL_NULL_REGIONS
+#define W2_CUMSUM_USE_MATRIX
+
+#endif /* W2_OPTIONS_H */

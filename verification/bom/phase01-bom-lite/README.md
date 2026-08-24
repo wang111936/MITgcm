@@ -30,6 +30,13 @@ The driver refuses to reuse build or run roots. Defaults are:
 
 `make_initial.py` writes deterministic big-endian float64 MDS records using only the Python standard library. The authoritative local result is documented in `TEST_RESULTS.md`; raw binaries, executables, and logs remain outside Git.
 
+## Audits
+
+- `P1.1_SCOPE_AUDIT.md` records the accepted P1.1 boundary and evidence.
+- `P1.2_INTERFACE_FREEZE.md` is the frozen mapping/environment-field contract.
+- `P1.2_SCOPE_AUDIT.md` records the accepted P1.2 final review, including the
+  closed production diagnostic-caller and finite-geometry findings.
+
 ## Input schema 1
 
 The header record contains `schema`, field count, particle count, coordinate code, ID encoding, precision bits, and two reserved fields. Each particle record contains `id_hi`, `id_lo`, native `x/y`, release time, status, age, and one reserved field.

@@ -17,6 +17,13 @@ external environmental datasets remain outside the repository.
   state/initial-file generator, serial/MPI/debug gate, compact results,
   and the staged plan for mapping, leeway integration, owner migration,
   trajectory output, pickup restart, and FLT coexistence;
+- `phase01-mapping/`: P1.2 regular Cartesian/spherical mapping, 360-degree
+  longitude normalization, inverse mapping, and unsupported-grid guards;
+- `phase01-fields/`: P1.2 single-level C-grid surface-field construction,
+  east/north rotation, dry masking, and serial/MPI scalar-halo gates;
+- `phase01-interp/`: P1.2 shared-weight wet-pair interpolation, non-moving
+  production lifecycle diagnostics, and caller-level collective failure
+  contracts in serial and MPI4 layouts;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 

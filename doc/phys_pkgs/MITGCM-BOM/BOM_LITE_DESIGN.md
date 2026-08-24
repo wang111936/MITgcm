@@ -4,8 +4,8 @@
 
 | 项目 | 值 |
 |---|---|
-| 设计版本 | 1.1（P1.1 实现修订） |
-| 日期 | 2026-08-23 |
+| 设计版本 | 1.2（P1.2 映射与环境场接口冻结） |
+| 日期 | 2026-08-24 |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
 | MITgcm 上游基线 | `dfc30dafb16561462ef1d4f9518f5d78753ec750` |
@@ -296,14 +296,16 @@ P1.1 可让各 rank 读取同一个小型 verification 全局文件，再只保�
 
 | BOM 量 | 来源 | 位置 | 单位 | Phase 1 |
 |---|---|---|---|---|
-| `bomVEast/bomVNorth` 网格场 | `uVel/vVel(:,:,1)` | C 点 | m s$^{-1}$ | 必需 |
-| `bomWindEast/bomWindNorth` 网格场 | EXF `uwind/vwind` | C 点 | m s$^{-1}$ | 可选 |
+| `bomGridVEast/bomGridVNorth` 网格场 | `uVel/vVel(:,:,1)` | C 点 | m s$^{-1}$ | 必需 |
+| 风网格场 | EXF `uwind/vwind` | C 点 | m s$^{-1}$ | P1.3 |
 | `maskC(:,:,1)` | MITgcm GRID | C 点 | 0/1 | 必需 |
 | Stokes | 无 | C 点 | m s$^{-1}$ | 固定为 0 |
 
 `BOM_BUILD_FIELDS` 使用单层工作数组调用 `ROTATE_UV2EN_RL`：`xy2en=.TRUE.`、`switchGrid=.TRUE.`、`applyMask=.TRUE.`。不得以错误的三维数组步长把完整 `Nr` 数组伪装成 `kSize=1`。
 
-转换完成后对 C 点工作场执行 halo exchange，再允许粒子插值。BOM 不修改 `uVel`、`vVel`、EXF 字段或海洋 tendency。
+单层输入固定命名为 `bomGridUWork/bomGridVWork`，C 点输出固定命名为 `bomGridVEast/bomGridVNorth`，避免与每粒子诊断 `bomVEast/bomVNorth` 冲突。四个数组都有显式 `kSize=1` 维。转换完成后把 east/north 当作固定地理方向的两个标量，分别执行 `EXCH_3D_RL(...,1,myThid)`，再允许粒子插值；不得再次应用模型网格矢量换向。BOM 不修改 `uVel`、`vVel`、EXF 字段或海洋 tendency。
+
+P1.2 的完整接口、失败语义和实现顺序由 [`P1.2_INTERFACE_FREEZE.md`](../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md) 冻结。P1.2 只建立欧拉表层场；EXF 风进入 RHS 属于 P1.3，Stokes 在 Phase 1 继续固定为 0。
 
 ### 8.2 时间语义
 
@@ -315,8 +317,8 @@ P1.1 可让各 rank 读取同一个小型 verification 全局文件，再只保�
 
 1. 先把 east/north 分量 colocate 到 C 点；
 2. 使用粒子 stage 位置对应的四个 C 点；
-3. 权重只乘湿点，随后按湿权重和重新归一化；
-4. 湿权重和小于 `bomWetWeightMin` 时，Phase 1 以清晰错误停止；
+3. `BOM_INTERP_WET_PAIR` 让两个分量逐位复用同一组几何权重，权重只保留 `maskC(:,:,1)>0` 的湿点，随后按共同湿权重和重新归一化；
+4. stencil 不完整、字段未就绪、值非有限或湿权重和小于 `bomWetWeightMin` 时先返回显式无效状态，再由带粒子/tile 上下文的调用层清晰停止；
 5. 不对域外做常数外推；周期经度在映射层规范化；
 6. 所有分量使用完全相同的位置、mask 和权重。
 
@@ -333,9 +335,11 @@ Phase 1 只支持：
 - 规则 tile 邻接，`ALLOW_EXCH2` 未启用；
 - `nTx*nTy=1` 的 MPI-only 验收配置。
 
-映射算法可参考 `FLT_MAP_XY2IJLOCAL` 和 `FLT_MAP_IJLOCAL2XY`，但使用独立的 `BOM_` 例程、独立 mask 语义和错误处理，不在运行时调用 FLT 例程。
+映射算法可参考 `FLT_MAP_XY2IJLOCAL` 和 `FLT_MAP_IJLOCAL2XY`，但使用独立的 `BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY` 和 `BOM_NORMALIZE_X`，具有独立 mask 语义和错误处理，不在运行时调用 FLT 例程。`isOwner` 与 `hasStencil` 必须分别返回：stage 位置允许落在当前 owner 的 overlap stencil 内，但不能因此改变 committed owner。
 
-边界恰好命中时采用 `[west,east) x [south,north)` 半开区间。内部边界因此归属于以该点为西/南边界的东/北侧 tile；内部角点归属于东北侧 tile，不再另设“全局 tile 编号最小”这一相互矛盾的 tie-break。若数值误差仍产生多个候选 owner，必须停止。周期经度在 P1.2 先规范化到模型域，再执行相同判定。
+边界恰好命中时采用 `[west,east) x [south,north)` 半开区间。内部边界因此归属于以该点为西/南边界的东/北侧 tile；内部角点归属于东北侧 tile，不再另设“全局 tile 编号最小”这一相互矛盾的 tie-break。若数值误差仍产生多个候选 owner，必须停止。
+
+周期经度只在 `usingSphericalPolarGrid` 且全局 `sum(delX)` 在尺度化机器精度容差内等于 360° 时启用，并先规范化到 `[xgOrigin,xgOrigin+360)`；上界等价于下界。区域 spherical-polar 和所有 Cartesian 域不自动回绕，南北方向在 Phase 1 不回绕。坐标比较容差不得扩张 owner 半开区间造成重复归属。
 
 ### 9.2 RK 定义
 
@@ -447,16 +451,24 @@ drift_east, drift_north, owner_rank, owner_tile
 | P1-D012 | Phase 1 先验收 MPI-only | OpenMP 共享状态安全在功能正确后单独加固 |
 | P1-D013 | P1.1 使用受限初值 locator，并以 `[west,east) x [south,north)` 唯一定义内部边界 owner | 初值读取必须能独立验收；同时消除“西/南含边界”与“最小 tile 编号”的冲突，完整映射仍留在 P1.2 |
 | P1-D014 | 初始 `.data` 物理长度必须精确等于 `(nParticles+1)*8*8` 字节 | meta/header 计数一致仍不能证明文件完整；截断、完整额外记录和残缺尾随字节必须在接受粒子前失败 |
+| P1-D015 | P1.2 网格场使用 `bomGrid*`，保留 `bomVEast/bomVNorth` 给每粒子诊断 | 防止 COMMON 符号与语义冲突，便于 P1.3 明确区分网格输入和粒子采样值 |
+| P1-D016 | 只对完整 360° 规则球面域做周期经度规范化 | 区域球面和 Cartesian 域不能根据坐标外观静默回绕；上界按半开域映射到下界 |
+| P1-D017 | C-grid 转换后的 east/north 分量分别执行标量 halo exchange | east/north 已处于固定地理基，不应再次应用模型网格矢量符号或旋转规则 |
+| P1-D018 | 湿点 pair 插值共享权重并返回显式有效性，状态转换留给调用层 | 数值内核可测试且不会把插值失败提前解释为 Phase 4 搁浅物理 |
+| P1-D019 | Julia 参考不裁决 MITgcm 网格映射或湿点 stencil | 锁定 Julia 使用 equirectangular 插值器，没有 C-grid、tile、halo 和 BOM owner 语义 |
+| P1-D020 | stage stencil 的低端索引使用数学 floor，不直接使用 Fortran `INT` | stage 可进入西/南 overlap 的负分数索引；`INT` 向零截断会选择错误 C 点并可能误判 stencil 可用 |
 
 ## 14. 进入实现前的冻结检查
 
-- [ ] P1.0 PR 只含 Markdown，已审计无 Fortran、脚本或测试产物；
-- [ ] `P1-R01`—`P1-R16` 均有验收测试；
-- [ ] 初始文件、轨迹和 pickup 的 schema 1 已确认；
-- [ ] `bomLeewayWindCoeff` 与后续 `bomAlpha` 的区别已确认；
-- [ ] Stokes Phase 1 固定为 NONE；
-- [ ] 支持网格、线程和 restart 限制已确认；
-- [ ] FLT/BOM 四组合共存矩阵已列入集成门禁；
-- [ ] 每个实现工作包都有独立退出条件；
-- [ ] Phase 0 的零影响门禁继续作为每个实现 PR 的回归测试；
-- [ ] 设计评审完成后才创建 P1.1 源码实现分支。
+- [x] P1.0 PR 只含 Markdown，已审计无 Fortran、脚本或测试产物；
+- [x] `P1-R01`—`P1-R16` 均有计划验收测试；
+- [x] 初始文件、轨迹和 pickup 的 schema 1 已确认；
+- [x] `bomLeewayWindCoeff` 与后续 `bomAlpha` 的区别已确认；
+- [x] Stokes Phase 1 固定为 NONE；
+- [x] 支持网格、线程和 restart 限制已确认；
+- [x] FLT/BOM 四组合共存矩阵已列入集成门禁；
+- [x] 每个实现工作包都有独立退出条件；
+- [x] Phase 0 的零影响门禁继续作为每个实现 PR 的回归测试；
+- [x] P1.1 已完成并集成；P1.2 独立分支从 `development@320a07d5` 建立；
+- [x] P1.2 映射、环境场、插值和失败接口已在独立冻结记录中明确；
+- [ ] P1.2 实现、完整门禁和独立复审完成后才开始 P1.3。
