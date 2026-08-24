@@ -1,8 +1,8 @@
-# MITGCM-BOM Phase 1.1 state gate
+# MITGCM-BOM Phase 1 verification index
 
-This directory contains the source-controlled P1.1 state and initial-file verification. It is deliberately independent of build trees and runtime output.
+This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, the accepted P1.2 evidence records, and the frozen P1.3 single-tile integration contract. Build trees, runtime output, and generated binary evidence remain outside Git.
 
-## Scope
+## Executable P1.1 gate scope
 
 - compact per-tile owner SoA and deterministic reset;
 - schema 1 MDS initial-particle files;
@@ -11,7 +11,7 @@ This directory contains the source-controlled P1.1 state and initial-file verifi
 - input finite-value, uniqueness, state, release-time, wet-cell, count, and capacity checks;
 - serial, MPI2, MPI4, GNU debug, zero-impact, and negative gates.
 
-It does not implement environmental-field construction, general stage-time mapping, interpolation, particle motion, owner exchange, trajectory output, or pickup.
+The P1.1 driver does not itself implement environmental-field construction, general stage-time mapping, interpolation, particle motion, owner exchange, trajectory output, or pickup. P1.2 production functionality is recorded by its separate accepted evidence; P1.3 remains design-only at this snapshot.
 
 ## Run
 
@@ -44,6 +44,10 @@ The driver refuses to reuse build or run roots. Defaults are:
   P1.2, P1.1, Phase 0, and nested P0.4 evidence used to close the work package.
 - `P1.2_CLOSEOUT_AUDIT.md` records the independent PR #12 review, the corrected
   immutable merge range, and the final no-open-finding PASS decision.
+- `P1.3_INTERFACE_FREEZE.md` freezes the step-end field snapshot, EXF 10 m wind,
+  SI Leeway RHS, release-time split, RK2/RK4, single-tile safety boundary, and
+  P1-S04b/P1-N06/P1-N08/P1-I01—I06 acceptance contract. It is not execution
+  evidence and introduces no production Fortran in the design increment.
 
 ## Input schema 1
 

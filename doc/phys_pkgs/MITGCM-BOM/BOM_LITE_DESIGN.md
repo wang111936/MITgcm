@@ -148,6 +148,8 @@ Phase 0 已建立前五类挂接中的空实现；`packages_write_pickup.F` 挂�
 
 Phase 1 在一个海洋步内冻结环境场；不声称对时变场有高阶时间精度。old/new 场及 stage 时间插值属于 Phase 2，届时 B05 会单独验证。
 
+工作包边界进一步固定为：P1.3 执行步骤 1—5，并在每个 stage 和最终候选位置要求粒子仍属于当前 owner tile；离开 owner 时带上下文终止。P1.4 才以受测试的迁移替换该拒绝路径并完成步骤 6；P1.5 才加入步骤 8。P1.3 中 `BOM_MAIN` 收到步末 `myTime`，权威积分区间为 `[myTime-deltaTClock,myTime]`。
+
 ## 5. 运行参数契约
 
 ### 5.1 保留的 `BOM_PARM01`
@@ -182,7 +184,7 @@ Phase 1 在一个海洋步内冻结环境场；不声称对时变场有高阶时
 约束：
 
 - `bomWindSource='NONE'` 时，风场严格为 0；若风系数非零，`BOM_CHECK` 报错；
-- `bomWindSource='EXF'` 时必须编译并启用 EXF，且风系数必须非负；
+- `bomWindSource='EXF'` 时必须编译 `ALLOW_EXF`，运行时启用 `useEXF` 与 `useAtmWind`，且风系数必须非负；
 - `bomPickupFreq` 非零时明确停止，避免产生没有对应海洋状态的孤立 BOM pickup；
 - 非零粒子且 `bomMode` 为 `BOM`、`EBOM` 或 `EBOMB` 时明确停止；
 - `bomIntegrator='RK2'` 定义为显式中点法，不是 FLT 的旧 RK2 变体；
@@ -457,6 +459,15 @@ drift_east, drift_north, owner_rank, owner_tile
 | P1-D018 | 湿点 pair 插值共享权重并返回显式有效性，状态转换留给调用层 | 数值内核可测试且不会把插值失败提前解释为 Phase 4 搁浅物理 |
 | P1-D019 | Julia 参考不裁决 MITgcm 网格映射或湿点 stencil | 锁定 Julia 使用 equirectangular 插值器，没有 C-grid、tile、halo 和 BOM owner 语义 |
 | P1-D020 | stage stencil 的低端索引使用数学 floor，不直接使用 Fortran `INT` | stage 可进入西/南 overlap 的负分数索引；`INT` 向零截断会选择错误 C 点并可能误判 stencil 可用 |
+| P1-D021 | P1.3 把步末 `myTime` 对应的 `[myTime-deltaTClock,myTime]` 等分为 `ceiling(deltaTClock/bomDeltaTTarget)` 个子步 | 覆盖完整海洋步、消除短尾步并保持确定性 |
+| P1-D022 | Julia `Leeway!` 只裁决 `water+coeff*wind` 及 m/s 与 km/day 换算，不裁决固定步积分器 | 锁定 Julia 默认使用自适应 Tsit5，坐标为 equirectangular km、时间为 day |
+| P1-D023 | EXF 10 m `uwind/vwind` 必须复制到 BOM 自有格心 east/north 冻结快照 | 让整个粒子步只读单一已发布快照，并隔离 EXF COMMON 的更新时序 |
+| P1-D024 | RK2/RK4 的每个 stage 与最终候选均执行映射、湿点、有限数、CFL 和当前 owner 硬检查，成功后才按粒子子步一次提交 | 避免部分 stage 结果污染权威 SoA，并为失败保留完整上下文 |
+| P1-D025 | P1.3 对任何 stage 或最终候选的 owner 离开立即失败 | owner 迁移、交换容量和重复 hop 属于 P1.4，不能由 halo 静默替代 |
+| P1-D026 | WAITING 粒子在 release time 精确分割 nominal 子步，age 只累计成功提交的激活时长 | 避免提前释放或丢失 release 所在子步的有效运动时间 |
+| P1-D027 | `bomCheckEverySubstep` 只控制昂贵的完整预算频率，不得关闭 stage 数值安全检查；海洋步末预算始终执行 | 安全开关不能把 NaN、CFL、湿点或 owner 错误变成可继续运行状态 |
+| P1-D028 | 粒子速度诊断定义为最终已提交位置的冻结场样本，不是 RK 加权平均或最后 stage 缓存 | 输出和后续 pickup 可用一个明确、可重建的诊断语义 |
+| P1-D029 | P1.3 分别记录步末海流 `(t1,iter1)` 与本海洋步 EXF 请求 `(t0,iter1-1)` 的时间标签 | `LOAD_FIELDS_DRIVER` 在时间计数更新前调用 EXF，而 BOM 在更新后调用；不能把风场误标为步末场 |
 
 ## 14. 进入实现前的冻结检查
 
@@ -469,6 +480,7 @@ drift_east, drift_north, owner_rank, owner_tile
 - [x] FLT/BOM 四组合共存矩阵已列入集成门禁；
 - [x] 每个实现工作包都有独立退出条件；
 - [x] Phase 0 的零影响门禁继续作为每个实现 PR 的回归测试；
-- [x] P1.1 已完成并集成；P1.2 独立分支从 `development@320a07d5` 建立；
+- [x] P1.1 已完成并集成；P1.2 已完成、独立复审并通过 PR #10—#12 收口；
 - [x] P1.2 映射、环境场、插值和失败接口已在独立冻结记录中明确；
-- [ ] P1.2 实现、完整门禁和独立复审完成后才开始 P1.3。
+- [x] P1.3 已从 `development@eefca92fe` 建立独立分支并冻结单 tile 积分接口；
+- [ ] P1.3 设计独立复审通过后才开始生产 Fortran 实现。

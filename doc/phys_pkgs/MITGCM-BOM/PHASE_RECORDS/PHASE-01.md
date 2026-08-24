@@ -25,8 +25,8 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 已集成，收口复审 PASS | PR #10 merge commit `fe51332e1` / PR #11 merge commit `34edbc50c` / 收口 PR #12（Draft） | 两次合并后全门禁及纯文档收口独立复审 PASS |
-| P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
+| P1.2 映射与环境场 | 完成 | PR #10 `fe51332e1` / PR #11 `34edbc50c` / PR #12 `eefca92fe` | 全门禁、两轮集成记录与最终纯文档收口完成 |
+| P1.3 单 tile 积分 | 进行中 | `MITGCM-BOM/phase-01-single-tile-integration` / Draft PR 待创建 | 接口与测试判据已冻结；尚无生产实现 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
 
@@ -299,3 +299,34 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 六份 summary SHA-256 重算一致且只有 PASS；P1.1 104/104 与 P0.4 24/24 checkpoint 全为 `OK`；
 - 复审结论为 PASS、无开放 finding；PR #12 保持 Draft，不合并、不打标签、不开始 P1.3。
 - 审计记录提交为 `90dc64857ee2411edfcb1905d429fd294785012d`，作者与提交者均为 `WangYuLin <wang111936@outlook.com>`。
+
+### 9.15 PR #12 Ready 与合并
+
+- 获得用户明确授权后，将 PR #12 标记 Ready 并使用 merge commit 合并；
+- merge commit 为 `eefca92fe53f1b144bbfca7fcf00dc949a22afb3`，父提交为原 `development@34edbc50c849379e3d4b3456f81c673c7801945b` 与 PR head `333e1c0b0043e79d8e319127d6744d5a9f93e2db`；
+- 合并内容为 8 个 Markdown，5 个项目提交均由 `WangYuLin <wang111936@outlook.com>` 创建；GitHub merge 对象使用已记录的平台身份例外；
+- 本地 `MITGCM-BOM/development` 与远端同步到 `eefca92fe`，工作树干净；本地与远端仍无 `MITGCM-BOM-v0.2` 标签；
+- PR #12 是纯文档收口，集成测试前不创建标签的既有约束保持不变。
+
+## 10. P1.3 启动记录
+
+### 10.1 分支与只读审计
+
+- 从 `development@eefca92fe53f1b144bbfca7fcf00dc949a22afb3` 创建 `MITGCM-BOM/phase-01-single-tile-integration`；
+- 仓库提交身份继续固定为 `WangYuLin <wang111936@outlook.com>`；
+- 只读审计 P1.2 的 `BOM.h`、`BOM_MAIN`、`BOM_BUILD_FIELDS`、映射/湿点插值接口和 MITgcm `forward_step` 时间计数；
+- 只读审计 FLT 主调用与 RK 参考、EXF `uwind/vwind` 的格心 10 m east/north m/s 语义、`useAtmWind` 更新条件；
+- 锁定 Julia checkout 再次确认位于 `156557359185e4413ce82829f3ed26a4eb8c6283`，`Leeway!` 为 `water+alpha*wind`，输入速度从 m/s 转为 km/day，默认求解器为自适应 Tsit5；
+- 本次审计严格限于 MITGCM-BOM、MITgcm 当前仓库和锁定 Julia 参考，没有读取或修改其他开发工程。
+
+### 10.2 P1.3 接口冻结
+
+- 冻结 `BOM_MAIN` 的权威区间为 `[myTime-deltaTClock,myTime]`，使用 `nSub=max(1,ceiling(deltaTClock/bomDeltaTTarget))` 和等长 `deltaTClock/nSub`；
+- 冻结 WAITING 粒子在 release time 精确分割 nominal 子步，age 只累计成功提交的激活时长；
+- 新风场计划使用 `bomGridWindEast/bomGridWindNorth` BOM 自有快照；EXF source 同时要求 `ALLOW_EXF`、`useEXF` 和 `useAtmWind`；
+- 冻结 Leeway 为 `water+bomLeewayWindCoeff*wind`，内部保持 SI；Cartesian 直接用 m/s，球面按 `rSphere` 与 `cos(latitude)` 转为 degree/s；
+- 冻结显式中点 RK2 与经典 RK4，每个 stage 使用完整有效子步作 CFL guard，并要求 stage/final 都留在当前 owner tile；
+- 冻结每粒子每子步试算后提交、最终位置诊断刷新和稳定失败类别；`bomCheckEverySubstep` 不得关闭 stage 硬检查；
+- 形成 P1-D021—P1-D029；P1-D029 单独记录 `LOAD_FIELDS_DRIVER` 在时间更新前请求的 EXF `t0/iter-1` 与 BOM 步末海流 `t1/iter` 标签，详细契约见 `verification/bom/phase01-bom-lite/P1.3_INTERFACE_FREEZE.md`；
+- P1-S04b、P1-N06、P1-N08、P1-I01—I06 的场景、观测阶阈值和前序回归范围已同步；
+- 本增量只修改 Markdown，尚未实现生产 Fortran、门禁脚本或测试输入，因此未运行编译/运行矩阵；下一步为 Markdown 独立范围审计与 Draft PR。
