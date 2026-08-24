@@ -38,6 +38,8 @@ The driver refuses to reuse build or run roots. Defaults are:
   closed production diagnostic-caller and finite-geometry findings.
 - `P1.2_INTEGRATION_RESULTS.md` records the PR #10 merge commit and all fresh
   post-merge P1.2, P1.1, Phase 0, and nested P0.4 evidence.
+- `P1.2_INTEGRATION_AUDIT.md` records the independent review of Draft PR #11
+  and its no-finding PASS decision.
 
 ## Input schema 1
 

@@ -9,7 +9,7 @@
 | 当前分支 | `MITGCM-BOM/phase-01-mapping-environment-integration-record` |
 | 当前 PR | `wang111936/MITgcm#11`（Draft，P1.2 合并后集成记录） |
 | 当前工作包 | P1.2 合并后集成证据归档 |
-| 状态 | PR #10 merge commit `fe51332e1`；合并后 P1.2/P1.1/Phase 0 全门禁 PASS；集成记录待复审 |
+| 状态 | PR #10 merge commit `fe51332e1`；合并后全门禁与 PR #11 独立证据复审均 PASS；PR #11 保持 Draft |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -25,7 +25,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 已集成，记录待复审 | PR #10 merge commit `fe51332e1` / 集成记录 PR #11（Draft） | 合并后 mapping 19/19、fields 7/7、interp 15/15、P1.1 42/42、Phase 0 4/4 及 P0.4 9/9 PASS |
+| P1.2 映射与环境场 | 已集成，记录复审 PASS | PR #10 merge commit `fe51332e1` / 集成记录 PR #11（Draft） | 合并后全门禁 PASS；PR #11 纯文档与证据独立复审无 finding |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -158,10 +158,10 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 从 `MITGCM-BOM/phase-01-mapping-environment-integration-record` 恢复：
 
 1. 核对当前分支基于 merge commit `fe51332e1b95e145c38118fd2bd55f26cd20a6a3`；
-2. 以 [`P1.2_INTEGRATION_RESULTS.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_RESULTS.md) 作为合并后证据入口；
-3. 复核六份 summary SHA-256、P1.1 104/104 checkpoint 与 P0.4 24/24 checkpoint；
-4. 下一步对 Draft PR #11 进行独立复审，只审核 Markdown 范围和证据一致性；
-5. 记录复审完成前不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
+2. 以 [`P1.2_INTEGRATION_RESULTS.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_RESULTS.md) 和 [`P1.2_INTEGRATION_AUDIT.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_AUDIT.md) 作为证据与复审入口；
+3. 核对独立复审结论为 PASS、无 finding，PR #11 仍为 Draft、open 且可合并；
+4. 下一步等待明确授权后才可将 PR #11 标记 Ready；Ready 不授权合并；
+5. 未获后续授权不合并 PR #11、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
 
 ## 9. P1.2 启动记录
 
@@ -267,3 +267,12 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 六份 summary 无非 PASS 行，SHA-256 与合并前权威值一致；详见 `P1.2_INTEGRATION_RESULTS.md`；
 - 测试后源码仓库干净；未创建 `MITGCM-BOM-v0.2` 标签，未开始 P1.3；
 - 建立 `MITGCM-BOM/phase-01-mapping-environment-integration-record` 纯文档分支，以提交 `069452a52dda32109e2510348af553692387f1bf` 创建 Draft PR #11；下一步只进行独立文档与证据复审。
+
+### 9.12 PR #11 独立复审
+
+- 复审基线/头为 `fe51332e1b95e145c38118fd2bd55f26cd20a6a3..e54badeb6257e62506a91994d1ddf741f70de58b`，PR #11 ahead 2/behind 0、open、Draft、可合并，无 review 或 review thread；
+- GitHub 全量 patch 为 6 个 Markdown，无源码、输入、构建/运行产物或越界内容；`git diff --check` 和禁词检查通过；
+- PR #10 merge commit 父提交、GitHub 身份例外与两个 WangYuLin 记录提交均与文档一致；
+- 六份 summary 哈希重算一致且无非 PASS 行；P1.1 104/104 和嵌套 P0.4 24/24 checkpoint 全为 `OK`；
+- 本地与远端均无 `MITGCM-BOM-v0.2` 标签，无 P1.3 变更；独立复审为 PASS、无 finding；
+- PR #11 保持 Draft，等待明确 Ready 授权；不合并、不打标签、不开始 P1.3。

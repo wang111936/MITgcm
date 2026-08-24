@@ -12,19 +12,19 @@
 | 当前任务分支 | `MITGCM-BOM/phase-01-mapping-environment-integration-record` |
 | 当前阶段 PR | `wang111936/MITgcm#11`（Draft，P1.2 合并后集成记录） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.2：PR #10 已合并，合并后 P1.2/P1.1/Phase 0 全门禁 PASS，正在归档集成证据 |
-| 下一工作包 | 对 Draft PR #11 的纯文档范围、合并身份、证据哈希和 checkpoint 进行独立复审 |
-| 当前阻塞 | 无技术阻塞；集成记录复审前不创建标签、不开始 P1.3 |
+| 当前工作包 | P1.2：PR #10 已合并，合并后全门禁与 PR #11 独立证据复审均 PASS |
+| 下一工作包 | 获得明确授权后将 Draft PR #11 标记 Ready for review |
+| 当前阻塞 | 无技术阻塞；PR #11 状态变更、合并、标签与 P1.3 均等待明确授权 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
 1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment-integration-record`，基线为 merge commit `fe51332e1b95e145c38118fd2bd55f26cd20a6a3`；
-2. 读取 [P1.2 合并后集成结果](../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_RESULTS.md)，复核六份 summary 哈希、104/104 与 24/24 checkpoint；
-3. 核对集成记录分支只包含 Markdown，不包含源码、运行产物或标签；
-4. 下一步对 Draft PR #11 进行独立复审，核对纯文档范围和证据一致性；
-5. 复审完成前不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
+2. 读取 [P1.2 合并后集成结果](../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_RESULTS.md) 和 [独立集成复审](../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_AUDIT.md)；
+3. 核对复审结论为 PASS、无 finding，PR #11 仍为 Draft、open 且可合并；
+4. 下一步等待明确授权后才可将 PR #11 标记 Ready；Ready 不等于合并授权；
+5. 未获后续授权不合并 PR #11、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
 
 开始前执行：
 
@@ -450,6 +450,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 六份 summary SHA-256 与合并前权威值完全一致，无非 PASS 行；所有 `-a` 运行均为首次通过，未复用或覆盖证据目录；
 - 从 merge commit 建立 `MITGCM-BOM/phase-01-mapping-environment-integration-record` 分支归档纯文档证据；未创建 `MITGCM-BOM-v0.2` 标签，未开始 P1.3。
 - 以 `WangYuLin <wang111936@outlook.com>` 创建集成证据提交 `069452a52dda32109e2510348af553692387f1bf`，推送记录分支并创建 Draft PR #11；下一步只进行独立文档与证据复审。
+
+### 2026-08-24：PR #11 独立集成记录复审
+
+- 冻结复审快照为 `development@fe51332e1b95e145c38118fd2bd55f26cd20a6a3..e54badeb6257e62506a91994d1ddf741f70de58b`；PR #11 为 open、Draft、可合并，ahead 2/behind 0，无 review 或 review thread；
+- GitHub 完整 patch 只含 6 个 Markdown，`git diff --check` 通过，没有源码、测试输入、运行产物、无关工程或禁止词；
+- merge commit 与两个父提交复核一致；两个记录提交的作者和提交者均为 `WangYuLin <wang111936@outlook.com>`；
+- 六份 summary 哈希重算与记录一致，无非 PASS 行；P1.1 104/104 和 P0.4 24/24 checkpoint 全为 `OK`；
+- 本地/远端均无 `MITGCM-BOM-v0.2` 标签，无 P1.3 变更；独立复审结论为 PASS、无 finding；
+- PR #11 保持 Draft，等待明确授权后才可标记 Ready；不合并、不打标签、不开始 P1.3。
 
 ## 6. 每次会话结束时必须更新
 
