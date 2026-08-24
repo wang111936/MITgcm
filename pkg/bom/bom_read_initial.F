@@ -480,16 +480,19 @@ C     INTEGER*8 so the check remains safe beyond the P1.1 verification cap.
       ENDIF
 
       _BEGIN_MASTER(myThid)
+      bomNPartExpected = nInput
       IF ( myProcId.EQ.0 ) THEN
-        WRITE(msgBuf,'(A,3(A,I8))')
+        WRITE(msgBuf,'(A,4(A,I8))')
      &       'BOM_READ_INITIAL: complete',
      &       ' owners=', nAssignedGlobal,
      &       ' alive=', nAliveGlobal,
-     &       ' waiting=', nWaitingGlobal
+     &       ' waiting=', nWaitingGlobal,
+     &       ' expected=', bomNPartExpected
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                      SQUEEZE_RIGHT, myThid )
       ENDIF
       _END_MASTER(myThid)
+      _BARRIER
  1000 FORMAT(A,I20,A,I6,A,2I4,A,I3,A,2F24.16,
      &       A,2F24.16,A,2F24.16)
 #endif

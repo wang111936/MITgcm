@@ -8,7 +8,7 @@ C !INTERFACE:
       SUBROUTINE BOM_INIT_STATE( myThid )
 
 C !DESCRIPTION:
-C     Reset owner slots and Phase-1.2 surface fields deterministically.
+C     Reset owner slots and Phase-1.3 surface fields deterministically.
 C     Valid records later occupy 1:bomNPartTile on each tile.
 
 C !USES:
@@ -29,7 +29,10 @@ C !LOCAL VARIABLES:
       _BEGIN_MASTER(myThid)
       bomFieldsReady = .FALSE.
       bomFieldTime = 0. _d 0
+      bomWindFieldTime = 0. _d 0
       bomFieldIter = 0
+      bomWindFieldIter = 0
+      bomNPartExpected = 0
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = 0
@@ -39,6 +42,8 @@ C !LOCAL VARIABLES:
           bomGridVWork(i,j,1,bi,bj) = 0. _d 0
           bomGridVEast(i,j,1,bi,bj) = 0. _d 0
           bomGridVNorth(i,j,1,bi,bj) = 0. _d 0
+          bomGridWindEast(i,j,1,bi,bj) = 0. _d 0
+          bomGridWindNorth(i,j,1,bi,bj) = 0. _d 0
          ENDDO
         ENDDO
         DO ip=1,bomMaxPartTile
