@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-01-mapping-environment-closeout` |
-| 当前阶段 PR | `wang111936/MITgcm#12`（待创建，P1.2 收口记录） |
+| 当前阶段 PR | `wang111936/MITgcm#12`（Draft，P1.2 收口记录） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
 | 当前工作包 | P1.2 收口：PR #10 与 PR #11 已合并，PR #11 合并后全门禁再次 PASS |
-| 下一工作包 | 创建并独立复审纯文档 Draft PR #12 |
+| 下一工作包 | 独立复审纯文档 Draft PR #12 |
 | 当前阻塞 | 无技术阻塞；PR #12 Ready/合并、标签与 P1.3 均等待后续明确授权 |
 
 ## 1. 当前恢复点
@@ -468,7 +468,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 合并后 mapping `p12-integrated-pr11-map-20260824-a` 19/19、fields `p12-integrated-pr11-field-20260824-a` 7/7、interpolation/lifecycle `p12-integrated-pr11-interp-20260824-a` 15/15，均 PASS；
 - P1.1 `p12-integrated-pr11-p11-20260824-a` 42/42 且 104/104 checkpoint；Phase 0 `p12-integrated-pr11-phase0-20260824-a` 4/4，嵌套 P0.4 `-p04` 9/9 且 24/24 checkpoint，均 PASS；
 - 六份 summary 无非 PASS 行，SHA-256 与 PR #10 合并后的确定性权威值一致；本地 `development` 与远端同步且工作树干净；
-- 从 merge commit 创建 `MITGCM-BOM/phase-01-mapping-environment-closeout` 纯文档分支并新增 `P1.2_CLOSEOUT.md`；下一步只创建并独立复审 Draft PR #12；
+- 从 merge commit 创建 `MITGCM-BOM/phase-01-mapping-environment-closeout` 纯文档分支并新增 `P1.2_CLOSEOUT.md`；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建收口提交 `bea1df4d00fdd2fe562dd8712cc5ca5156ba1af9`，推送分支并创建 Draft PR #12；下一步只做独立范围与证据复审；
 - 未创建 `MITGCM-BOM-v0.2` 标签，未开始 P1.3。
 
 ## 6. 每次会话结束时必须更新
