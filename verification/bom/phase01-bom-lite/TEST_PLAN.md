@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.1、P1.2 已验收；P1.3 setup、环境场、Leeway RHS、RK2/RK4、release 分割、事务提交、全局状态预算及 157/157 精确头回归和最终审计已完成，独立 Ready 复审仍保留；P1.4—P1.5 保持计划状态
+状态：P1.1、P1.2 已验收；P1.3 的生产实现、157/157 精确头回归和最终审计已完成；P1.4 的 owner 迁移实现、36/36 专属门禁、157/157 前序回归及最终审计已完成；P1.3/P1.4 的独立 Ready 复审仍保留；P1.5 保持计划状态
 
 P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 

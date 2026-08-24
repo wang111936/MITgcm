@@ -12,5 +12,8 @@
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p14/<test-id>/
 ```
 
-当前状态：接口与生产实现已完成，P1.4 专属门禁已实现并通过开发模式
-36/36；clean exact-head 正式证据与全部前序回归待完成。
+当前状态：接口与生产实现已完成；clean exact head
+`1786d52f9f510e4f9d0c470ed75b9b7289ca64b0` 的 P1.4 专属门禁
+36/36、全部前序回归 157/157 及 SHA-256 证据审计均通过。权威路径和
+逐项结果见 [`TEST_RESULTS.md`](TEST_RESULTS.md)。Draft PR #14 仍保留
+独立 Ready 复审，不授权合并或创建标签。
