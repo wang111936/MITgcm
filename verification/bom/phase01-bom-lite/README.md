@@ -36,6 +36,8 @@ The driver refuses to reuse build or run roots. Defaults are:
 - `P1.2_INTERFACE_FREEZE.md` is the frozen mapping/environment-field contract.
 - `P1.2_SCOPE_AUDIT.md` records the accepted P1.2 final review, including the
   closed production diagnostic-caller and finite-geometry findings.
+- `P1.2_INTEGRATION_RESULTS.md` records the PR #10 merge commit and all fresh
+  post-merge P1.2, P1.1, Phase 0, and nested P0.4 evidence.
 
 ## Input schema 1
 
