@@ -74,6 +74,11 @@ The driver refuses to reuse build or run roots. Defaults are:
 - `../phase01-rk4/TEST_RESULTS.md` records the stateless RK4 implementation
   head, exact-head P1-I06/K1--K4/FINAL/Julia evidence, and every predecessor
   regression through the nested formal P0.4 gate.
+- `../phase01-lifecycle/TEST_RESULTS.md` records the complete production
+  release/caller/state-budget implementation and its 157-row exact-head
+  lifecycle plus predecessor matrix.
+- `P1.3_SCOPE_AUDIT.md` closes the final P1.3 scope, numerical, transaction,
+  exclusion, and evidence audit while retaining the independent Ready review.
 
 ## Input schema 1
 
