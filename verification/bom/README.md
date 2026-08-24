@@ -21,8 +21,9 @@ external environmental datasets remain outside the repository.
   longitude normalization, inverse mapping, and unsupported-grid guards;
 - `phase01-fields/`: P1.2 single-level C-grid surface-field construction,
   east/north rotation, dry masking, and serial/MPI scalar-halo gates;
-- `phase01-interp/`: P1.2 shared-weight wet-pair interpolation and explicit
-  invalid-result contracts in serial and MPI4 layouts;
+- `phase01-interp/`: P1.2 shared-weight wet-pair interpolation, non-moving
+  production lifecycle diagnostics, and caller-level collective failure
+  contracts in serial and MPI4 layouts;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 

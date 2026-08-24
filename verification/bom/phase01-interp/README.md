@@ -12,7 +12,12 @@ Coverage:
   normalized weight set shared by east and north;
 - `P1-N05`: unpublished fields, missing low/high stencils, non-finite
   coordinates or pair fields, insufficient wet weight, and invalid tile
-  indices return invalid with zero velocity values.
+  indices return invalid with zero velocity values;
+- production `BOM_MAIN` lifecycle: current owner records are mapped and
+  diagnosed without changing ID, status, position, release time, age, or owner
+  counts, in serial and MPI4 layouts;
+- production caller failure: outside-domain and insufficient-wet-weight cases
+  report particle/tile/index/weight context and terminate collectively.
 
 The driver reuses the already verified P1-F01/P1-F02 zero-step inputs and
 serial/MPI4 layouts.  Production state is restored after every focused test.

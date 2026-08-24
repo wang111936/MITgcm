@@ -2,6 +2,22 @@
 
 Status: **PASS**
 
+## Audit-fix regression
+
+- test ID: `p12-field-auditfix-20260824-a`;
+- build root:
+  `/home/wyl/build/mitgcm-bom/phase01-fields/p12-field-auditfix-20260824-a`;
+- run root:
+  `/home/wyl/runs/mitgcm-bom/phase01-fields/p12-field-auditfix-20260824-a`;
+- result: 7/7 summary rows passed;
+- summary SHA-256:
+  `97d21381200a8c8314de96302d790bb4aa995092a100bb9b83e42f27840d4492`.
+
+This fresh serial/MPI4 regression was run after functional commit
+`2f346d98cf978922cae53bff67fc32088cbb8941`.  It confirms that the production
+diagnostic caller and mapping robustness changes do not alter field
+construction, rotation, mask treatment, or scalar halo publication.
+
 ## Authoritative field gate
 
 - functional commit:

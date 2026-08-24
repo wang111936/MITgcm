@@ -12,19 +12,19 @@
 | 当前任务分支 | `MITGCM-BOM/phase-01-mapping-environment` |
 | 当前阶段 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.2：P1-R05—P1-R07 实现与全回归完成；范围审计和独立复审待进行 |
-| 下一工作包 | P1.2 最终范围审计、证据复核与独立复审 |
-| 当前阻塞 | 无；P1.2 只支持规则 Cartesian 与未旋转 spherical-polar，其他拓扑按阶段边界明确拒绝 |
+| 当前工作包 | P1.2：P1-R05—P1-R07 实现、生产生命周期门禁、全回归与最终审计全部通过 |
+| 下一工作包 | 获得明确授权后将 PR #10 标记 Ready；后续合并与集成回归需另行授权 |
+| 当前阻塞 | 无技术阻塞；PR 状态变更、合并、标签和 P1.3 均等待明确授权 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment`，最新已验收功能提交为 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；
+1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment`，P1.2 审计修复功能提交为 `2f346d98cf978922cae53bff67fc32088cbb8941`；
 2. 读取 [P1.2 接口冻结](../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md)及 mapping、fields、interp 三份测试结果；
-3. 下一步只进行 P1.2 最终范围审计和独立复审，核对生产接口、失败语义、证据哈希、PR 差异和无粒子运动/P1.3 越界；
-4. 若发现问题，只修复 P1.2 并按风险复跑；复审通过后记录结论，未获明确授权不把 PR #10 标记 Ready 或合并；
-5. P1.2 完整门禁和独立复审前不开始 P1.3，不创建 `MITGCM-BOM-v0.2`。
+3. 复核 [`P1.2_SCOPE_AUDIT.md`](../../../verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md) 的 PASS 结论和六套权威证据哈希；
+4. 下一步等待明确授权后才可将 PR #10 标记 Ready；Ready 不等于授权合并；
+5. 未获后续授权不合并 PR #10、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
 
 开始前执行：
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.2 P1-R05—P1-R07 实现与全回归完成，待范围审计/独立复审 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.2 P1-R05—P1-R07 实现、门禁、回归和最终审计 PASS，PR #10 保持 Draft | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -175,7 +175,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 插值提交为 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；`BOM_INTERP_WET_PAIR` 使用共同湿权重并以显式无效结果处理未就绪、缺 stencil、非有限和湿权重不足；
 - `p12-interp-20260824-a` 通过 9/9 summary 行，覆盖 P1-F03 全湿/部分湿和 P1-N05 串行/MPI4；summary SHA-256 为 `75fcde1ce34ceb1b43cb2ef8dcc6e323948db1edb6df2d4fb90329d8395be81a`；
 - 插值后的字段 7/7、映射 15/15、P1.1 42/42 和 Phase 0 4/4 回归全部通过；
-- P1.2 组件门禁与全回归均通过，但最终审计发现两个必须修复项：`BOM_MAIN` 尚未接入非移动映射/插值诊断与上下文终止，映射初始化的累计/派生有限性和末端 face 防护不足；P1-R06 保持完成，P1-R05/P1-R07 重新开放，详见 `verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md`。
+- 审计修复提交 `2f346d98cf978922cae53bff67fc32088cbb8941` 将 `BOM_MAIN` 接入非移动映射/插值诊断与调用层集体终止，并补齐映射初始化和极端周期输入的有限性防护；
+- 修复后插值/生命周期 15/15、映射 19/19、字段 7/7、P1.1 42/42、Phase 0 4/4 与嵌套 P0.4 9/9 均 PASS；
+- P1.2 最终审计为 PASS，P1-R05—P1-R07 全部关闭；详见 `verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md`。
 
 ## 4. 未决问题与风险
 
@@ -193,8 +195,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | R-010 | Phase 1 pickup 只支持相同 MPI/tile 分解 | 写入并核对分解签名；变分解重启明确拒绝，后续单独设计 | Phase 5 |
 | R-011 | P1.1 为小型验证文件采用每 rank 全量读取 | 以 `bomInitGlobalLimit` 硬限制；P1.5 前复核可扩展分片读取，禁止直接用于百万粒子 | Phase 1.5 |
 | R-012 | P1.1 locator 只覆盖规则原生坐标初值分发 | 已由 P1.2 映射核心与兼容包装关闭；完整映射、P1.1 和 Phase 0 门禁已通过 | 已关闭 |
-| R-013 | P1.2 插值组件未接入 `BOM_MAIN` 的已有粒子诊断路径 | 在 P1.2 内增加非移动映射/插值调用、上下文集体终止及权威状态 bitwise 不变门禁 | P1.2 |
-| R-014 | 映射初始化未完整拒绝累计溢出、派生非有限量和末端非有限 face | 补强有限性检查，并增加非有限/溢出几何与极端有限周期输入负测 | P1.2 |
+| R-013 | P1.2 插值组件未接入 `BOM_MAIN` 的已有粒子诊断路径 | 已实现非移动调用、上下文集体终止；串行/MPI4 权威状态 bitwise 不变门禁通过 | 已关闭 |
+| R-014 | 映射初始化未完整拒绝累计溢出、派生非有限量和末端非有限 face | 已补强预溢出、派生量、双端点和周期算术检查；19/19 门禁通过 | 已关闭 |
 
 ## 5. 会话记录
 
@@ -423,6 +425,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 审计发现必须修复项 R-014：映射累计 span、派生界限/容差及末端 stored face 的有限性防护与负测不完整；
 - P1-R06 保持完成；P1-R05/P1-R07 在修复和新证据通过前重新开放；PR #10 继续保持 Draft，不合并、不打标签、不开始 P1.3；
 - 下一步唯一任务是在 P1.2 范围内先补生产诊断调用层和对应生命周期/P1-N05 门禁，再补映射有限性防护，随后按风险复跑全部前序门禁并更新审计为 PASS。
+
+### 2026-08-24：P1.2 审计修复与复审关闭
+
+- 功能提交 `2f346d98cf978922cae53bff67fc32088cbb8941` 完成 R-013/R-014，且不引入 RHS、位置更新、release 转换、owner 迁移、风或 Stokes；
+- `p12-interp-auditfix-20260824-c` 通过 15/15，包含串行/MPI4 生产生命周期及域外/低湿权重调用层终止；summary SHA-256 为 `aaff9205a4f5faa580d06fe55b18720bbcd42a72667caae7b5f27fd4632c13d4`；
+- `p12-map-auditfix-20260824-b` 通过 19/19，包含非有限原点/间距、累计溢出、非有限末端 face 和正负极端有限经度；summary SHA-256 为 `926575f1093bb7353f09e9835e175289a309c13e653ded5a96871e06b3810c02`；
+- 字段、P1.1、Phase 0 和嵌套 P0.4 重新通过 7/7、42/42、4/4 和 9/9，其 summary SHA-256 均与既有权威值一致；
+- 三个非权威尝试目录保留且未覆盖；其暴露的 NaN trap、生命周期 fixture 和 MPI stderr 聚合问题均已在权威运行前修正；
+- P1.2 范围与契约审计更新为 PASS，P1-R05—P1-R07 和 R-013/R-014 关闭；PR #10 保持 Draft，不合并、不打标签、不开始 P1.3。
 
 ## 6. 每次会话结束时必须更新
 

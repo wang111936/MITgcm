@@ -34,9 +34,8 @@ The driver refuses to reuse build or run roots. Defaults are:
 
 - `P1.1_SCOPE_AUDIT.md` records the accepted P1.1 boundary and evidence.
 - `P1.2_INTERFACE_FREEZE.md` is the frozen mapping/environment-field contract.
-- `P1.2_SCOPE_AUDIT.md` records the current P1.2 final review. Its status is
-  blocking until the production diagnostic caller and finite-geometry findings
-  are corrected and reverified.
+- `P1.2_SCOPE_AUDIT.md` records the accepted P1.2 final review, including the
+  closed production diagnostic-caller and finite-geometry findings.
 
 ## Input schema 1
 

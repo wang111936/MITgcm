@@ -2,7 +2,42 @@
 
 Status: **PASS**
 
-## Current authoritative mapping and locator gate
+## Current authoritative audit-fix mapping and locator gate
+
+- functional commit:
+  `2f346d98cf978922cae53bff67fc32088cbb8941`;
+- test ID: `p12-map-auditfix-20260824-b`;
+- build root:
+  `/home/wyl/build/mitgcm-bom/phase01-mapping/p12-map-auditfix-20260824-b`;
+- run root:
+  `/home/wyl/runs/mitgcm-bom/phase01-mapping/p12-map-auditfix-20260824-b`;
+- result: 19/19 summary rows passed;
+- summary SHA-256:
+  `926575f1093bb7353f09e9835e175289a309c13e653ded5a96871e06b3810c02`;
+- production initializer SHA-256:
+  `97b5b66fdce6dc3b7219630188fe369dd4997d1e79a000aab6c23022a1c2acde`;
+- production normalizer SHA-256:
+  `8a9499a06fab020320e81f5e976f17dbbb6b9a803fb11c09a2c6cefe357baa1a`;
+- gate-driver SHA-256:
+  `2f39902f40a45e497f0f5fd1c4246f94a28d1af94ae44bdf8010e30618876bb7`;
+- verification-routine SHA-256:
+  `e5b1d4119c3a428d7468f0be777f95f79193ceacdcccc19a44cdd961e7b90eca`.
+
+The 19 rows cover production/test separation, the locator wrapper, regular,
+actual OpenMP and actual EXCH2 builds, all P1-M01/P1-M02 cases, the seven prior
+P1-N04 rejection cases, and four new rejection cases for infinite origin,
+infinite spacing, accumulated span overflow, and an infinite terminal stored
+face.  The global spherical case also normalizes both `HUGE(oneRL)` and
+`-HUGE(oneRL)` to the canonical half-open longitude interval.  Initialization
+failure leaves mapping state unpublished.
+
+The non-authoritative `p12-map-auditfix-20260824-a` directory is preserved.  It
+used a NaN fixture that triggered the compiler's floating-point trap before the
+production diagnostic could be observed; the replacement uses positive
+infinity to exercise the same non-finite contract explicitly.  No directory
+was overwritten.
+
+## Prior authoritative mapping and locator gate
 
 - test ID: `p12-locator-20260824-a`;
 - build root:
@@ -24,7 +59,7 @@ calls `BOM_MAP_XY2IJLOCAL`, retains `NINT(ix/jy)` center selection and the
 P1.1 `maskC` center-wet test, performs no direct `xG/yG` search, and does not
 use the future wet-pair interpolator.
 
-## Current regressions after the locator wrapper
+## Regressions after the prior locator wrapper
 
 | Gate | Test ID | Result | Summary SHA-256 |
 |---|---|---|---|

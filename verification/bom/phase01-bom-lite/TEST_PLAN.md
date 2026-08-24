@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.1 已验收；P1.2 组件门禁与前序回归已执行，最终审计两项修复待完成；P1.3—P1.5 保持计划状态
+状态：P1.1 已验收；P1.2 生产生命周期、组件门禁、前序回归与最终审计已全部通过；P1.3—P1.5 保持计划状态
 
 P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 
@@ -14,7 +14,7 @@ P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边�
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/<test-id>/
 ```
 
-P1.2 使用新的 `p12-*` test ID，并把构建/运行根分别放在 `phase01-mapping` 下；不得复用或覆盖 `phase01-state/p11-*` 证据。冻结接口见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)。
+P1.2 使用新的 `p12-*` test ID，映射、字段与插值/生命周期的构建/运行根分别放在 `phase01-mapping`、`phase01-fields` 与 `phase01-interp` 下；不得复用或覆盖 `phase01-state/p11-*` 证据。冻结接口见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)。
 
 每次运行使用唯一 `test-id`，拒绝覆盖已有证据目录。最终在本目录提交紧凑的 `TEST_RESULTS.md`，至少记录：
 

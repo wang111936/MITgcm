@@ -9,7 +9,7 @@
 | 当前分支 | `MITGCM-BOM/phase-01-mapping-environment` |
 | 当前 PR | `wang111936/MITgcm#10`（Draft，P1.2 映射与环境场） |
 | 当前工作包 | P1.2 映射与环境场 |
-| 状态 | P1.2 P1-R05—P1-R07 实现与全回归通过；范围审计和独立复审待进行 |
+| 状态 | P1.2 P1-R05—P1-R07 实现、生产生命周期门禁、全回归和最终审计全部 PASS；PR #10 保持 Draft |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -25,7 +25,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 |---|---|---|---|
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
-| P1.2 映射与环境场 | 进行中 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Draft） | 插值 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；P1-R05—P1-R07 和全回归完成，待最终审计/复审 |
+| P1.2 映射与环境场 | 待集成 | `MITGCM-BOM/phase-01-mapping-environment` / PR #10（Draft） | 审计修复 `2f346d98cf978922cae53bff67fc32088cbb8941`；P1-R05—P1-R07、全回归和最终审计 PASS，等待 Ready/合并的分步授权 |
 | P1.3 单 tile 积分 | 未开始 | 待建立 | 等待 P1.2 门禁 |
 | P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
 | P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
@@ -157,11 +157,11 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 从 `MITGCM-BOM/phase-01-mapping-environment` 恢复：
 
-1. 核对当前分支包含最新已验收功能提交 `597d1a706de2ca388d1312dd6bb667421ae9adc7`；
+1. 核对当前分支包含 P1.2 审计修复功能提交 `2f346d98cf978922cae53bff67fc32088cbb8941`；
 2. 以 [`P1.2_INTERFACE_FREEZE.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTERFACE_FREEZE.md) 和 mapping/fields/interp 三份 `TEST_RESULTS.md` 作为接口与证据入口；
-3. 下一步只进行 P1.2 最终范围审计和独立复审，核对生产接口、失败语义、证据哈希、PR 差异以及没有粒子运动/P1.3 越界；
-4. 若复审发现问题，只修复 P1.2 并按风险复跑门禁；复审通过后记录结论，未获明确授权不把 PR #10 标记 Ready 或合并；
-5. P1.2 完整门禁和独立复审前不开始 P1.3，不创建 `MITGCM-BOM-v0.2` 标签。
+3. 复核 [`P1.2_SCOPE_AUDIT.md`](../../../../verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md) 的 PASS 结论、关闭项和六套权威证据；
+4. 下一步等待明确授权后才可将 PR #10 标记 Ready；Ready 不等于授权合并；
+5. 未获后续授权不合并 PR #10、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
 
 ## 9. P1.2 启动记录
 
@@ -242,3 +242,12 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - 映射初始化还需补齐累计/派生有限性、末端 face 端点和极端有限周期输入防护及负测，故 P1-R05 重新开放；
 - 审计详情记录于 `verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md`；P1-R06 保持完成；
 - PR #10 保持 Draft，不合并、不创建 `MITGCM-BOM-v0.2` 标签、不开始 P1.3。下一增量只修复上述 P1.2 问题并复跑受影响门禁与全部前序回归。
+
+### 9.9 P1.2 审计修复与 PASS 复审
+
+- 功能提交 `2f346d98cf978922cae53bff67fc32088cbb8941` 在 `BOM_MAIN` 对当前 owner 记录执行非移动映射/湿点 pair 插值，有效时只发布 `bomI/bomJ/bomVEast/bomVNorth`，无效时输出粒子、tile、局地索引和湿权重后集体终止；
+- 同一提交为映射累计、派生边界/容差、stored-face 双端点和周期规范化增加有限性与预溢出防护；初始化失败不发布部分映射状态；
+- 权威门禁：`p12-interp-auditfix-20260824-c` 15/15，summary `aaff9205a4f5faa580d06fe55b18720bbcd42a72667caae7b5f27fd4632c13d4`；`p12-map-auditfix-20260824-b` 19/19，summary `926575f1093bb7353f09e9835e175289a309c13e653ded5a96871e06b3810c02`；
+- 回归门禁：字段 `p12-field-auditfix-20260824-a` 7/7，P1.1 `p12-auditfix-p11-20260824-a` 42/42 且 104/104 checkpoint，Phase 0 `p12-auditfix-phase0-20260824-a` 4/4，嵌套 P0.4 `-p04` 9/9 且 24/24 checkpoint；
+- 映射 `-a` 和插值 `-a/-b` 失败尝试保留为非权威证据，没有复用或覆盖目录；
+- 最终审计为 PASS，P1-R05—P1-R07 和 R-013/R-014 全部关闭。未引入 RHS、位置更新、release 转换、owner 迁移、风、Stokes 或 P1.3；PR #10 保持 Draft，不合并、不创建标签。
