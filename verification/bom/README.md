@@ -46,6 +46,9 @@ external environmental datasets remain outside the repository.
 - `phase01-output-pickup-coexistence/`: P1.5 trajectory scheduling/schema,
   same-decomposition pickup/restart, decomposition-signature rejection,
   and independent FLT+BOM build/runtime consistency;
+- `phase02-slow-manifold/`: P2.0 source audit, exact endpoint/Stokes/equation
+  interface freeze, requirements traceability, and B04/B05/B16 plus
+  negative/MPI/restart/full-regression test plan;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 
