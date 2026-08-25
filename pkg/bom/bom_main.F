@@ -46,6 +46,11 @@ C     !LOCAL VARIABLES:
       LOGICAL doAdvance, doRefresh, trialValid
       LOGICAL rhsOwner, rhsValid
 
+C--   Phase-2 environment publication is independent of particle count.
+      IF ( bomMode.EQ.'BOM' ) THEN
+        CALL BOM_BUILD_ENDPOINTS(
+     I       myTime, myIter, .FALSE., myThid )
+      ENDIF
       IF ( bomMaxParticles.LE.0 ) RETURN
 
 C--   Runtime time/substep preflight precedes field construction and any

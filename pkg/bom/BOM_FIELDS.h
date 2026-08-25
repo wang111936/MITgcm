@@ -47,3 +47,37 @@ C     trajectory/pickup contract and must not be reused.
 
       LOGICAL bomEnvReady
       COMMON /BOM_ENV_STATE_L/ bomEnvReady
+
+C--   Internal transaction workspace.  These arrays are never accepted
+C     state and are not part of the pickup interface.
+      _RL bomEnvEastScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomEnvNorthScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      COMMON /BOM_ENV_SCRATCH_R/
+     &       bomEnvEastScratch, bomEnvNorthScratch
+
+      _RL bomEnvUWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomEnvVWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomEnvEastWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomEnvNorthWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_ENV_WORK_R/
+     &       bomEnvUWork, bomEnvVWork,
+     &       bomEnvEastWork, bomEnvNorthWork
+
+      _RL bomEnvTimeScratch(BOM_ENV_NEND)
+      COMMON /BOM_ENV_SCRATCH_TIME_R/ bomEnvTimeScratch
+
+      INTEGER bomEnvIterScratch(BOM_ENV_NEND)
+      COMMON /BOM_ENV_SCRATCH_TIME_I/ bomEnvIterScratch
+
+      LOGICAL bomEnvValidScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      COMMON /BOM_ENV_SCRATCH_L/ bomEnvValidScratch

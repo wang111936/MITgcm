@@ -39,6 +39,8 @@ C !LOCAL VARIABLES:
       DO iEnd=1,BOM_ENV_NEND
         bomEnvTime(iEnd) = 0. _d 0
         bomEnvIter(iEnd) = 0
+        bomEnvTimeScratch(iEnd) = 0. _d 0
+        bomEnvIterScratch(iEnd) = 0
       ENDDO
       DO bj=1,nSy
        DO bi=1,nSx
@@ -51,11 +53,21 @@ C !LOCAL VARIABLES:
           bomGridVNorth(i,j,1,bi,bj) = 0. _d 0
           bomGridWindEast(i,j,1,bi,bj) = 0. _d 0
           bomGridWindNorth(i,j,1,bi,bj) = 0. _d 0
+          bomEnvUWork(i,j,1,bi,bj) = 0. _d 0
+          bomEnvVWork(i,j,1,bi,bj) = 0. _d 0
+          bomEnvEastWork(i,j,1,bi,bj) = 0. _d 0
+          bomEnvNorthWork(i,j,1,bi,bj) = 0. _d 0
           DO iSource=1,BOM_ENV_NSOURCE
            DO iEnd=1,BOM_ENV_NEND
             bomEnvEast(i,j,iEnd,iSource,bi,bj) = 0. _d 0
             bomEnvNorth(i,j,iEnd,iSource,bi,bj) = 0. _d 0
             bomEnvValid(i,j,iEnd,iSource,bi,bj) = .FALSE.
+            bomEnvEastScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomEnvNorthScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomEnvValidScratch(i,j,iEnd,iSource,bi,bj) =
+     &           .FALSE.
            ENDDO
           ENDDO
          ENDDO

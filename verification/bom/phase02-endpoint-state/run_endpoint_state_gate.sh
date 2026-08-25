@@ -48,16 +48,22 @@ build_case() {
   local name="$1"
   local size_file="$2"
   local mpi_enabled="$3"
+  local test_driver="$4"
   local build_dir="${BUILD_ROOT}/${name}"
   local mods_dir="${BUILD_ROOT}/${name}-mods"
   local -a args
+  local -a symbols
 
   log "build ${name}"
   mkdir -p "${build_dir}" "${mods_dir}"
   cp -a "${EXP2_CODE}/." "${mods_dir}/"
   cp "${CASE_DIR}/code/${size_file}" "${mods_dir}/SIZE.h"
   cp "${CASE_DIR}/code/packages.conf" "${mods_dir}/packages.conf"
-  cp "${CASE_DIR}/code/bom_init_varia.F" "${mods_dir}/"
+  if [[ "${test_driver}" == yes ]]; then
+    cp "${CASE_DIR}/code/bom_init_varia.F" "${mods_dir}/"
+    cp "${CASE_DIR}/code/bom_verify_endpoint_transaction.F" \
+      "${mods_dir}/"
+  fi
   args=(
     "${REPO_ROOT}/tools/genmake2"
     "-rootdir=${REPO_ROOT}"
@@ -77,11 +83,17 @@ build_case() {
   )
   [[ -x "${build_dir}/mitgcmuv" ]] || fail "missing executable: ${name}"
   nm "${build_dir}/mitgcmuv" > "${build_dir}/symbols.txt"
-  for symbol in bom_check_ bom_init_state_ bom_verify_endpoint_state_; do
+  symbols=(bom_check_ bom_init_state_ bom_build_endpoints_ \
+           bom_try_build_endpoints_)
+  if [[ "${test_driver}" == yes ]]; then
+    symbols+=(bom_verify_endpoint_state_ \
+              bom_verify_endpoint_transaction_)
+  fi
+  for symbol in "${symbols[@]}"; do
     grep -q "${symbol}" "${build_dir}/symbols.txt" \
       || fail "missing ${symbol} in ${name}"
   done
-  record_pass "build-${name}" 'debug compile and endpoint symbols'
+  record_pass "build-${name}" 'debug compile and transaction symbols'
 }
 
 prepare_run() {
@@ -139,7 +151,28 @@ run_positive() {
   fi
   [[ "$(grep -c 'P2.1 ENDPOINT STATE PASS' "${combined}")" -eq 1 ]] \
     || fail "positive marker count is not one: ${name}"
-  record_pass "${name}" 'parameter conversion and zero endpoint state'
+  [[ "$(grep -c 'P2.1 ENDPOINT TRANSACTION PASS' "${combined}")" -eq 1 ]] \
+    || fail "transaction marker count is not one: ${name}"
+  record_pass "${name}" \
+    'fresh/normal ocean-NONE-NONE and rollback transaction'
+}
+
+run_production_smoke() {
+  local run_dir="${RUN_ROOT}/production-one-step"
+
+  log 'run production-one-step'
+  prepare_run production-one-step production-serial data.bom.valid
+  sed -i 's/endTime=0\./endTime=1200./' "${run_dir}/data"
+  (
+    cd "${run_dir}"
+    ./mitgcmuv > run.log 2>&1
+  )
+  assert_normal_log "${run_dir}/run.log"
+  if grep -q 'P2.1 ENDPOINT TRANSACTION PASS' "${run_dir}/run.log"; then
+    fail 'test-only transaction driver leaked into production build'
+  fi
+  record_pass production-one-step \
+    'production fresh hook and one normal zero-particle step'
 }
 
 run_leew_compat() {
@@ -191,7 +224,8 @@ run_negative() {
 
 log 'audit frozen names and production/test separation'
 for name in bomCurrentPolicy bomTauDays bomEnvEast bomEnvNorth \
-            bomEnvTime bomEnvIter bomEnvValid bomEnvReady; do
+            bomEnvTime bomEnvIter bomEnvValid bomEnvReady \
+            bomEnvEastScratch bomEnvTimeScratch; do
   grep -R -q "${name}" "${REPO_ROOT}/pkg/bom" \
     || fail "missing production interface: ${name}"
 done
@@ -199,12 +233,19 @@ if grep -R -n 'P2.1 ENDPOINT STATE PASS\|BOM_VERIFY_ENDPOINT' \
     "${REPO_ROOT}/pkg/bom"; then
   fail 'verification marker leaked into production source'
 fi
+for source_file in bom_init_varia.F bom_main.F; do
+  grep -q 'CALL BOM_BUILD_ENDPOINTS' \
+    "${REPO_ROOT}/pkg/bom/${source_file}" \
+    || fail "production lifecycle hook missing: ${source_file}"
+done
 record_pass source-contract 'frozen names; test code remains isolated'
 
-build_case serial SIZE.h.serial no
-build_case mpi4 SIZE.h.mpi4 yes
+build_case serial SIZE.h.serial no yes
+build_case mpi4 SIZE.h.mpi4 yes yes
+build_case production-serial SIZE.h.serial no no
 run_positive bom-serial serial 1
 run_positive bom-mpi4 mpi4 4
+run_production_smoke
 run_leew_compat
 run_negative current-unset data.bom.unset \
   'BOM requires explicit current policy'

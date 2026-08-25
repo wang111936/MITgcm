@@ -26,6 +26,7 @@ CEOP
       CALL BOM_INIT_STATE( myThid )
       IF ( the_run_name.EQ.'P21-ENDPOINT-STATE' ) THEN
         CALL BOM_VERIFY_ENDPOINT_STATE( myThid )
+        CALL BOM_VERIFY_ENDPOINT_TRANSACTION( myThid )
       ENDIF
 #endif
 

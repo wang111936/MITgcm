@@ -487,8 +487,8 @@ C-      Retain the Phase-0 gate signature while that baseline is frozen.
 
       IF ( bomMaxParticles.GT.0 .AND. bomMode.EQ.'BOM' ) THEN
         WRITE(msgBuf,'(2A)')
-     &       'BOM_CHECK: non-zero BOM endpoint providers are ',
-     &       'not connected in the P2.1 first increment'
+     &       'BOM_CHECK: non-zero BOM particle RHS is ',
+     &       'not connected during P2.1 endpoint development'
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
