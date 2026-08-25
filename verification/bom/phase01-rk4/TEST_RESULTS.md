@@ -80,6 +80,24 @@ Summary: 11/11 PASS.
    the full RK2 numerical, rollback, MPI4, and Julia matrix then passed 11/11
    on the same implementation head.
 
+## Ready-review P1-I03 remediation
+
+Commit `0458910a9bb484aab8901d1a17046e3804e82165` adds a direct spherical-polar
+production-RK4 acceptance at nonzero latitude. Pure east and pure north SI
+velocities are advanced for 300 seconds and compared with analytic longitude
+and latitude displacement using the same `rSphere` and `deg2rad` as production.
+
+The clean exact-head gate passed **12/12**:
+
+```text
+run:      /home/wyl/runs/mitgcm-bom/phase01-single-tile/p13-ready-i03-rk4-0458910a-attempt01
+artifact: /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p13/p13-ready-i03-rk4-0458910a-attempt01
+summary:  f96989908429bff60562c02bdcf9b6af96423d379824d7d253ded0691cb60fb0
+```
+
+This remediation changes verification code and input only; production Fortran
+is unchanged.
+
 ## Remaining boundary
 
 `BOM_RK4` is a stateless trial kernel: it returns a locally accepted candidate
