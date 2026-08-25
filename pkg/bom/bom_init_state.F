@@ -57,6 +57,14 @@ C !LOCAL VARIABLES:
           bomEnvVWork(i,j,1,bi,bj) = 0. _d 0
           bomEnvEastWork(i,j,1,bi,bj) = 0. _d 0
           bomEnvNorthWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindUWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindVWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindEastWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindNorthWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindU0(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindU1(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindV0(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindV1(i,j,1,bi,bj) = 0. _d 0
           DO iSource=1,BOM_ENV_NSOURCE
            DO iEnd=1,BOM_ENV_NEND
             bomEnvEast(i,j,iEnd,iSource,bi,bj) = 0. _d 0

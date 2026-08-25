@@ -62,8 +62,8 @@ C !INTERFACE:
      I                 myThid )
 
 C !DESCRIPTION:
-C     Prepare, validate, and atomically publish ocean/NONE/NONE endpoint
-C     state.  A failed component return leaves accepted state unchanged.
+C     Prepare, validate, and atomically publish environmental endpoints.
+C     A failed component return leaves accepted state unchanged.
 
 C !USES:
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -95,6 +95,7 @@ C !LOCAL VARIABLES:
       _RL oldTime, interval, timeScale, timeTol
       _RL eastValue, northValue
       LOGICAL isNear, compareValid, wetPoint, fieldInvalid
+      LOGICAL windProviderValid
 
       failCode = BOM_FAIL_NONE
       failStage = BOM_STAGE_NONE
@@ -178,12 +179,17 @@ C--   Validate labels and accepted NEW continuity before scratch writes.
         RETURN
       ENDIF
 
-C--   This production increment accepts only exact zero auxiliary sources.
+C--   Stokes remains NONE; wind is either exact zero or the EXF provider.
       localErrCount = 0
-      IF ( bomWindSource.NE.'NONE' )
+      IF ( bomWindSource.NE.'NONE' .AND.
+     &     bomWindSource.NE.'EXF' )
      &     localErrCount = localErrCount + 1
       IF ( bomStokesSource.NE.'NONE' )
      &     localErrCount = localErrCount + 1
+#ifndef ALLOW_EXF
+      IF ( bomWindSource.EQ.'EXF' )
+     &     localErrCount = localErrCount + 1
+#endif
       globalErrCount = localErrCount
       CALL GLOBAL_SUM_INT( globalErrCount, myThid )
       IF ( globalErrCount.GT.0 ) THEN
@@ -249,6 +255,20 @@ C--   Ocean source: surface C-grid copy, C-point colocation and rotation.
       CALL EXCH_3D_RL( bomEnvEastWork, 1, myThid )
       CALL EXCH_3D_RL( bomEnvNorthWork, 1, myThid )
 
+C--   EXF is evaluated independently at the exact requested endpoint.
+      windProviderValid = .TRUE.
+      IF ( bomWindSource.EQ.'EXF' ) THEN
+        CALL BOM_GET_EXF_WIND(
+     I       targetTime, targetIter,
+     O       failCode, windProviderValid,
+     I       myThid )
+        IF ( .NOT.windProviderValid ) THEN
+          failCode = BOM_FAIL_FIELD_SOURCE
+          failStage = BOM_STAGE_FIELD_NEW
+          RETURN
+        ENDIF
+      ENDIF
+
 C--   Publish the candidate NEW source values only into scratch storage.
       DO bj=myByLo(myThid),myByHi(myThid)
        DO bi=myBxLo(myThid),myBxHi(myThid)
@@ -262,6 +282,14 @@ C--   Publish the candidate NEW source values only into scratch storage.
             bomEnvNorthScratch(i,j,BOM_ENV_NEW,
      &           BOM_ENV_EULERIAN,bi,bj) =
      &           bomEnvNorthWork(i,j,1,bi,bj)
+            IF ( bomWindSource.EQ.'EXF' ) THEN
+              bomEnvEastScratch(i,j,BOM_ENV_NEW,
+     &             BOM_ENV_WIND,bi,bj) =
+     &             bomExfWindEastWork(i,j,1,bi,bj)
+              bomEnvNorthScratch(i,j,BOM_ENV_NEW,
+     &             BOM_ENV_WIND,bi,bj) =
+     &             bomExfWindNorthWork(i,j,1,bi,bj)
+            ENDIF
             DO iSource=1,BOM_ENV_NSOURCE
               bomEnvValidScratch(i,j,BOM_ENV_NEW,
      &             iSource,bi,bj) = .TRUE.

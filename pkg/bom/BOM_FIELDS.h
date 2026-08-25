@@ -71,6 +71,32 @@ C     state and are not part of the pickup interface.
      &       bomEnvUWork, bomEnvVWork,
      &       bomEnvEastWork, bomEnvNorthWork
 
+C--   EXF wind is evaluated in BOM-owned current/record arrays.  The
+C     EXF package global current and record arrays are never aliased.
+      _RL bomExfWindUWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomExfWindVWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomExfWindEastWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomExfWindNorthWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_EXF_WIND_WORK_R/
+     &       bomExfWindUWork, bomExfWindVWork,
+     &       bomExfWindEastWork, bomExfWindNorthWork
+
+      _RL bomExfWindU0(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomExfWindU1(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomExfWindV0(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomExfWindV1(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_EXF_WIND_REC_R/
+     &       bomExfWindU0, bomExfWindU1,
+     &       bomExfWindV0, bomExfWindV1
+
       _RL bomEnvTimeScratch(BOM_ENV_NEND)
       COMMON /BOM_ENV_SCRATCH_TIME_R/ bomEnvTimeScratch
 

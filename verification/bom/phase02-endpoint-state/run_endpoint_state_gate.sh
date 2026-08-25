@@ -25,7 +25,7 @@ log() {
   printf '[P2.1-endpoint] %s\n' "$*"
 }
 
-for required in bash make nm grep shellcheck mpirun sha256sum; do
+for required in bash make nm grep shellcheck mpirun sha256sum python3; do
   command -v "${required}" >/dev/null 2>&1 \
     || fail "required command not found: ${required}"
 done
@@ -49,6 +49,7 @@ build_case() {
   local size_file="$2"
   local mpi_enabled="$3"
   local test_driver="$4"
+  local packages_file="${5:-packages.conf}"
   local build_dir="${BUILD_ROOT}/${name}"
   local mods_dir="${BUILD_ROOT}/${name}-mods"
   local -a args
@@ -58,10 +59,12 @@ build_case() {
   mkdir -p "${build_dir}" "${mods_dir}"
   cp -a "${EXP2_CODE}/." "${mods_dir}/"
   cp "${CASE_DIR}/code/${size_file}" "${mods_dir}/SIZE.h"
-  cp "${CASE_DIR}/code/packages.conf" "${mods_dir}/packages.conf"
+  cp "${CASE_DIR}/code/${packages_file}" "${mods_dir}/packages.conf"
   if [[ "${test_driver}" == yes ]]; then
     cp "${CASE_DIR}/code/bom_init_varia.F" "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_endpoint_transaction.F" \
+      "${mods_dir}/"
+    cp "${CASE_DIR}/code/bom_verify_exf_endpoints.F" \
       "${mods_dir}/"
   fi
   args=(
@@ -84,10 +87,16 @@ build_case() {
   [[ -x "${build_dir}/mitgcmuv" ]] || fail "missing executable: ${name}"
   nm "${build_dir}/mitgcmuv" > "${build_dir}/symbols.txt"
   symbols=(bom_check_ bom_init_state_ bom_build_endpoints_ \
-           bom_try_build_endpoints_)
+           bom_try_build_endpoints_ bom_get_exf_wind_)
   if [[ "${test_driver}" == yes ]]; then
     symbols+=(bom_verify_endpoint_state_ \
               bom_verify_endpoint_transaction_)
+  fi
+  if [[ "${packages_file}" == packages.exf.conf ]]; then
+    symbols+=(exf_init_varia_)
+    if [[ "${test_driver}" == yes ]]; then
+      symbols+=(bom_verify_exf_endpoints_)
+    fi
   fi
   for symbol in "${symbols[@]}"; do
     grep -q "${symbol}" "${build_dir}/symbols.txt" \
@@ -108,6 +117,25 @@ prepare_run() {
   cp "${CASE_DIR}/input/data.pkg" "${run_dir}/data.pkg"
   cp "${CASE_DIR}/input/${bom_input}" "${run_dir}/data.bom"
   ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" "${run_dir}/mitgcmuv"
+}
+
+prepare_exf_run() {
+  local run_name="$1"
+  local build_name="$2"
+  local run_dir="${RUN_ROOT}/${run_name}"
+
+  mkdir -p "${run_dir}"
+  cp "${CASE_DIR}/input/data" "${run_dir}/data"
+  sed -i 's/P21-ENDPOINT-STATE/P21-EXF-ENDPOINTS/' \
+    "${run_dir}/data"
+  cp "${CASE_DIR}/input/eedata" "${run_dir}/eedata"
+  cp "${CASE_DIR}/input/data.pkg.exf" "${run_dir}/data.pkg"
+  cp "${CASE_DIR}/input/data.bom.exf" "${run_dir}/data.bom"
+  cp "${CASE_DIR}/input/data.exf" "${run_dir}/data.exf"
+  python3 "${CASE_DIR}/input/generate_exf_fixture.py" \
+    --output-dir "${run_dir}"
+  ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" \
+    "${run_dir}/mitgcmuv"
 }
 
 assert_normal_log() {
@@ -157,6 +185,42 @@ run_positive() {
     'fresh/normal ocean-NONE-NONE and rollback transaction'
 }
 
+run_exf_positive() {
+  local name="$1"
+  local build_name="$2"
+  local ranks="$3"
+  local run_dir="${RUN_ROOT}/${name}"
+  local combined="${run_dir}/combined.log"
+  local rank
+  local rank_log
+
+  log "run ${name}"
+  prepare_exf_run "${name}" "${build_name}"
+  if [[ "${ranks}" -eq 1 ]]; then
+    (
+      cd "${run_dir}"
+      ./mitgcmuv > run.log 2>&1
+    )
+    assert_normal_log "${run_dir}/run.log"
+    cp "${run_dir}/run.log" "${combined}"
+  else
+    (
+      cd "${run_dir}"
+      mpirun -np "${ranks}" ./mitgcmuv > mpi-launch.log 2>&1
+    )
+    : > "${combined}"
+    for ((rank=0; rank<ranks; rank++)); do
+      printf -v rank_log '%s/STDOUT.%04d' "${run_dir}" "${rank}"
+      assert_normal_log "${rank_log}"
+      cat "${rank_log}" >> "${combined}"
+    done
+  fi
+  [[ "$(grep -c 'P2.1 EXF ENDPOINT PASS' "${combined}")" -eq 1 ]] \
+    || fail "EXF endpoint marker count is not one: ${name}"
+  record_pass "${name}" \
+    'P2-E03 exact EXF values and P2-N03 transactional rollback'
+}
+
 run_production_smoke() {
   local run_dir="${RUN_ROOT}/production-one-step"
 
@@ -173,6 +237,24 @@ run_production_smoke() {
   fi
   record_pass production-one-step \
     'production fresh hook and one normal zero-particle step'
+}
+
+run_exf_production_smoke() {
+  local run_dir="${RUN_ROOT}/production-exf-one-step"
+
+  log 'run production-exf-one-step'
+  prepare_exf_run production-exf-one-step production-exf-serial
+  sed -i 's/endTime=0\./endTime=1200./' "${run_dir}/data"
+  (
+    cd "${run_dir}"
+    ./mitgcmuv > run.log 2>&1
+  )
+  assert_normal_log "${run_dir}/run.log"
+  if grep -q 'P2.1 EXF ENDPOINT PASS' "${run_dir}/run.log"; then
+    fail 'test-only EXF endpoint driver leaked into production build'
+  fi
+  record_pass production-exf-one-step \
+    'production exact-time EXF fresh hook and one normal step'
 }
 
 run_leew_compat() {
@@ -238,14 +320,23 @@ for source_file in bom_init_varia.F bom_main.F; do
     "${REPO_ROOT}/pkg/bom/${source_file}" \
     || fail "production lifecycle hook missing: ${source_file}"
 done
+grep -q 'CALL BOM_GET_EXF_WIND' \
+  "${REPO_ROOT}/pkg/bom/bom_build_endpoints.F" \
+  || fail 'production EXF endpoint provider hook missing'
 record_pass source-contract 'frozen names; test code remains isolated'
 
 build_case serial SIZE.h.serial no yes
 build_case mpi4 SIZE.h.mpi4 yes yes
 build_case production-serial SIZE.h.serial no no
+build_case exf-serial SIZE.h.serial no yes packages.exf.conf
+build_case exf-mpi4 SIZE.h.mpi4 yes yes packages.exf.conf
+build_case production-exf-serial SIZE.h.serial no no packages.exf.conf
 run_positive bom-serial serial 1
 run_positive bom-mpi4 mpi4 4
+run_exf_positive bom-exf-serial exf-serial 1
+run_exf_positive bom-exf-mpi4 exf-mpi4 4
 run_production_smoke
+run_exf_production_smoke
 run_leew_compat
 run_negative current-unset data.bom.unset \
   'BOM requires explicit current policy'

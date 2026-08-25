@@ -27,6 +27,10 @@ CEOP
       IF ( the_run_name.EQ.'P21-ENDPOINT-STATE' ) THEN
         CALL BOM_VERIFY_ENDPOINT_STATE( myThid )
         CALL BOM_VERIFY_ENDPOINT_TRANSACTION( myThid )
+      ELSEIF ( the_run_name.EQ.'P21-EXF-ENDPOINTS' ) THEN
+#ifdef ALLOW_EXF
+        CALL BOM_VERIFY_EXF_ENDPOINTS( myThid )
+#endif
       ENDIF
 #endif
 
