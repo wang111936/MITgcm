@@ -113,3 +113,14 @@ P2.1 不加入空间导数、协变项、慢流形 RHS 或 RK stage 接线；这
 - 远端审计：5/5 文件为 Markdown，论文/Julia 模式、显式 current policy、
   exact endpoint、P2-H/N 编号和隔离命名检查全部 PASS；
 - 结果：P2.0 关闭，无开放 finding；`MITGCM-BOM-v0.3` 未创建。
+
+## 9. P2.1 首增量记录
+
+- 功能提交：`920e22fbdcdf7ceb59f2bd795cad86d116ac21af`；
+- 实现范围：冻结参数、stable source/endpoint/failure/stage codes、accepted endpoint 零状态；
+- 权威测试 ID：`p21-endpoint-920e22fbd-attempt01`；
+- 结果：source contract、串行/MPI4 构建、BOM 串行/MPI4、LEEW compatibility 与 7 项负测共 13/13 PASS；
+- summary SHA-256：`29453e3305d6d6a43bb8b055995417109644e3a53dbf5a5f93b38e1969440293`；
+- 证据目录：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-endpoint-920e22fbd-attempt01`；
+- 边界：未实现 exact-time providers、transaction commit、时间插值、field pickup、导数或 RHS；
+- 状态：P2.1 继续进行，无开放 finding，不创建 `MITGCM-BOM-v0.3`。

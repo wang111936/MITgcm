@@ -9,11 +9,11 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/development` |
-| 当前阶段 PR | 无；最近完成 `wang111936/MITgcm#19`（P2.0 设计冻结） |
+| 当前任务分支 | `MITGCM-BOM/p2.1-environment-endpoints` |
+| 当前阶段 PR | 无；P2.1 首增量功能提交 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af` |
 | 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
-| 当前工作包 | P2.0 接口、需求与测试冻结完成 |
-| 下一工作包 | P2.1 transactional old/new 环境场与 exact-time providers |
+| 当前工作包 | P2.1 首增量完成：参数契约、稳定代码、accepted endpoint 零状态 |
+| 下一工作包 | P2.1 transactional publisher 与 ocean/NONE/NONE exact endpoints |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -23,8 +23,8 @@
 1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
 2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
 3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 下一开发任务是 P2.1，只加入 transactional old/new 场状态、精确端点 providers、时间插值、Stokes policy 和 schema-2 场状态；
-5. 本增量禁止提前加入空间导数、慢流形 RHS 或 RK stage 接线，验收范围为 P2-C01/C02、P2-Z01、P2-E01—E06 和 P2-N01—N04。
+4. 从功能提交 `920e22fbd` 继续 P2.1，先实现 fresh 双端点和正常 old/new 的 transactional publisher；
+5. 首先接通 ocean、`wind=NONE`、`Stokes=NONE` 的 exact endpoints 与 rollback 门禁，仍禁止提前加入导数、RHS 或 RK stage 接线。
 
 开始前执行：
 
@@ -41,7 +41,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.0 已完成；下一步 P2.1 old/new 场与 providers | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 首增量 13/13 PASS；下一步 transactional endpoints | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -178,6 +178,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 审计修复提交 `2f346d98cf978922cae53bff67fc32088cbb8941` 将 `BOM_MAIN` 接入非移动映射/插值诊断与调用层集体终止，并补齐映射初始化和极端周期输入的有限性防护；
 - 修复后插值/生命周期 15/15、映射 19/19、字段 7/7、P1.1 42/42、Phase 0 4/4 与嵌套 P0.4 9/9 均 PASS；
 - P1.2 最终审计为 PASS，P1-R05—P1-R07 全部关闭；详见 `verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md`。
+
+### P2.1 参数与 accepted endpoint 状态首增量
+
+- 功能提交 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af` 加入冻结参数、稳定代码和双端点 accepted storage；
+- 权威 `p21-endpoint-920e22fbd-attempt01` 在干净精确提交上通过 13/13 summary 行；
+- GNU 串行与 MPI4 构建、BOM 串行/MPI4 初始化、LEEW 零影响及 7 项负向门禁均 PASS；
+- summary SHA-256 为 `29453e3305d6d6a43bb8b055995417109644e3a53dbf5a5f93b38e1969440293`；
+- 本结果不关闭 P2.1：exact-time providers、事务发布、插值与 field pickup 仍待实现；
+- 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
 
@@ -535,6 +544,16 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 核心冻结为 5 个 Markdown、1086 行，状态收口另更新 4 个 Markdown；没有生产 Fortran、脚本、算例输入或生成证据变化，因此未运行编译/数值矩阵；
 - P2.0 无开放 finding，Phase 2 状态改为进行中；未创建 `MITGCM-BOM-v0.3`；
 - 唯一下一任务为 P2.1 transactional old/new 环境场与 exact-time providers，不混入 P2.2 导数或 P2.3 RHS。
+
+### 2026-08-25：P2.1 参数与 accepted endpoint 状态首增量
+
+- 从 PR #19 合并提交建立 `MITGCM-BOM/p2.1-environment-endpoints`，未读取或修改其他开发工程；
+- 实现全部冻结运行参数、`bomTauDays` 防溢出秒转换、current/Stokes policy matrix 和 FILES 元数据预检；
+- 新增 `BOM_FIELDS.h` accepted old/new/source/time/iteration/valid/ready 状态，并保持 Phase-1 `bomGrid*` 状态不变；
+- 稳定 failure code 9—15、stage code 6—8 及 source/endpoint code 已由直接断言固定；
+- 功能提交为 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af`；权威门禁 13/13 PASS；
+- 当前明确保留非零 `BOM` 拒绝，P2.1 尚未关闭，不创建 `MITGCM-BOM-v0.3`；
+- 唯一下一任务为 transactional fresh/normal endpoint publisher 与 ocean/NONE/NONE providers。
 
 ## 6. 每次会话结束时必须更新
 
