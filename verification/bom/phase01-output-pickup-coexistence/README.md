@@ -16,7 +16,10 @@ MITgcm `pkg/flt` 独立共存。
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p15/<test-id>/
 ```
 
-当前状态：轨迹输出、同分解事务性 pickup/restart 和 FLT 独立共存生产
-实现已完成。开发工作树上的 output/pickup 25/25、真实迁移 12/12、
-FLT/BOM 共存 25/25 均通过；clean exact-head 专属门禁和全部前序回归仍
-是关闭 P1.5 与 Phase 1 前的必要条件。
+当前状态：**IMPLEMENTATION/EVIDENCE PASS — INDEPENDENT READY REVIEW
+PENDING**。clean exact head
+`cb1ffa1ece1cb0b3f1fcb77e9786eb264a439584` 上的 output/pickup 25/25、
+真实迁移 12/12、FLT/BOM 共存 25/25 及 P1.4 到 Phase 0 的 193/193
+前序回归均通过，P1-G01 合计 255/255。权威执行记录见
+[`TEST_RESULTS.md`](TEST_RESULTS.md)，最终范围审计见
+[`../phase01-bom-lite/P1.5_SCOPE_AUDIT.md`](../phase01-bom-lite/P1.5_SCOPE_AUDIT.md)。
