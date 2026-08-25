@@ -117,6 +117,7 @@ P2.1 不加入空间导数、协变项、慢流形 RHS 或 RK stage 接线；这
 ## 9. P2.1 首增量记录
 
 - 功能提交：`920e22fbdcdf7ceb59f2bd795cad86d116ac21af`；
+- GitHub 记录：Draft PR #20，base `MITGCM-BOM/development`，保持未合并；
 - 实现范围：冻结参数、stable source/endpoint/failure/stage codes、accepted endpoint 零状态；
 - 权威测试 ID：`p21-endpoint-920e22fbd-attempt01`；
 - 结果：source contract、串行/MPI4 构建、BOM 串行/MPI4、LEEW compatibility 与 7 项负测共 13/13 PASS；

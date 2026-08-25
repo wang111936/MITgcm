@@ -10,7 +10,7 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/p2.1-environment-endpoints` |
-| 当前阶段 PR | 无；P2.1 首增量功能提交 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af` |
+| 当前阶段 PR | Draft PR #20；P2.1 首增量功能提交 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af` |
 | 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
 | 当前工作包 | P2.1 首增量完成：参数契约、稳定代码、accepted endpoint 零状态 |
 | 下一工作包 | P2.1 transactional publisher 与 ocean/NONE/NONE exact endpoints |
@@ -548,6 +548,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 ### 2026-08-25：P2.1 参数与 accepted endpoint 状态首增量
 
 - 从 PR #19 合并提交建立 `MITGCM-BOM/p2.1-environment-endpoints`，未读取或修改其他开发工程；
+- 分支已推送并创建 Draft PR #20，目标为 `MITGCM-BOM/development`；当前不授权 Ready 或合并；
 - 实现全部冻结运行参数、`bomTauDays` 防溢出秒转换、current/Stokes policy matrix 和 FILES 元数据预检；
 - 新增 `BOM_FIELDS.h` accepted old/new/source/time/iteration/valid/ready 状态，并保持 Phase-1 `bomGrid*` 状态不变；
 - 稳定 failure code 9—15、stage code 6—8 及 source/endpoint code 已由直接断言固定；
