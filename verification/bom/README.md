@@ -16,7 +16,8 @@ external environmental datasets remain outside the repository.
 - `phase01-bom-lite/`: P1.0 requirements/test baseline plus the P1.1
   state/initial-file generator, serial/MPI/debug gate, compact results,
   and the staged plan for mapping, leeway integration, owner migration,
-  trajectory output, pickup restart, and FLT coexistence;
+  trajectory output, pickup restart, FLT coexistence, final integration
+  evidence, and the independent Phase 1 exit audit;
 - `phase01-mapping/`: P1.2 regular Cartesian/spherical mapping, 360-degree
   longitude normalization, inverse mapping, and unsupported-grid guards;
 - `phase01-fields/`: P1.2 single-level C-grid surface-field construction,

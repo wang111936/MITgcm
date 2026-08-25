@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 需求追踪
 
-状态：P1.1—P1.5 生产实现完成；PR #13/#14 已顺序集成；P1.5 同步 clean head 的专属 62/62、前序 195/195 及 P1-G01 257/257 全部 PASS，P1-R01—P1-R16 无开放实现或证据 finding；PR #15 等待独立 Ready 复审
+状态：**COMPLETE**；P1.1—P1.5 已顺序集成，最终 development code head `3f330b59d` 的 P1-G01 257/257 PASS，P1-R01—P1-R16 无开放实现或证据 finding，独立 Phase 1 退出审计 PASS
 
 本表是 Phase 1 需求、计划例程和测试之间的权威映射。实现阶段不得把“已有代码”当作完成证据；只有对应测试通过并在 `TEST_RESULTS.md` 记录后，需求状态才能改为完成。
 
@@ -105,3 +105,8 @@
 - 若需求拆分或编号变更，旧编号保留为 deprecated 记录，不能静默复用；
 - P1.5 集成审计使用 `rg` 生成“例程—需求—测试”清单，与本表比较；
 - `TEST_RESULTS.md` 只记录实际执行证据，不把计划状态写成通过。
+
+最终集成证据见 [`PHASE1_INTEGRATION_RESULTS.md`](PHASE1_INTEGRATION_RESULTS.md)，
+独立退出裁决见 [`PHASE1_EXIT_AUDIT.md`](PHASE1_EXIT_AUDIT.md)。聚合证据
+manifest SHA-256 为
+`d5a83b7d0e1033bfc105aaab52f688aec38ac2de871ab7824d9135f864290af7`。

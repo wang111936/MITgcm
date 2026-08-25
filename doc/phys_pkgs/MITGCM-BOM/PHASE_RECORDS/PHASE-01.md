@@ -6,10 +6,10 @@
 | 目标版本 | `MITGCM-BOM-v0.2` |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
-| 当前分支 | `MITGCM-BOM/phase-01-output-pickup-coexistence` |
-| 当前 PR | `wang111936/MITgcm#15`（Draft，P1.5 输出、pickup 与 FLT 共存） |
-| 当前工作包 | P1.5 最终 P1-G01 与 Ready 复审准备 |
-| 状态 | P1.0—P1.4 已集成；P1.5 专属 62/62、前序 195/195 和 P1-G01 257/257 均通过，等待独立 Ready 复审 |
+| 当前分支 | `MITGCM-BOM/phase-01-exit-audit` |
+| 当前 PR | `wang111936/MITgcm#16`（Phase 1 退出审计记录） |
+| 当前工作包 | 最终集成证据、独立退出审计与 v0.2 发布收口 |
+| 状态 | P1.0—P1.5 已顺序集成；最终代码头 257/257 与独立退出审计 PASS，等待审计记录合并和标签 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -28,7 +28,7 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | P1.2 映射与环境场 | 完成 | PR #10 `fe51332e1` / PR #11 `34edbc50c` / PR #12 `eefca92fe` | 全门禁、两轮集成记录与最终纯文档收口完成 |
 | P1.3 单 tile 积分 | 完成 | `MITGCM-BOM/phase-01-single-tile-integration` / PR #13 | merge commit `41fb093866ef4c2dbda778696892457cfca160f9`；累计 159 项验收通过 |
 | P1.4 owner 迁移 | 完成 | `MITGCM-BOM/phase-01-owner-migration` / PR #14 | merge commit `9d258da4ff43d84f4877ba11d894af0e96b3177b`；同步精确头门禁通过 |
-| P1.5 输出与重启 | 进行中 | `MITGCM-BOM/phase-01-output-pickup-coexistence` / Draft PR #15 | 生产实现、62/62 专属、195/195 前序及 P1-G01 257/257 通过，等待 Ready 复审 |
+| P1.5 输出与重启 | 完成 | `MITGCM-BOM/phase-01-output-pickup-coexistence` / PR #15 | merge commit `3f330b59db76b8d7d0ca0fb2bfd007e567fbd6bc`；最终 development 代码头 257/257 PASS |
 
 ## 3. P1.0 交付范围
 
@@ -146,22 +146,22 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 ## 7. Phase 1 总退出条件
 
-- [ ] P1.1—P1.5 全部完成并顺序集成；
-- [ ] 解析、收敛、迁移、重启和 FLT 共存门禁全部通过；
-- [ ] Phase 0 完整门禁重新执行且无回归；
-- [ ] Julia 专用 RHS/golden 限制有明确结论；
-- [ ] 目标服务器所需但本地无法验证的条件已单独记录；
-- [ ] 集成分支创建 `MITGCM-BOM-v0.2` 前完成独立退出审计。
+- [x] P1.1—P1.5 全部完成并顺序集成；
+- [x] 解析、收敛、迁移、重启和 FLT 共存门禁全部通过；
+- [x] Phase 0 完整门禁重新执行且无回归；
+- [x] Julia 专用 RHS/golden 限制有明确结论；
+- [x] 目标服务器所需但本地无法验证的条件已单独记录；
+- [x] 集成分支创建 `MITGCM-BOM-v0.2` 前完成独立退出审计。
 
 ## 8. 下一恢复点
 
-从 `MITGCM-BOM/phase-01-mapping-environment-closeout` 恢复：
+从 `MITGCM-BOM/phase-01-exit-audit` 恢复：
 
-1. 核对当前分支基于 PR #11 merge commit `34edbc50c849379e3d4b3456f81c673c7801945b`；
-2. 以 [`P1.2_CLOSEOUT.md`](../../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT.md)、[`P1.2_CLOSEOUT_AUDIT.md`](../../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT_AUDIT.md) 和 [`P1.2_INTEGRATION_RESULTS.md`](../../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_RESULTS.md) 作为证据入口；
-3. 核对唯一的 merge-range finding 已由 `b43a702a5197f115a956944973a00a0587a43ebc` 关闭，复审结论为 PASS、无开放 finding；
-4. 下一步等待明确授权后才可将 Draft PR #12 标记 Ready；Ready 不授权合并；
-5. 未获后续授权不合并 PR #12、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
+1. 以 [`PHASE1_INTEGRATION_RESULTS.md`](../../../../verification/bom/phase01-bom-lite/PHASE1_INTEGRATION_RESULTS.md) 和 [`PHASE1_EXIT_AUDIT.md`](../../../../verification/bom/phase01-bom-lite/PHASE1_EXIT_AUDIT.md) 为最终证据入口；
+2. 核对 production code head `3f330b59d` 的 257/257 与聚合 manifest；
+3. 合并纯文档退出记录后创建 annotated tag `MITGCM-BOM-v0.2`；
+4. 标签发布后把项目状态切换为 Phase 1 完成、Phase 2 可启动；
+5. Phase 2 首个增量只冻结 old/new 环境场、Stokes 与慢流形方程接口，不混入弹簧或生物过程。
 
 ## 9. P1.2 启动记录
 
@@ -350,3 +350,16 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - P1-D030—P1-D033、P1-N01b/P1-N08 和需求反向链接一致，P1.3-A—P1.3-E 全部关闭，结论为 PASS、无开放 finding；
 - PR #13 仍为 open、Draft、未合并，base/head 正确；本地和远端均无 `MITGCM-BOM-v0.2` 标签；
 - 复核范围为纯 Markdown，因此没有执行生产编译或数值矩阵。PASS 只允许请求下一生产增量授权，不自动授权实现、Ready、合并或标签。
+
+## 11. Phase 1 最终集成与退出审计
+
+- PR #13、#14、#15 依次以 `41fb093866ef4c2dbda778696892457cfca160f9`、`9d258da4ff43d84f4877ba11d894af0e96b3177b`、`3f330b59db76b8d7d0ca0fb2bfd007e567fbd6bc` 集成；
+- 在 clean development code head `3f330b59d` 执行 P1-G01，15 组 summary 共 257/257 PASS；
+- P1.5 专属为 62/62，P1.4—P0.4 前序为 195/195；Phase 0 最终 4/4 与嵌套 P0.4 9/9 无回归；
+- 聚合证据根为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p15/p1-integrated-g01-3f330b59-attempt01`；
+- aggregate manifest SHA-256：`d5a83b7d0e1033bfc105aaab52f688aec38ac2de871ab7824d9135f864290af7`；
+- row audit SHA-256：`737c489957c7dbe65a8665955090dd2cbb76afc6e3f4fe463367b7414ad28fce`；
+- 9 份原生 manifest 与聚合 manifest 全部通过 `sha256sum -c`；所有原生 source head 与 `3f330b59d` 一致；
+- Julia 完整轨迹 golden 明确延至 Phase 2，Phase 1 只以锁定 RHS、单位换算和独立固定步 RK oracle 裁决已实现范围；
+- 目标服务器站点 optfile、调度器和并行文件系统验证保持 Phase 5 独立条件，不阻塞本地 GNU/MPI 的 Phase 2 准入；
+- 独立退出审计为 PASS、无开放 finding；审计前本地与远端均无 `MITGCM-BOM-v0.2`。

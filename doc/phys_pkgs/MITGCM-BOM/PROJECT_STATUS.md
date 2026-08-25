@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-01-output-pickup-coexistence` |
-| 当前阶段 PR | `wang111936/MITgcm#15`（Draft，P1.5 输出、pickup 与 FLT 共存） |
-| 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.5 生产实现、62/62 专属门禁、195/195 前序回归及 P1-G01 257/257 PASS |
-| 下一工作包 | 对 PR #15 执行独立 Ready 复审；通过后顺序集成并运行集成分支退出门禁 |
-| 当前阻塞 | 无生产或测试阻塞；等待 PR #15 独立 Ready 复审 |
+| 当前任务分支 | `MITGCM-BOM/phase-01-exit-audit` |
+| 当前阶段 PR | `wang111936/MITgcm#16`（Phase 1 退出审计记录） |
+| 当前阶段 | Phase 1：BOM-Lite / Leeway（技术退出 PASS，发布收口中） |
+| 当前工作包 | 最终 development 代码头 P1-G01 257/257 PASS；独立退出审计 PASS |
+| 下一工作包 | 合并纯文档退出审计，创建 `MITGCM-BOM-v0.2`，随后登记 Phase 2 准入 |
+| 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对当前分支为 `MITGCM-BOM/phase-01-output-pickup-coexistence`，已包含 PR #14 merge commit `9d258da4ff43d84f4877ba11d894af0e96b3177b`；
-2. 读取 [P1.5 最终审计](../../../verification/bom/phase01-bom-lite/P1.5_SCOPE_AUDIT.md) 和 [P1.5 执行证据](../../../verification/bom/phase01-output-pickup-coexistence/TEST_RESULTS.md)；
-3. 核对 clean exact head `adb9e315836079d8ef1280e15d7ede7aa52fee6c` 的 P1.5 专属 62/62 与前序 195/195；
-4. 核对聚合根 `p15-g01-adb9e315-attempt01` 的 257/257、9 份原生 manifest 与总 manifest；
-5. 对 PR #15 执行独立 Ready 复审；集成分支退出门禁前不创建 `MITGCM-BOM-v0.2` 标签。
+1. 核对代码集成头为 PR #15 merge commit `3f330b59db76b8d7d0ca0fb2bfd007e567fbd6bc`；
+2. 读取 [Phase 1 集成结果](../../../verification/bom/phase01-bom-lite/PHASE1_INTEGRATION_RESULTS.md) 和 [独立退出审计](../../../verification/bom/phase01-bom-lite/PHASE1_EXIT_AUDIT.md)；
+3. 核对聚合根 `p1-integrated-g01-3f330b59-attempt01` 的 257/257、9 份原生 manifest 和总 manifest；
+4. 只合并退出审计文档，不改动已验收生产源码；
+5. 审计记录集成后创建 annotated tag `MITGCM-BOM-v0.2`，再把项目状态切换为 Phase 2 可启动。
 
 开始前执行：
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0—P1.4 已集成；P1.5 实现及 P1-G01 257/257 通过，等待 PR #15 Ready 复审与最终集成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0—P1.5 已顺序集成；最终代码头 P1-G01 257/257 与独立退出审计 PASS，等待审计记录合并和标签 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -503,6 +503,17 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 以 WangYuLin 身份创建整改提交 `941c74e5b855753a5700f7b883a56924b57c2fc0`，从固定基线重新审计 8 个 Markdown、3 个提交、33 项决策、16 条需求与 28 个本地链接；范围、模式、身份、隔离词、标签和 GitHub Draft PR 状态全部通过；
 - P1.3-A—P1.3-E 全部关闭，独立设计复审结论为 PASS、无开放 finding；本轮没有编译或数值运行，因为范围仍为纯 Markdown；
 - PR #13 保持 Draft，不合并、不打标签；下一步等待单独的生产实现授权。
+
+### 2026-08-25：P1.3—P1.5 集成与 Phase 1 最终退出门禁
+
+- PR #13、#14、#15 分别以 merge commit `41fb093866ef4c2dbda778696892457cfca160f9`、`9d258da4ff43d84f4877ba11d894af0e96b3177b`、`3f330b59db76b8d7d0ca0fb2bfd007e567fbd6bc` 顺序集成；
+- 在最终 production code head `3f330b59d` 上重新执行 15 组门禁，P1.5 专属 62/62、前序 195/195、P1-G01 257/257 全部 PASS；
+- Phase 0 最终门禁 4/4 与嵌套 P0.4 9/9 在同一代码头通过；
+- 聚合证据根为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p15/p1-integrated-g01-3f330b59-attempt01`；
+- 聚合 manifest、逐行审计和退出计数 SHA-256 分别为 `d5a83b7d0e1033bfc105aaab52f688aec38ac2de871ab7824d9135f864290af7`、`737c489957c7dbe65a8665955090dd2cbb76afc6e3f4fe463367b7414ad28fce`、`dfaac4a9f07bddcafbae83a527f6b7cc9ddde827511590c28bbe3364df93397e`；
+- 9 份原生 manifest、15 份 summary、同一 source head、空 Git 状态、环境和门禁脚本哈希均复验通过；
+- Julia 参考适用边界与完整 trajectory golden 延期结论、目标服务器独立验证条件均已明确记录；
+- 独立退出审计结论为 PASS、无开放 finding；审计前本地与远端均不存在 `MITGCM-BOM-v0.2`。
 
 ## 6. 每次会话结束时必须更新
 
