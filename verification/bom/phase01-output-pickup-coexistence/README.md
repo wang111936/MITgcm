@@ -11,10 +11,12 @@ MITgcm `pkg/flt` 独立共存。
 预定证据根：
 
 ```text
-/home/wyl/build/mitgcm-bom/phase01-output-pickup/<test-id>/
-/home/wyl/runs/mitgcm-bom/phase01-output-pickup/<test-id>/
+/home/wyl/build/mitgcm-bom/phase01-output-pickup-coexistence/<test-id>/
+/home/wyl/runs/mitgcm-bom/phase01-output-pickup-coexistence/<test-id>/
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p15/<test-id>/
 ```
 
-当前状态：接口冻结与源码架构审计完成；生产实现、专属门禁和 exact-head
-前序回归尚未执行。
+当前状态：轨迹输出、同分解事务性 pickup/restart 和 FLT 独立共存生产
+实现已完成。开发工作树上的 output/pickup 25/25、真实迁移 12/12、
+FLT/BOM 共存 25/25 均通过；clean exact-head 专属门禁和全部前序回归仍
+是关闭 P1.5 与 Phase 1 前的必要条件。

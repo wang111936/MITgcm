@@ -150,6 +150,14 @@ C     Write restart file for floats
       ENDIF
 #endif
 
+#ifdef ALLOW_BOM
+C     Write BOM restart state with the same core checkpoint suffix.
+      IF ( useBOM ) THEN
+        CALL BOM_WRITE_PICKUP(
+     I                   suffix, myTime, myIter, myThid )
+      ENDIF
+#endif
+
 #ifdef ALLOW_PTRACERS
 C     Write restart file for passive tracers
       IF (usePTRACERS) THEN

@@ -1,6 +1,6 @@
 # P1.5 output, pickup, and FLT coexistence test plan
 
-状态：接口冻结；实现与执行待完成
+状态：生产实现和开发门禁通过；clean exact-head 总验收待执行
 
 ## 1. 证据原则
 
@@ -29,7 +29,9 @@
 - 解析每个 24-field record，验证 schema、单位、reserved、owner、
   sample/scheduled/next time 和 ID 高低字；
 - 合并所有 tile 并按 `(sampleTime,INTEGER*8 id)` 排序，要求每个 key
-  恰一条；serial/MPI4 canonical 表逐字段 bitwise 一致。
+  恰一条；同分解完整 24-field 表 bitwise 一致；跨分解对物理字段
+  1—9、12—17、21—24 做 bitwise 比较，local `i/j` 与 rank/tile owner
+  字段按 serial/MPI4 布局分别验证。
 
 ## 4. P1-O02 调度边界
 
@@ -49,7 +51,7 @@
 - 从同 suffix、相同分解恢复，再运行 N-K 步；
 - 比较最终 `bomNPartExpected`、每 tile count、完整 ID/status/x/y/
   release/age/i/j/ocean/wind/drift 和 next-output 状态；全部要求
-  bitwise 一致；
+  在同一分解的连续与 restart 之间 bitwise 一致；
 - 比较连续与 split 的 canonical trajectory key 集，无缺帧、重复或
   restart 初始化帧。
 

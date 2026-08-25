@@ -32,9 +32,10 @@ CEOP
       INTEGER bomMaxParticles
       INTEGER bomMaxHop
       INTEGER bomInitGlobalLimit
+      INTEGER bomInitialIter
       COMMON /BOM_PARM_I/
      &       bomSeed, bomMaxParticles, bomMaxHop,
-     &       bomInitGlobalLimit
+     &       bomInitGlobalLimit, bomInitialIter
 
       LOGICAL bomCheckEverySubstep
       COMMON /BOM_PARM_L/ bomCheckEverySubstep

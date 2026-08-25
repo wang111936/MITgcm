@@ -31,8 +31,8 @@ C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       _RL timeScale, timeTol, scheduledTime, nextTime
       INTEGER localErrCount, globalErrCount
+      INTEGER localOwnerCount, globalOwnerCount, bi, bj
 
-      IF ( bomMaxParticles.LE.0 ) RETURN
       IF ( bomOutputFreq.EQ.0. _d 0 ) RETURN
 
       localErrCount = 0
@@ -85,8 +85,42 @@ C--   The frozen frequency bound permits at most one scheduled event.
         STOP 'ABNORMAL END: S/R BOM_OUTPUT'
       ENDIF
 
-      CALL BOM_CHECK_STATE(
-     I     myTime, myIter, 'OUTPUT', myThid )
+      IF ( bomNPartExpected.GT.0 ) THEN
+        CALL BOM_CHECK_STATE(
+     I       myTime, myIter, 'OUTPUT', myThid )
+      ELSE
+C--     Explicitly enabled zero-particle output still writes tiled headers.
+        localErrCount = 0
+        localOwnerCount = 0
+        IF ( bomNPartExpected.NE.0 ) localErrCount = 1
+        DO bj=myByLo(myThid),myByHi(myThid)
+         DO bi=myBxLo(myThid),myBxHi(myThid)
+          IF ( bomNPartTile(bi,bj).LT.0 .OR.
+     &         bomNPartTile(bi,bj).GT.bomMaxPartTile ) THEN
+            localErrCount = localErrCount + 1
+          ELSE
+            localOwnerCount = localOwnerCount + bomNPartTile(bi,bj)
+          ENDIF
+         ENDDO
+        ENDDO
+        globalErrCount = localErrCount
+        globalOwnerCount = localOwnerCount
+        CALL GLOBAL_SUM_INT( globalErrCount, myThid )
+        CALL GLOBAL_SUM_INT( globalOwnerCount, myThid )
+        IF ( globalOwnerCount.NE.0 ) globalErrCount = globalErrCount + 1
+        IF ( globalErrCount.GT.0 ) THEN
+          _BEGIN_MASTER(myThid)
+          IF ( myProcId.EQ.0 ) THEN
+            WRITE(msgBuf,'(A,I12,A,2I12)')
+     &           'BOM_OUTPUT: empty-state budget iter=', myIter,
+     &           ' owner/errors=', globalOwnerCount, globalErrCount
+            CALL PRINT_ERROR( msgBuf, myThid )
+          ENDIF
+          _END_MASTER(myThid)
+          CALL ALL_PROC_DIE( 0 )
+          STOP 'ABNORMAL END: S/R BOM_OUTPUT'
+        ENDIF
+      ENDIF
       CALL BOM_WRITE_TRAJECTORY(
      I     myTime, scheduledTime, myIter, myThid )
 

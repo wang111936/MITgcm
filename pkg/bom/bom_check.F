@@ -11,7 +11,7 @@ C !INTERFACE:
       SUBROUTINE BOM_CHECK( myThid )
 
 C !DESCRIPTION:
-C     Validate the Phase-1.4 setup, state, and migration configuration.
+C     Validate the Phase-1.5 setup, state, migration, and restart controls.
 
 C !USES:
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -41,7 +41,7 @@ C !LOCAL VARIABLES:
       _BEGIN_MASTER(myThid)
 
       WRITE(msgBuf,'(A)')
-     &     'BOM_CHECK: Phase-1.4 setup, state, and migration gate'
+     &     'BOM_CHECK: Phase-1.5 setup, state, migration, restart gate'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
       CALL WRITE_0D_C( bomMode, -1, INDEX_NONE,
@@ -56,6 +56,8 @@ C !LOCAL VARIABLES:
      &     'bomMaxParticles =', ' /* global runtime upper bound */')
       CALL WRITE_0D_I( bomInitGlobalLimit, INDEX_NONE,
      &     'bomInitGlobalLimit =', ' /* global input hard limit */')
+      CALL WRITE_0D_I( bomInitialIter, INDEX_NONE,
+     &     'bomInitialIter =', ' /* fresh BOM initial iteration */')
       CALL WRITE_0D_C( bomWindSource, -1, INDEX_NONE,
      &     'bomWindSource =', ' /* NONE or EXF */')
       CALL WRITE_0D_C( bomStokesSource, -1, INDEX_NONE,
@@ -229,6 +231,20 @@ C--   One step may not cross more than one unavailable sample time.
         errCount = errCount + 1
       ENDIF
 
+      IF ( bomInitialIter.LT.0 ) THEN
+        WRITE(msgBuf,'(A,I12)')
+     &       'BOM_CHECK: bomInitialIter must be non-negative, value=',
+     &       bomInitialIter
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSEIF ( nIter0.LT.bomInitialIter ) THEN
+        WRITE(msgBuf,'(A,2I12)')
+     &       'BOM_CHECK: nIter0 below bomInitialIter=',
+     &       nIter0, bomInitialIter
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+
       IF ( bomInitGlobalLimit.LT.1 .OR.
      &     bomInitGlobalLimit.GT.bomMaxInitRecords ) THEN
         WRITE(msgBuf,'(A,I8,A,I8)')
@@ -238,7 +254,8 @@ C--   One step may not cross more than one unavailable sample time.
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomMaxParticles.EQ.0 .AND.
+      IF ( nIter0.EQ.bomInitialIter .AND.
+     &     bomMaxParticles.EQ.0 .AND.
      &     bomInitialFile.NE.' ' ) THEN
         WRITE(msgBuf,'(A)')
      &       'BOM_CHECK: zero-particle mode requires blank input file'
@@ -246,7 +263,8 @@ C--   One step may not cross more than one unavailable sample time.
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomMaxParticles.GT.0 .AND.
+      IF ( nIter0.EQ.bomInitialIter .AND.
+     &     bomMaxParticles.GT.0 .AND.
      &     bomInitialFile.EQ.' ' ) THEN
         WRITE(msgBuf,'(A)')
      &       'BOM_CHECK: positive particle count requires input file'

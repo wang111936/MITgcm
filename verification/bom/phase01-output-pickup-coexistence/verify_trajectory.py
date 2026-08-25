@@ -18,6 +18,7 @@ EVENTS = {
     8: (480.0, 450.0, 600.0),
 }
 EXPECTED_IDS = {1, 4_294_967_301, 9_007_199_254_740_993}
+INVARIANT_FIELDS = (*range(0, 9), *range(11, 17), *range(20, 24))
 FILE_RE = re.compile(
     r"^bom_traj\.(?P<iteration>\d{10})\.(?P<i_global>\d{3})\."
     r"(?P<j_global>\d{3})\.data$"
@@ -60,15 +61,35 @@ def read_records(path: Path) -> list[tuple[float, ...]]:
     ]
 
 
+def owner_for_tile(
+    tile_i: int, tile_j: int, npy: int, nsx: int, nsy: int
+) -> tuple[int, int, int]:
+    rank_x, local_i0 = divmod(tile_i - 1, nsx)
+    rank_y, local_j0 = divmod(tile_j - 1, nsy)
+    return rank_y + rank_x * npy, local_i0 + 1, local_j0 + 1
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("canonical_output", type=Path)
+    parser.add_argument("--npx", type=int, default=1)
+    parser.add_argument("--npy", type=int, default=1)
+    parser.add_argument("--nsx", type=int, default=2)
+    parser.add_argument("--nsy", type=int, default=2)
+    parser.add_argument("--invariant-output", type=Path)
     args = parser.parse_args()
 
+    require(min(args.npx, args.npy, args.nsx, args.nsy) > 0,
+            "layout dimensions must be positive")
+    tiles_x = args.npx * args.nsx
+    tiles_y = args.npy * args.nsy
+
     data_files = sorted(args.run_dir.glob("bom_traj.*.*.*.data"))
-    require(len(data_files) == len(EVENTS) * 4,
-            f"expected 12 tiled data files, found {len(data_files)}")
+    expected_files = len(EVENTS) * tiles_x * tiles_y
+    require(len(data_files) == expected_files,
+            f"expected {expected_files} tiled data files, "
+            f"found {len(data_files)}")
 
     seen_tiles: dict[int, set[tuple[int, int]]] = {iteration: set() for iteration in EVENTS}
     canonical: list[tuple[int, int, tuple[float, ...]]] = []
@@ -80,7 +101,7 @@ def main() -> None:
         tile_i = int(match.group("i_global"))
         tile_j = int(match.group("j_global"))
         require(iteration in EVENTS, f"unexpected output iteration {iteration}")
-        require(tile_i in (1, 2) and tile_j in (1, 2),
+        require(1 <= tile_i <= tiles_x and 1 <= tile_j <= tiles_y,
                 f"unexpected tile suffix in {data_path.name}")
         require((tile_i, tile_j) not in seen_tiles[iteration],
                 f"duplicate tile file in iteration {iteration}")
@@ -95,6 +116,9 @@ def main() -> None:
         parse_meta(data_path.with_suffix(".meta"), len(records), iteration)
 
         sample_time, scheduled_time, next_time = EVENTS[iteration]
+        owner_rank, owner_bi, owner_bj = owner_for_tile(
+            tile_i, tile_j, args.npy, args.nsx, args.nsy
+        )
         expected_header = {
             0: SCHEMA,
             1: FIELDS,
@@ -106,13 +130,13 @@ def main() -> None:
             8: sample_time,
             9: scheduled_time,
             10: next_time,
-            11: 1,
-            12: 1,
+            11: args.npx,
+            12: args.npy,
             13: 1 + (tile_i - 1) * 4,
             14: 1 + (tile_j - 1) * 3,
-            15: 0,
-            16: tile_i,
-            17: tile_j,
+            15: owner_rank,
+            16: owner_bi,
+            17: owner_bj,
         }
         require(all(math.isfinite(value) for value in header),
                 f"non-finite header in {data_path}")
@@ -135,7 +159,9 @@ def main() -> None:
                     f"unexpected particle ID {particle_id} in {data_path}")
             require(record[3] == sample_time and record[4] == iteration,
                     f"particle sample/iteration mismatch in {data_path}")
-            require(record[17] == 0 and record[18] == tile_i and record[19] == tile_j,
+            require(record[17] == owner_rank
+                    and record[18] == owner_bi
+                    and record[19] == owner_bj,
                     f"particle owner mismatch in {data_path}")
             require(record[20] == 1.0,
                     f"particle coordinate code mismatch in {data_path}")
@@ -143,8 +169,13 @@ def main() -> None:
                     f"nonzero particle reserved field in {data_path}")
             canonical.append((iteration, particle_id, record))
 
+    expected_tiles = {
+        (tile_i, tile_j)
+        for tile_i in range(1, tiles_x + 1)
+        for tile_j in range(1, tiles_y + 1)
+    }
     for iteration, tiles in seen_tiles.items():
-        require(tiles == {(1, 1), (1, 2), (2, 1), (2, 2)},
+        require(tiles == expected_tiles,
                 f"incomplete tile set at iteration {iteration}: {sorted(tiles)}")
 
     require(len(canonical) == len(EVENTS) * len(EXPECTED_IDS),
@@ -165,7 +196,23 @@ def main() -> None:
             record_hex = struct.pack(">24d", *record).hex()
             stream.write(f"{iteration}\t{particle_id}\t{record_hex}\n")
 
-    print("P1.5 TRAJECTORY VERIFY PASS: 12 files, 3 events, 9 unique records")
+    if args.invariant_output is not None:
+        args.invariant_output.parent.mkdir(parents=True, exist_ok=True)
+        with args.invariant_output.open(
+            "w", encoding="ascii", newline="\n"
+        ) as stream:
+            stream.write("iteration\tid\tinvariant_record_hex\n")
+            for iteration, particle_id, record in canonical:
+                invariant = tuple(record[field] for field in INVARIANT_FIELDS)
+                stream.write(
+                    f"{iteration}\t{particle_id}\t"
+                    f"{struct.pack('>19d', *invariant).hex()}\n"
+                )
+
+    print(
+        "P1.5 TRAJECTORY VERIFY PASS: "
+        f"{expected_files} files, 3 events, 9 unique records"
+    )
 
 
 if __name__ == "__main__":

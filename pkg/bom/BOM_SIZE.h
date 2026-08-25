@@ -20,6 +20,9 @@ CEOP
       INTEGER bomInitialFields
       INTEGER bomOutputSchema
       INTEGER bomOutputFields
+      INTEGER bomPickupSchema
+      INTEGER bomPickupFields
+      INTEGER bomPickupSigFields
       PARAMETER ( bomMaxInitRecords = 10000 )
       PARAMETER ( bomMaxPartTile    = 64 )
       PARAMETER ( bomMaxGhostTile   = 1 )
@@ -32,5 +35,8 @@ CEOP
       PARAMETER ( bomInitialFields  = 8 )
       PARAMETER ( bomOutputSchema   = 1 )
       PARAMETER ( bomOutputFields   = 24 )
+      PARAMETER ( bomPickupSchema   = 1 )
+      PARAMETER ( bomPickupFields   = 24 )
+      PARAMETER ( bomPickupSigFields = 16 )
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
