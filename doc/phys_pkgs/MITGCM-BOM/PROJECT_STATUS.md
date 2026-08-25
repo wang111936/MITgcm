@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/development` |
-| 当前阶段 PR | 无；最近完成 `wang111936/MITgcm#17`（Phase 2 准入记录） |
-| 当前阶段 | Phase 2：慢流形惯性物理（准入完成，生产实现未开始） |
-| 当前工作包 | P2.0 接口、需求与测试冻结待启动 |
-| 下一工作包 | P2.0 接口冻结：old/new 场、Stokes 去重、方程模式和验收矩阵 |
+| 当前阶段 PR | 无；最近完成 `wang111936/MITgcm#19`（P2.0 设计冻结） |
+| 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
+| 当前工作包 | P2.0 接口、需求与测试冻结完成 |
+| 下一工作包 | P2.1 transactional old/new 环境场与 exact-time providers |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -21,10 +21,10 @@
 下一次继续开发时，从以下任务开始：
 
 1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
-2. 读取 [Phase 1 独立退出审计](../../../verification/bom/phase01-bom-lite/PHASE1_EXIT_AUDIT.md) 和 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md)；
+2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
 3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 下一开发任务是 P2.0 纯文档接口/测试冻结，不直接加入慢流形生产方程；
-5. P2.0 必须先解决 old/new 时间层、Stokes 不重复计入、`PAPER2024`/`JULIA` 模式与 golden 输入契约。
+4. 下一开发任务是 P2.1，只加入 transactional old/new 场状态、精确端点 providers、时间插值、Stokes policy 和 schema-2 场状态；
+5. 本增量禁止提前加入空间导数、慢流形 RHS 或 RK stage 接线，验收范围为 P2-C01/C02、P2-Z01、P2-E01—E06 和 P2-N01—N04。
 
 开始前执行：
 
@@ -41,7 +41,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 未开始 | v0.3 | 准入条件通过；下一步 P2.0 接口与测试冻结 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.0 已完成；下一步 P2.1 old/new 场与 providers | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -524,6 +524,17 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - Phase 2 准入通过但生产实现尚未开始；建立 `PHASE-02.md` 记录边界、风险、分工作包和 P2.0 唯一下一任务；
 - P2.0 首先冻结 old/new 环境场、Stokes source/去重规则、导数/度量接口、`PAPER2024`/`JULIA` 模式和 Julia golden 输入，不混入弹簧、生物或站点 HPC 优化。
 - Phase 2 准入记录 PR #17 已以 merge commit `ed767ed22db7933cfee82dc89ade14691e081f91` 集成；development 同步后唯一下一任务保持为 P2.0。
+
+### 2026-08-25：P2.0 接口、需求与测试冻结
+
+- PR #18 以 merge commit `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` 完成 Phase 2 准入记录收口；
+- 在独立分支 `MITGCM-BOM/p2.0-interface-freeze` 完成论文、锁定 Julia、MITgcm/EXF、当前 BOM 和 pickup 源码审计；
+- 冻结 exact old/new 端点、EXF 风、FILES/COUPLER Stokes、显式 `bomCurrentPolicy`、C 点 SI 导数、`PAPER2024`/`JULIA` 双模式和 schema 2；
+- 新增 18 条需求、18 项设计决定及 B04/B05/B16、负向、MPI、restart、FLT coexistence 和全回归门禁；
+- 初始设计提交为 `628a6bb4621429bf6f58e9e46a13216c21de7815`，GitHub PR #19 的 5 文件不可变补丁复审 PASS；
+- 核心冻结为 5 个 Markdown、1086 行，状态收口另更新 4 个 Markdown；没有生产 Fortran、脚本、算例输入或生成证据变化，因此未运行编译/数值矩阵；
+- P2.0 无开放 finding，Phase 2 状态改为进行中；未创建 `MITGCM-BOM-v0.3`；
+- 唯一下一任务为 P2.1 transactional old/new 环境场与 exact-time providers，不混入 P2.2 导数或 P2.3 RHS。
 
 ## 6. 每次会话结束时必须更新
 

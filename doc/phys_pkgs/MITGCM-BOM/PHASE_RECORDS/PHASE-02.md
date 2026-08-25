@@ -8,9 +8,10 @@
 | 基线 tag object | `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1` |
 | 基线提交 | `1067c21d230e9c9619e89245b97c01e9474c7ed7` |
 | 准入日期 | 2026-08-25 |
-| 状态 | **未开始（准入完成）** |
-| 当前工作包 | P2.0 接口、需求与测试冻结待启动 |
-| 准入记录 | PR #17 已合并；merge commit `ed767ed22db7933cfee82dc89ade14691e081f91` |
+| 状态 | **进行中（P2.0 完成，P2.1 待启动）** |
+| 当前工作包 | P2.0 接口、需求与测试冻结完成 |
+| 准入记录 | PR #17/#18 已合并；当前集成基线 `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` |
+| P2.0 记录 | PR #19；设计提交 `628a6bb4621429bf6f58e9e46a13216c21de7815` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
 ## 1. 准入裁决
@@ -20,9 +21,10 @@ code head `3f330b59db76b8d7d0ca0fb2bfd007e567fbd6bc` 的 P1-G01 257/257
 PASS，Phase 0 及嵌套 P0.4 无回归，独立退出审计无开放 finding，且
 `MITGCM-BOM-v0.2` 已发布并验证。
 
-Phase 2 可以开始设计和开发，但本记录本身不加入生产 Fortran、测试
-脚本或算例输入。首个增量必须是 P2.0 纯文档冻结；冻结通过独立复审后
-再请求首个生产实现授权。
+P2.0 已完成纯文档冻结并通过本地范围/编号审计与 GitHub PR #19
+不可变远端补丁复审。该增量没有加入生产 Fortran、测试脚本、算例输入
+或生成证据。Phase 2 进入实现阶段，但必须继续按 P2.1—P2.5 顺序开发，
+每个工作包在合并前执行其冻结门禁。
 
 ## 2. 阶段目标与边界
 
@@ -55,7 +57,7 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 
 | 工作包 | 交付 | 主要验收 | 当前状态 |
 |---|---|---|---|
-| P2.0 设计冻结 | 需求、接口、方程、时间层、Stokes 去重、golden/test plan | 范围/源码依据/链接/编号独立复审 | 未开始 |
+| P2.0 设计冻结 | 需求、接口、方程、时间层、Stokes 去重、golden/test plan | 18 需求、18 决定、编号/链接/范围与 PR patch | 完成（PR #19） |
 | P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 未开始 |
 | P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 未开始 |
 | P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 未开始 |
@@ -79,6 +81,7 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 
 ## 6. Phase 2 总退出条件
 
+- [x] P2.0 设计、需求、接口和测试契约已冻结并通过 PR #19 补丁复审；
 - [ ] P2.0—P2.5 全部完成并顺序集成；
 - [ ] B04、B05、B16 与 RK 收敛门禁通过；
 - [ ] `PAPER2024`/`JULIA` 分量、Stokes 去重和单位/符号有直接证据；
@@ -88,12 +91,25 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 
 ## 7. 唯一下一任务
 
-从 `MITGCM-BOM-v0.2@1067c21d230e9c9619e89245b97c01e9474c7ed7`
-建立 P2.0 设计分支，进行只读源码/论文/锁定 Julia 参考审计，并只提交：
+从合并 PR #19 后的 `MITGCM-BOM/development` 建立 P2.1 分支，只实现：
 
-- Phase 2 requirements traceability；
-- old/new、Stokes、导数、方程模式和 pickup 接口冻结；
-- B04/B05/B16、负测、MPI/restart 和全回归 TEST_PLAN；
-- 初始风险/设计决定与独立复审记录。
+- `BOM_FIELDS.h` 的 old/new、source、time、iteration、valid/ready 状态；
+- `bomEquationMode`、`bomStokesSource`、`bomCurrentPolicy` 与 P2.1 参数读取/检查；
+- 海流、EXF 风、FILES/COUPLER Stokes 的精确端点 provider；
+- 线性时间插值、Stokes 去重和 schema-2 环境场预检/状态；
+- P2-C01/C02、P2-Z01、P2-E01—E06 与 P2-N01—N04。
 
-P2.0 设计复审通过前不修改生产 Fortran、测试驱动或输入文件。
+P2.1 不加入空间导数、协变项、慢流形 RHS 或 RK stage 接线；这些依次
+属于 P2.2—P2.4。若实现需要改变已冻结的时间、来源、去重或 schema
+语义，必须先更新 P2.0 契约和追踪表。
+
+## 8. P2.0 完成记录
+
+- 设计提交：`628a6bb4621429bf6f58e9e46a13216c21de7815`；
+- GitHub PR：`wang111936/MITgcm#19`；
+- 核心冻结交付：5 个 Markdown、1086 行；生产源码/脚本/输入变化为 0；
+- 状态收口另更新 4 个 Markdown，只记录 PR、阶段和下一任务；
+- 本地审计：`git diff --check` 与 `P2.0_DOC_AUDIT` PASS；
+- 远端审计：5/5 文件为 Markdown，论文/Julia 模式、显式 current policy、
+  exact endpoint、P2-H/N 编号和隔离命名检查全部 PASS；
+- 结果：P2.0 关闭，无开放 finding；`MITGCM-BOM-v0.3` 未创建。
