@@ -8,8 +8,8 @@
 | 基线 tag object | `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1` |
 | 基线提交 | `1067c21d230e9c9619e89245b97c01e9474c7ed7` |
 | 准入日期 | 2026-08-25 |
-| 状态 | **进行中（P2.1 事务端点增量在精确提交上 15/15 PASS）** |
-| 当前工作包 | P2.1 transactional ocean/NONE/NONE endpoints 已实现 |
+| 状态 | **进行中（P2.1 exact-time provider 门禁在精确提交上 32/32 PASS）** |
+| 当前工作包 | P2.1 ocean/NONE/EXF/FILES/COUPLER exact endpoints 已实现 |
 | 准入记录 | PR #17/#18 已合并；当前集成基线 `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` |
 | P2.0 记录 | PR #19；设计提交 `628a6bb4621429bf6f58e9e46a13216c21de7815` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
@@ -58,7 +58,7 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 | 工作包 | 交付 | 主要验收 | 当前状态 |
 |---|---|---|---|
 | P2.0 设计冻结 | 需求、接口、方程、时间层、Stokes 去重、golden/test plan | 18 需求、18 决定、编号/链接/范围与 PR patch | 完成（PR #19） |
-| P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 进行中（事务 ocean/NONE/NONE 已通过） |
+| P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 进行中（exact providers 32/32；下一步 E06） |
 | P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 未开始 |
 | P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 未开始 |
 | P2.4 积分与 golden | RK stage 时间插值、固定 Julia 对照 | B05、B16、收敛与 rollback | 未开始 |
@@ -93,15 +93,15 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 
 继续当前 `MITGCM-BOM/p2.1-environment-endpoints` 分支，下一增量只实现：
 
-- 新增 BOM-owned exact-time EXF wind provider；
-- 在 fresh 和 normal NEW 请求时独立求值 `uwind/vwind`；
-- 不修改或重新标记 EXF global current/record arrays；
-- 缺失、过期、未来、非有限或未覆盖请求必须事务失败；
-- 增补 P2-E03 与 P2-N03 focused serial/MPI4 门禁。
+- 新增生产 `BOM_INTERP_ENV_TIME` 环境场时间选择接口；
+- 对 accepted OLD/NEW 的每个来源在 exact endpoint 和区间内部线性插值；
+- endpoint 采用冻结容差精确吸附，内部返回常值 secant 时间导数；
+- 非有限、反向、零宽或区间外 stage time 返回 `FIELD_TIME` 且不改状态；
+- 增补 P2-E06 与 P2-N02 focused serial/MPI4 门禁。
 
-本增量不加入 Stokes FILES/COUPLER、时间插值、pickup、空间导数、慢流形
-RHS 或 RK stage 接线。若需要改变冻结的 EXF 所有权或请求时间语义，必须
-先更新 P2.0 契约和追踪表。
+本增量不加入 schema-2 pickup、空间导数、慢流形 RHS、粒子 stage 调度
+或 RK stage 接线。若需要改变冻结的插值或无外推语义，必须先更新 P2.0
+契约和追踪表。
 
 ## 8. P2.0 完成记录
 
@@ -138,3 +138,19 @@ RHS 或 RK stage 接线。若需要改变冻结的 EXF 所有权或请求时间�
 - 证据目录：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-transaction-b81bb0129-attempt01`；
 - 边界：EXF、FILES/COUPLER、时间插值、field pickup、导数及 RHS 仍未实现；
 - 状态：P2.1 继续进行，无开放 finding，不创建 `MITGCM-BOM-v0.3`。
+
+## 11. P2.1 exact-time provider 增量记录
+
+- EXF 功能提交：`43a79d1b14761cc355861e11b76a4d702c78cc80`，精确门禁 21/21 PASS；
+- FILES Stokes 功能提交：`16ab457e321ba6751488e7dda861b25be1626252`，精确门禁 24/24 PASS；
+- compiled COUPLER 功能提交：`6247ee6ba0fd1e796047bff944558c8e80c3511f`；
+- COUPLER API 分 east/north 复制生产者 C-point geographic fields，独立保存 ready/time/iter，禁止 alias；
+- missing、partial、stale、future、mixed-label、wrong-iteration、non-finite 和 dry-value 均返回 source failure，accepted bracket bitwise 不变；
+- P2-E05 覆盖 EULERIAN+COUPLER 的 sigma 非零/零合法行、PRECOMBINED+NONE 合法行及 duplicate COUPLER 拒绝；
+- 权威测试 ID：`p21-coupler-6247ee6ba-attempt01`；
+- 结果：source contract、9 构建、14 正向/兼容运行和 8 负测，共 32/32 PASS；
+- summary SHA-256：`87375f0d0003f240854e4c5738982c007b7b84e422d9d00c195933a2d7314dec`；
+- 证据目录：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-coupler-6247ee6ba-attempt01`；
+- P2-R05 已由 exact-commit evidence 覆盖 NONE/FILES/COUPLER；P2-R06 的 endpoint policy matrix 已覆盖，H04 可审计 RHS 诊断留在 P2.3；
+- 边界：stage-time interpolation 和 schema-2 field pickup 仍未实现，P2.1 不关闭；
+- Draft PR #20 保持未 Ready、未合并，且未创建 `MITGCM-BOM-v0.3`。

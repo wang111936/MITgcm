@@ -4,8 +4,8 @@ Status: **P2.0 FROZEN; P2.1 IMPLEMENTATION IN PROGRESS**
 
 A requirement is complete only after its production implementation and the
 listed executable evidence are both recorded. P2.0 freezes the mapping.
-P2-R03, P2-R04, and the FILES portion of P2-R05 now have exact-commit
-focused evidence; later P2.1 requirements remain open.
+P2-R03--P2-R05 now have exact-commit focused evidence through compiled
+COUPLER Stokes; later P2.1 requirements remain open.
 
 ## 1. Requirement matrix
 
@@ -15,8 +15,8 @@ focused evidence; later P2.1 requirements remain open.
 | P2-R02 | Validate BOM mode, equation mode and SI slow-manifold parameters without aliasing leeway coefficient | `BOM_READPARMS`, `BOM_CHECK` | P2-C01, P2-N01, P2-H05 | P2.1/P2.3 | in progress |
 | P2-R03 | Publish an exact, transactional two-endpoint environment bracket with stable labels and source codes | `BOM_FIELDS.h`, `BOM_BUILD_ENDPOINTS` | P2-E01, P2-E02, P2-N02 | P2.1 | verified: `b81bb0129` |
 | P2-R04 | Evaluate EXF wind at exact model endpoints without mutating or relabeling EXF globals | `BOM_GET_EXF_WIND` | P2-E03, P2-N03 | P2.1 | verified: `43a79d1b1` |
-| P2-R05 | Support NONE/FILES/COUPLER Stokes ownership with exact endpoint and availability semantics | `BOM_GET_STOKES` and provider hook | P2-E04, P2-E05, P2-N03 | P2.1 | in progress: NONE + FILES verified `16ab457e3` |
-| P2-R06 | Prevent explicit/embedded Stokes double counting and publish an auditable policy | `BOM_CHECK`, field metadata | P2-E05, P2-H04, P2-N04 | P2.1/P2.3 | in progress |
+| P2-R05 | Support NONE/FILES/COUPLER Stokes ownership with exact endpoint and availability semantics | `BOM_GET_STOKES` and provider hook | P2-E04, P2-E05, P2-N03 | P2.1 | verified through COUPLER: `6247ee6ba` |
+| P2-R06 | Prevent explicit/embedded Stokes double counting and publish an auditable policy | `BOM_CHECK`, field metadata | P2-E05, P2-H04, P2-N04 | P2.1/P2.3 | endpoint policy matrix verified `6247ee6ba`; H04 diagnostic remains |
 | P2-R07 | Interpolate every field and derivative at exact RK stage time with no extrapolation | `BOM_INTERP_ENV_TIME` | P2-E06, P2-I04, P2-N02 | P2.1/P2.4 | planned |
 | P2-R08 | Compute second-order nonuniform C-point SI derivatives without crossing land | `BOM_BUILD_DERIVATIVES` | P2-D01, P2-D02, P2-D03, P2-N05 | P2.2 | planned |
 | P2-R09 | Apply Cartesian/spherical covariant metrics once and use MITgcm `fCori` | metric/derivative helpers | P2-D04, P2-D05, P2-H05, P2-N05 | P2.2/P2.3 | planned |

@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/p2.1-environment-endpoints` |
-| 当前阶段 PR | Draft PR #20；事务端点功能提交 `b81bb01293dbc4279db544174efe9558382115a3` |
+| 当前阶段 PR | Draft PR #20；COUPLER 功能提交 `6247ee6ba0fd1e796047bff944558c8e80c3511f` |
 | 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
-| 当前工作包 | P2.1 fresh/normal ocean/NONE/NONE transaction 15/15 PASS |
-| 下一工作包 | P2.1 BOM-owned exact-time EXF wind provider |
+| 当前工作包 | P2.1 exact-time ocean/NONE/EXF/FILES/COUPLER 32/32 PASS |
+| 下一工作包 | P2.1 `BOM_INTERP_ENV_TIME` 与 P2-E06/P2-N02 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -23,8 +23,8 @@
 1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
 2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
 3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 从功能提交 `b81bb0129` 继续 P2.1，实现 BOM-owned exact-time EXF wind provider；
-5. 证明 EXF global arrays 不变，并覆盖缺失/过期/未覆盖 source rollback；不加入 Stokes、插值、导数或 RHS。
+4. 从功能提交 `6247ee6ba` 继续 P2.1，实现 `BOM_INTERP_ENV_TIME` exact endpoint/interior interpolation；
+5. 覆盖 endpoint snap、midpoint、release split、secant derivative 和禁止外推；不加入 pickup、空间导数、RHS 或 RK stage 接线。
 
 开始前执行：
 
@@ -41,7 +41,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 事务端点 15/15 PASS；下一步 exact EXF wind | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 exact providers 32/32 PASS；下一步 E06 时间插值 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -196,6 +196,18 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 权威 `p21-transaction-b81bb0129-attempt01` 在精确提交上 15/15 PASS；
 - summary SHA-256 为 `7f6bd0426866908bd83a79ae29cf9c11a96940ff795a1e6fe8ceedf76ddd8ee5`；
 - 本结果不关闭 P2.1：EXF、FILES/COUPLER、时间插值和 field pickup 仍待实现；
+- 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
+
+### P2.1 exact-time EXF/FILES/COUPLER provider 增量
+
+- EXF `43a79d1b1`、FILES `16ab457e3` 和 compiled COUPLER `6247ee6ba` 顺序实现 BOM-owned exact endpoints；
+- COUPLER setter 分量复制 geographic C-point fields，分别验证完整性、mask、time 和 iteration，生产者内存永不 alias；
+- source failure 在串行/MPI4 直接证明 accepted bracket bitwise 不变，clean retry 正常提交；
+- P2-E05/N03/N04 覆盖 COUPLER sigma 合法行、PRECOMBINED/NONE 合法行、duplicate、missing/partial/stale/future/mixed/non-finite/dry-value；
+- 权威 `p21-coupler-6247ee6ba-attempt01` 在精确提交上 32/32 PASS；
+- summary SHA-256 为 `87375f0d0003f240854e4c5738982c007b7b84e422d9d00c195933a2d7314dec`；
+- 证据根为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-coupler-6247ee6ba-attempt01`；
+- P2.1 仍需 E06 stage-time interpolation 与 schema-2 field pickup，因此不关闭、不合并 PR #20、不打 v0.3 标签；
 - 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
@@ -576,6 +588,17 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 中断开发尝试 `p21-transaction-dev-gate02` 和通过的 pre-commit gate03 均保留在仓库外且未覆盖；
 - Draft PR #20 仍未 Ready、未合并；P2.1 未关闭，未创建 `MITGCM-BOM-v0.3`；
 - 唯一下一任务为 BOM-owned exact-time EXF wind provider 与 P2-E03/P2-N03 focused gate。
+
+### 2026-08-26：P2.1 exact-time EXF/FILES/COUPLER endpoints
+
+- 先后完成 BOM-owned EXF wind、FILES Stokes 和 compiled COUPLER Stokes provider；
+- COUPLER API 使用 `ALLOW_BOM_STOKES_COUPLER` 显式编译边界及 per-component copied publication；
+- fresh/normal/retry 与所有 source failure 都经生产 `BOM_TRY_BUILD_ENDPOINTS` 验证；
+- 功能提交 `6247ee6ba0fd1e796047bff944558c8e80c3511f` 的权威门禁为 32/32 PASS；
+- 权威证据 ID 为 `p21-coupler-6247ee6ba-attempt01`，summary SHA-256 为 `87375f0d0003f240854e4c5738982c007b7b84e422d9d00c195933a2d7314dec`；
+- Draft PR #20 仍未 Ready、未合并，未创建 `MITGCM-BOM-v0.3`，无开放阻塞；
+- 唯一下一任务为 `BOM_INTERP_ENV_TIME` 和 P2-E06/P2-N02 focused serial/MPI4 gate；
+- schema-2 pickup、空间导数、RHS 和 RK stage 接线保持后置。
 
 ## 6. 每次会话结束时必须更新
 

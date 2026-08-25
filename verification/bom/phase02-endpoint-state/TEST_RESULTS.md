@@ -283,3 +283,57 @@ This increment accepts P2-E04 and the FILES portion of P2-R05/P2-N03.
 P2.1 remains in progress: COUPLER Stokes, P2-E05 policy/provider coverage,
 stage-time interpolation, and schema-2 field pickup remain. No P2.2
 derivative, P2.3 RHS, `MITGCM-BOM-v0.3` tag, merge, or release is claimed.
+
+## Compiled COUPLER Stokes authoritative increment
+
+- source commit: `6247ee6ba0fd1e796047bff944558c8e80c3511f`;
+- branch: `MITGCM-BOM/p2.1-environment-endpoints`;
+- environment: Ubuntu 22.04, GNU debug/IEEE build, OpenMPI;
+- test ID: `p21-coupler-6247ee6ba-attempt01`;
+- command:
+
+```bash
+MITGCM_BOM_TEST_ID=p21-coupler-6247ee6ba-attempt01 \
+MITGCM_BOM_MAKE_JOBS=4 \
+verification/bom/phase02-endpoint-state/run_endpoint_state_gate.sh
+```
+
+The exact committed source adds an explicitly compiled COUPLER Stokes API.
+`BOM_SET_COUPLER_STOKES` validates and copies geographic east/north C-point
+components separately into BOM-owned storage. Component readiness, time, and
+iteration labels become visible only after a complete valid copy. The provider
+requires both components at the exact requested endpoint, exchanges BOM work
+halos, validates the mask, and enters the existing atomic endpoint transaction.
+
+| Case | Result | Evidence |
+|---|---|---|
+| build-coupler-serial | PASS | setter/provider compile and link |
+| build-coupler-mpi4 | PASS | MPI4 setter/provider compile and link |
+| build-production-coupler-serial | PASS | no test lifecycle override |
+| bom-coupler-serial | PASS | copied fresh/normal endpoints and rollback |
+| bom-coupler-mpi4 | PASS | identical four-rank assertions |
+| bom-coupler-sigma-zero | PASS | active COUPLER with zero sigma is legal |
+| production-precombined-none | PASS | legal embedded-current/NONE row |
+| duplicate-coupler | PASS | illegal explicit plus embedded Stokes rejected |
+| previous 24 cases | PASS | ocean/NONE, EXF, FILES, production and policy regressions |
+
+All 32 summary rows are `PASS`. Producer arrays are overwritten with sentinels
+after each setter call and the copied endpoint values remain exact, directly
+proving no alias. P2-N03 covers missing, partial, stale, future, mixed labels,
+wrong iteration, non-finite wet values, and nonzero dry values. Every failed
+transaction returns `BOM_FAIL_FIELD_SOURCE/BOM_STAGE_FIELD_NEW` and preserves
+the complete accepted bracket bitwise; an exact clean pair then retries.
+
+Evidence root:
+`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-coupler-6247ee6ba-attempt01`.
+
+| File | SHA-256 |
+|---|---|
+| `summary.tsv` | `87375f0d0003f240854e4c5738982c007b7b84e422d9d00c195933a2d7314dec` |
+| `source-head.txt` | `1ab5c214e74ccc2a014f636af2f25d107822111493200731f2e14fbec4a58d40` |
+| `manifest.sha256` | `d6d4b47e276b2e684aaa254dc63defa586526e01f886cf3c4cec43fa47bbce49` |
+
+This increment closes the P2-R05 NONE/FILES/COUPLER endpoint-provider scope
+and the endpoint policy-matrix part of P2-R06. P2.1 remains open for P2-E06
+stage-time interpolation and schema-2 field pickup. It adds no spatial
+derivative, slow-manifold RHS, particle stage wiring, merge, or v0.3 tag.
