@@ -1,19 +1,19 @@
 # P1.5 output, pickup, and FLT coexistence results
 
-状态：**IMPLEMENTATION/EVIDENCE PASS — INDEPENDENT READY REVIEW PENDING**
+状态：**SYNCHRONIZED EXACT-HEAD PASS — INDEPENDENT READY REVIEW PENDING**
 
 | 项目 | 值 |
 |---|---|
 | 执行日期 | 2026-08-25 |
-| clean exact tested head | `cb1ffa1ece1cb0b3f1fcb77e9786eb264a439584` |
+| synchronized clean exact tested head | `adb9e315836079d8ef1280e15d7ede7aa52fee6c` |
 | 分支 | `MITGCM-BOM/phase-01-output-pickup-coexistence` |
 | Draft PR | `wang111936/MITgcm#15` |
-| P1.4 冻结基线 | `a1873df4b231dee9cfb2b8e3dc6e215f0caab47d` |
+| P1.4 集成基线 | `9d258da4ff43d84f4877ba11d894af0e96b3177b` |
 | P1.5 生产实现提交 | `746171a37e61974ef3a7aca6b49c4f95b1400a3b` |
-| 前序证据兼容提交 | `cb1ffa1ece1cb0b3f1fcb77e9786eb264a439584` |
+| 同步提交 | `adb9e315836079d8ef1280e15d7ede7aa52fee6c` |
 | P1.5 专属门禁 | 62/62 PASS |
-| P1.4 及更早回归 | 193/193 PASS |
-| P1-G01 总计 | 255/255 PASS |
+| P1.4 及更早回归 | 195/195 PASS |
+| P1-G01 总计 | 257/257 PASS |
 
 ## 1. Output、pickup 与 restart
 
@@ -103,3 +103,35 @@ P1-G01 的专属及前序矩阵无开放发现。P1.5 的实现与证据门禁�
 本结论不等于独立 PR Ready 复审，不授权把 PR #15 改为 Ready、合并、
 创建 `MITGCM-BOM-v0.2` 标签或发布。记录本文件的文档提交还须在新的
 clean exact head 上复验，并把最终提交与证据位置补充到 Draft PR #15。
+
+## 7. P1.4 integration synchronization and final P1-G01
+
+PR #14 merged as `9d258da4ff43d84f4877ba11d894af0e96b3177b` and was
+incorporated by merge commit `adb9e315836079d8ef1280e15d7ede7aa52fee6c`.
+The synchronized clean head passed the complete updated matrix:
+
+| Matrix | PASS |
+|---|---:|
+| output/pickup | 25 |
+| production migration I/O | 12 |
+| FLT/BOM coexistence | 25 |
+| P1.4 owner migration | 36 |
+| P1.3 lifecycle/setup/RHS/RK2/RK4 | 69 |
+| P1.2 interpolation/fields/mapping | 35 |
+| P1.1 state | 42 |
+| Phase 0 final plus nested P0.4 | 13 |
+| **P1-G01 total** | **257** |
+
+The aggregate artifact is:
+
+```text
+/home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p15/p15-g01-adb9e315-attempt01
+```
+
+It contains fifteen summaries, an empty Git status, the exact source head,
+environment and driver hashes, nine validated native manifests, a row audit
+and a self-validating aggregate manifest. SHA-256 values:
+
+- aggregate manifest: `5ef39863d8f3284a7c41dbde26e2c851b4da2411bc6e8b48a18f130d94ab36a2`;
+- row audit: `62ef52b7367dcaca6720198556dbefa97050ce05379093bb356c21911abe27bb`;
+- exit audit: `dfaac4a9f07bddcafbae83a527f6b7cc9ddde827511590c28bbe3364df93397e`.

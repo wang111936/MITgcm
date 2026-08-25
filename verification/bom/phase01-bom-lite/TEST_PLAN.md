@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.1—P1.5 生产实现及原 255 项 P1-G01 通过；PR #13/#14 已顺序集成，新增球面 RK2/RK4 后的同步头 P1.5 专属 62 项、前序 195 项和 P1-G01 257 项待精确头复验；独立 Ready 复审仍保留
+状态：P1.1—P1.5 生产实现和阶段门禁完成；P1.5 同步 clean head 的专属 62/62、前序 195/195 和 P1-G01 257/257 总验收通过；独立 Ready 复审仍保留
 
 P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 

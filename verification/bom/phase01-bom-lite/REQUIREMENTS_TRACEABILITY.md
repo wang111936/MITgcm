@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 需求追踪
 
-状态：P1.1—P1.5 生产实现及原阶段门禁完成；原 P1-G01 255/255 PASS；PR #13/#14 已顺序集成，新增球面 RK2/RK4 两项后，同步头 P1.5 专属 62 项、前序 195 项及 P1-G01 257 项精确头复验待执行；独立 Ready 复审仍保留
+状态：P1.1—P1.5 生产实现完成；PR #13/#14 已顺序集成；P1.5 同步 clean head 的专属 62/62、前序 195/195 及 P1-G01 257/257 全部 PASS，P1-R01—P1-R16 无开放实现或证据 finding；PR #15 等待独立 Ready 复审
 
 本表是 Phase 1 需求、计划例程和测试之间的权威映射。实现阶段不得把“已有代码”当作完成证据；只有对应测试通过并在 `TEST_RESULTS.md` 记录后，需求状态才能改为完成。
 
@@ -23,7 +23,7 @@
 | P1-R13 | 轨迹使用独立 schema/前缀并可按 ID 重组 | `BOM_OUTPUT`、`BOM_WRITE_TRAJECTORY` | P1-O01、P1-O02 | P1.5 | 完成；24-field schema、双字 ID、迁移后 serial/MPI4、关闭输出和 150/60 非整除调度门禁通过 |
 | P1-R14 | 相同分解 pickup 连续/重启状态 bitwise 一致 | `BOM_READ_PICKUP`、`BOM_WRITE_PICKUP` | P1-P01、P1-P02、P1-P03 | P1.5 | 完成；核心 suffix、1/2/4 ranks 5+3 restart、事务 scratch、调度恢复和改变分解早期拒绝通过 |
 | P1-R15 | FLT 与 BOM 状态、例程、I/O 独立且可共存 | BOM namespace、核心调度 | P1-K01、P1-K02 | P1.5 | 完成；serial/MPI2 四组合及核心、FLT、BOM 双向不变性 25/25 通过 |
-| P1-R16 | 运行中检查有限数、CFL、owner 数和状态预算 | `BOM_RHS_LEEWAY`、`BOM_CHECK_STATE`、`BOM_MAIN` | P1-N08、P1-X03、P1-G01 | P1.3–P1.5 | 原 P1-G01 255/255 通过；纳入两项球面 RK 门禁后的同步头 257 项复验待执行 |
+| P1-R16 | 运行中检查有限数、CFL、owner 数和状态预算 | `BOM_RHS_LEEWAY`、`BOM_CHECK_STATE`、`BOM_MAIN` | P1-N08、P1-X03、P1-G01 | P1.3–P1.5 | 完成；P1.3/P1.4 事务检查保持通过，P1-G01 在同一 clean exact head 上 257/257 通过 |
 
 ### P1.1 反向追踪
 

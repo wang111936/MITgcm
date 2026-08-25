@@ -1,7 +1,7 @@
 # P1.5 output, pickup, and FLT coexistence test plan
 
-状态：生产实现、62/62 专属门禁、193/193 前序回归和 P1-G01
-255/255 clean exact-head 总验收通过；独立 Ready 复审保留
+状态：生产实现、62/62 专属门禁、195/195 前序回归和 P1-G01
+257/257 clean exact-head 总验收通过；独立 Ready 复审保留
 
 ## 1. 证据原则
 
