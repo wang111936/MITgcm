@@ -95,7 +95,7 @@ C !LOCAL VARIABLES:
       _RL oldTime, interval, timeScale, timeTol
       _RL eastValue, northValue
       LOGICAL isNear, compareValid, wetPoint, fieldInvalid
-      LOGICAL windProviderValid
+      LOGICAL windProviderValid, stokesProviderValid
 
       failCode = BOM_FAIL_NONE
       failStage = BOM_STAGE_NONE
@@ -179,12 +179,13 @@ C--   Validate labels and accepted NEW continuity before scratch writes.
         RETURN
       ENDIF
 
-C--   Stokes remains NONE; wind is either exact zero or the EXF provider.
+C--   Select only providers implemented by this production increment.
       localErrCount = 0
       IF ( bomWindSource.NE.'NONE' .AND.
      &     bomWindSource.NE.'EXF' )
      &     localErrCount = localErrCount + 1
-      IF ( bomStokesSource.NE.'NONE' )
+      IF ( bomStokesSource.NE.'NONE' .AND.
+     &     bomStokesSource.NE.'FILES' )
      &     localErrCount = localErrCount + 1
 #ifndef ALLOW_EXF
       IF ( bomWindSource.EQ.'EXF' )
@@ -269,6 +270,20 @@ C--   EXF is evaluated independently at the exact requested endpoint.
         ENDIF
       ENDIF
 
+C--   FILES Stokes is independently read at the exact requested endpoint.
+      stokesProviderValid = .TRUE.
+      IF ( bomStokesSource.EQ.'FILES' ) THEN
+        CALL BOM_GET_STOKES(
+     I       targetTime, targetIter,
+     O       failCode, stokesProviderValid,
+     I       myThid )
+        IF ( .NOT.stokesProviderValid ) THEN
+          failCode = BOM_FAIL_FIELD_SOURCE
+          failStage = BOM_STAGE_FIELD_NEW
+          RETURN
+        ENDIF
+      ENDIF
+
 C--   Publish the candidate NEW source values only into scratch storage.
       DO bj=myByLo(myThid),myByHi(myThid)
        DO bi=myBxLo(myThid),myBxHi(myThid)
@@ -289,6 +304,14 @@ C--   Publish the candidate NEW source values only into scratch storage.
               bomEnvNorthScratch(i,j,BOM_ENV_NEW,
      &             BOM_ENV_WIND,bi,bj) =
      &             bomExfWindNorthWork(i,j,1,bi,bj)
+            ENDIF
+            IF ( bomStokesSource.EQ.'FILES' ) THEN
+              bomEnvEastScratch(i,j,BOM_ENV_NEW,
+     &             BOM_ENV_STOKES,bi,bj) =
+     &             bomStokesEastWork(i,j,1,bi,bj)
+              bomEnvNorthScratch(i,j,BOM_ENV_NEW,
+     &             BOM_ENV_STOKES,bi,bj) =
+     &             bomStokesNorthWork(i,j,1,bi,bj)
             ENDIF
             DO iSource=1,BOM_ENV_NSOURCE
               bomEnvValidScratch(i,j,BOM_ENV_NEW,

@@ -97,6 +97,33 @@ C     EXF package global current and record arrays are never aliased.
      &       bomExfWindU0, bomExfWindU1,
      &       bomExfWindV0, bomExfWindV1
 
+C--   FILES Stokes is read and interpolated entirely in BOM-owned arrays.
+C     Raw U/V records use MITgcm model-grid directions at C points; accepted
+C     endpoint values are rotated geographic east/north components.
+      _RL bomStokesUWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomStokesVWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomStokesEastWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomStokesNorthWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_STOKES_WORK_R/
+     &       bomStokesUWork, bomStokesVWork,
+     &       bomStokesEastWork, bomStokesNorthWork
+
+      _RL bomStokesU0(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomStokesU1(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomStokesV0(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomStokesV1(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_STOKES_REC_R/
+     &       bomStokesU0, bomStokesU1,
+     &       bomStokesV0, bomStokesV1
+
       _RL bomEnvTimeScratch(BOM_ENV_NEND)
       COMMON /BOM_ENV_SCRATCH_TIME_R/ bomEnvTimeScratch
 

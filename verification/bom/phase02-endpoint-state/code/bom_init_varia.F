@@ -31,6 +31,8 @@ CEOP
 #ifdef ALLOW_EXF
         CALL BOM_VERIFY_EXF_ENDPOINTS( myThid )
 #endif
+      ELSEIF ( the_run_name.EQ.'P21-STOKES-FILES' ) THEN
+        CALL BOM_VERIFY_STOKES_FILES( myThid )
       ENDIF
 #endif
 
