@@ -337,3 +337,60 @@ This increment closes the P2-R05 NONE/FILES/COUPLER endpoint-provider scope
 and the endpoint policy-matrix part of P2-R06. P2.1 remains open for P2-E06
 stage-time interpolation and schema-2 field pickup. It adds no spatial
 derivative, slow-manifold RHS, particle stage wiring, merge, or v0.3 tag.
+
+## Environmental stage-time interpolation authoritative increment
+
+- source commit: `83913ce594158f3c5e52907f56e5f69881ad9791`;
+- branch: `MITGCM-BOM/p2.1-environment-endpoints`;
+- environment: Ubuntu 22.04, GNU debug/IEEE build, OpenMPI;
+- test ID: `p21-envtime-83913ce59-attempt02`;
+- command:
+
+```bash
+MITGCM_BOM_TEST_ID=p21-envtime-83913ce59-attempt02 \
+verification/bom/phase02-endpoint-state/run_endpoint_state_gate.sh
+```
+
+The exact committed source adds the stateless, read-only
+`BOM_INTERP_ENV_TIME` production interface. For a normal accepted bracket it
+copies exact or tolerance-snapped endpoint values, linearly interpolates
+interior stage values, and returns one constant OLD/NEW secant. It neither
+clamps nor extrapolates and never writes accepted COMMON state. A fresh
+duplicated publication is treated as a legal single-time bracket: only its
+endpoint is accepted and its time derivative is exactly zero.
+
+| Case | Result | Evidence |
+|---|---|---|
+| build-serial | PASS | production and test interpolation symbols linked |
+| build-mpi4 | PASS | four-rank production and test symbols linked |
+| build-production-serial | PASS | production interface without test override |
+| bom-env-time-serial | PASS | snap, midpoint/split, secant and dry validity |
+| bom-env-time-mpi4 | PASS | identical assertions on four ranks |
+| previous 29 cases | PASS | endpoint providers, policy, production and negative regressions |
+
+All 34 summary rows are `PASS`. P2-N02 directly rejects non-finite stage or
+endpoint times, reversed brackets, wrong interval or iteration continuity,
+unpublished state, and stage times outside the accepted range. Failures carry
+OLD/NEW endpoint context, return zero invalid candidates, and leave the full
+accepted bracket bitwise unchanged. Exact endpoint outputs are also checked
+bitwise; dry points remain invalid exact zero values.
+
+Evidence root:
+`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-envtime-83913ce59-attempt02`.
+
+| File | SHA-256 |
+|---|---|
+| `summary.tsv` | `af80775a11cf86fb999e1707898c6c837d8732f9925eb6d1adfda7045c0d0201` |
+| `source-head.txt` | `6681aadaea3bd24c28456aa4fd1390eaa28498fae20c2793d5886b4faecf0554` |
+| `manifest.sha256` | `5ce71d924c6c23d8262c71c3bbd377e81d74e103143baf3e1b199f6c2b09cf5b` |
+
+The non-authoritative `p21-envtime-8bcaf4f64-attempt01` stopped during the
+first serial test-driver compile because two helper routines lacked size
+includes and one fixed-form string exceeded the column limit. Those test-only
+issues were corrected before the authoritative commit and no failed test ID
+was reused.
+
+This increment closes the P2.1 field-value portion of P2-R07 and accepts
+P2-E06/P2-N02 for endpoint time interpolation. P2.1 remains open only for the
+schema-2 field pickup increment. It adds no endpoint spatial derivatives,
+slow-manifold RHS, particle RK-stage wiring, merge, tag, or release.

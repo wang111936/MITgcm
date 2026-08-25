@@ -1,12 +1,13 @@
 # MITGCM-BOM Phase 2 slow-manifold verification
 
-Status: **P2.1 IN PROGRESS; OCEAN/NONE/NONE AND EXACT-TIME EXF WIND IMPLEMENTED**
+Status: **P2.1 IN PROGRESS; ENDPOINT PROVIDERS AND TIME INTERPOLATION VERIFIED**
 
 This directory is the source-controlled design and verification index for
 Phase 2. P2.0 remains the normative frozen contract. P2.1 now has runtime
 preflight, accepted/scratch endpoint storage, ocean/NONE/NONE transaction
-publication, and BOM-owned exact-time EXF wind. Explicit Stokes, stage-time
-interpolation, and field pickup remain.
+publication, BOM-owned exact-time EXF wind and FILES Stokes, compiled copied
+COUPLER Stokes publication, and accepted-bracket stage-time interpolation.
+Schema-2 field pickup remains.
 
 ## P2.0 documents
 
@@ -68,15 +69,18 @@ manifests may be committed only after execution on a clean exact source head.
 
 ## Current P2.1 increment and unique next task
 
-The first three increments implement frozen parameters/codes, deterministic
-accepted and scratch storage, fresh duplicated endpoints, normal OLD/NEW
-advancement, ocean/NONE/NONE providers, BOM-owned exact-time EXF wind, and
-rollback. Their focused gate is under `../phase02-endpoint-state/` and
-passes 21/21 on exact functional commit `43a79d1b1`.
+The completed P2.1 increments implement frozen parameters/codes,
+deterministic accepted and scratch storage, fresh duplicated endpoints,
+normal OLD/NEW advancement, ocean/NONE/NONE, EXF, FILES and compiled COUPLER
+providers, source/de-duplication policy, rollback, and stateless accepted-field
+time interpolation. The focused gate under `../phase02-endpoint-state/` passes
+34/34 on exact functional commit `83913ce59`.
 
-The unique next implementation task is the BOM-owned FILES Stokes provider.
-It must evaluate paired Stokes components at exact endpoints with frozen
-scale, mask, record and repeat-cycle semantics, preserve the accepted bracket
-on P2-N03 failures, and extend P2-E04 evidence in serial and MPI4. It does not
-add the COUPLER provider, stage-time interpolation, pickup, gradients, or an
-inertial RHS.
+The unique next implementation task is schema-2 field pickup. It must retain
+all Phase-1 particle/output state and add exact mode, source, parameter and
+decomposition fingerprints; both accepted endpoint labels, fields, masks,
+readiness and provider identity; then validate scratch data and commit once.
+It must preserve the schema-1 `LEEW` path and reject schema-1 `BOM`, unknown
+schemas, changed policy/source/fingerprint or changed decomposition before
+particle commit. This increment does not add gradients, a slow-manifold RHS,
+particle stage wiring, merge, or a v0.3 tag.
