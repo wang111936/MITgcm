@@ -106,3 +106,28 @@ P1.4 的生产实现、P1-N03b/P1-X01—X04、分解一致性、失败事务以�
 本结论不是独立 PR Ready 复审，也不授权把 PR #14 改为 Ready、合并、
 创建标签或发布。P1.5 不得把轨迹/pickup I/O 与 FLT 状态混用，也不得
 削弱本文件锁定的 36/36 和 157/157 判据。
+
+## 5. P1.3 integration synchronization revalidation
+
+PR #13 merged into `MITGCM-BOM/development` as
+`41fb093866ef4c2dbda778696892457cfca160f9`. P1.4 synchronized that history at
+clean head `55d6eac29d748e41f194247c70dd28f8f33817ff`; the synchronization changes
+P1.3 verification and records only, not P1.4 production source.
+
+The following exact-head gates pass:
+
+| Gate | Test ID | Result | Summary SHA-256 |
+|---|---|---:|---|
+| owner migration | `p14-ready-sync-owner-55d6eac2-attempt01` | 36/36 | `6c8bb94c78cc334a6780c208ca6673bca124610624f679d1dfafc135177974cb` |
+| RK2 | `p14-ready-sync-rk2-55d6eac2-attempt01` | 12/12 | `1d1800b750eda15d04a39c34c38341178bd427425b77d2f5520ce707ffd0fcc4` |
+| RK4 | `p14-ready-sync-rk4-55d6eac2-attempt01` | 12/12 | `f96989908429bff60562c02bdcf9b6af96423d379824d7d253ded0691cb60fb0` |
+
+Artifact roots:
+
+```text
+/home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p14/p14-ready-sync-owner-55d6eac2-attempt01
+/home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p13/p14-ready-sync-rk2-55d6eac2-attempt01
+/home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p13/p14-ready-sync-rk4-55d6eac2-attempt01
+```
+
+All three gates record the same clean source head and contain only PASS rows.
