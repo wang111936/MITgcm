@@ -4,7 +4,7 @@ C     !INTERFACE:
 C     #include "BOM.h"
 
 C     !DESCRIPTION:
-C     Runtime controls, compact owner state, and Phase-1.3 grid fields.
+C     Runtime controls, compact P1.4 owner state, and surface grid fields.
 CEOP
 
       CHARACTER*8  bomMode
@@ -129,10 +129,13 @@ C--   Static regular-grid mapping and surface-field publication state.
       _RL bomMapTol
       _RL bomFieldTime
       _RL bomWindFieldTime
+      _RL bomMapXFace(0:Nx)
+      _RL bomMapYFace(0:Ny)
       COMMON /BOM_MAP_R/
      &       bomMapXLo, bomMapXHi, bomMapYLo, bomMapYHi,
      &       bomMapXPeriod, bomMapTol,
-     &       bomFieldTime, bomWindFieldTime
+     &       bomFieldTime, bomWindFieldTime,
+     &       bomMapXFace, bomMapYFace
 
       INTEGER bomFieldIter
       INTEGER bomWindFieldIter

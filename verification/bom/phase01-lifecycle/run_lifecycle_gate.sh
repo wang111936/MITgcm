@@ -14,6 +14,7 @@ readonly RUN_ROOT="${RUN_PARENT}/${TEST_ID}"
 readonly ARTIFACT_ROOT="${ARTIFACT_PARENT}/${TEST_ID}"
 readonly OPTFILE="${MITGCM_BOM_OPTFILE:-${REPO_ROOT}/tools/build_options/linux_amd64_gfortran}"
 readonly MAKE_JOBS="${MITGCM_BOM_MAKE_JOBS:-4}"
+readonly ALLOW_OWNER_MIGRATION="${MITGCM_BOM_ALLOW_OWNER_MIGRATION:-no}"
 readonly EXP2_CODE="${REPO_ROOT}/verification/exp2/code"
 readonly FIELD_CASE="${REPO_ROOT}/verification/bom/phase01-fields"
 
@@ -42,6 +43,9 @@ for required_command in "${required_commands[@]}"; do
 done
 [[ -x "${REPO_ROOT}/tools/genmake2" ]] || fail 'genmake2 is not executable'
 [[ -f "${OPTFILE}" ]] || fail "optfile not found: ${OPTFILE}"
+[[ "${ALLOW_OWNER_MIGRATION}" == yes \
+   || "${ALLOW_OWNER_MIGRATION}" == no ]] \
+  || fail 'MITGCM_BOM_ALLOW_OWNER_MIGRATION must be yes or no'
 for fresh_root in "${BUILD_ROOT}" "${RUN_ROOT}" "${ARTIFACT_ROOT}"; do
   [[ ! -e "${fresh_root}" ]] || fail "evidence root already exists: ${fresh_root}"
 done
@@ -251,8 +255,9 @@ grep -Fq 'bomNPartExpected' "${CHECK_SOURCE}" || fail 'immutable owner budget ch
 if rg -n 'BOM_VERIFY_LIFECYCLE|P1-S04B|P1-LIFECYCLE' "${REPO_ROOT}/pkg/bom"; then
   fail 'lifecycle verification marker leaked into production BOM'
 fi
-if rg -n 'CALL[[:space:]]+BOM_.*MIGRAT' "${MAIN_SOURCE}"; then
-  fail 'P1.4 owner migration leaked into the P1.3 lifecycle caller'
+if rg -q 'CALL[[:space:]]+BOM_.*MIGRAT' "${MAIN_SOURCE}"; then
+  [[ "${ALLOW_OWNER_MIGRATION}" == yes ]] \
+    || fail 'P1.4 owner migration leaked into the P1.3 lifecycle caller'
 fi
 record_pass source-contract 'equal substeps; exact release/age transactions; compact global state budget'
 
@@ -269,7 +274,14 @@ run_negative n08-duplicate-mpi4 mpi4 4 P1-N08-DUPID 'duplicate ID words=' 'dupli
 run_negative n08-count-serial serial 1 P1-N08-COUNT 'owner/expected mismatch=' 'global owner budget mismatch rejected'
 run_negative n08-tail-serial serial 1 P1-N08-TAIL 'tail tile/slot=' 'non-compact tail rejected'
 run_negative n08-status-serial serial 1 P1-N08-STATUS 'invalid status=' 'unsupported P1.3 status rejected'
-run_negative n08-owner-serial serial 1 P1-N08-OWNER 'stage/code=[[:space:]]+4[[:space:]]+2' 'RK4 K4 owner departure rejected before commit'
+if [[ "${ALLOW_OWNER_MIGRATION}" == yes ]]; then
+  record_pass n08-owner-superseded \
+    'P1.3 strict K4-owner rejection replaced by P1.4 halo RK and migration gate'
+else
+  run_negative n08-owner-serial serial 1 P1-N08-OWNER \
+    'stage/code=[[:space:]]+4[[:space:]]+2' \
+    'RK4 K4 owner departure rejected before commit'
+fi
 
 cp "${RUN_ROOT}/summary.tsv" "${ARTIFACT_ROOT}/summary.tsv"
 git -C "${REPO_ROOT}" rev-parse HEAD > "${ARTIFACT_ROOT}/source-head.txt"

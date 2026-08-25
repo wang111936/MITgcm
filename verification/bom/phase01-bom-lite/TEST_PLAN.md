@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.1、P1.2 已验收；P1.3 原 157 项矩阵及 Ready remediation 新增的球面 RK2/RK4 两项解析位移均通过，累计 159 项；PR #13 等待 Ready 复审
+状态：P1.1—P1.3 已验收并顺序集成；P1.4 owner 迁移 36/36、同步后的 RK2 12/12 与 RK4 12/12 精确头门禁通过，等待独立 Ready 复审；P1.5 保持后继计划状态
 
 P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 

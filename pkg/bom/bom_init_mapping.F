@@ -49,6 +49,12 @@ C--   A failed initialization must never leave apparently usable state.
       bomFieldTime    = 0. _d 0
       bomFieldIter    = 0
       errCount        = 0
+      DO i=0,Nx
+        bomMapXFace(i) = 0. _d 0
+      ENDDO
+      DO j=0,Ny
+        bomMapYFace(j) = 0. _d 0
+      ENDDO
 
       IF ( usingCartesianGrid .EQV. usingSphericalPolarGrid ) THEN
         WRITE(msgBuf,'(A)')
@@ -176,6 +182,34 @@ C--   A failed initialization must never leave apparently usable state.
         ENDIF
       ENDIF
 
+C--   Freeze global face tables once for logarithmic owner lookup.
+      IF ( errCount.EQ.0 ) THEN
+        bomMapXFace(0) = bomMapXLo
+        DO i=1,Nx
+          bomMapXFace(i) = bomMapXFace(i-1) + delX(i)
+          IF ( bomMapXFace(i).NE.bomMapXFace(i) .OR.
+     &         ABS(bomMapXFace(i)).GT.HUGE(bomMapXFace(i)) .OR.
+     &         bomMapXFace(i).LE.bomMapXFace(i-1) ) THEN
+            WRITE(msgBuf,'(A,I8)')
+     &           'BOM_INIT_MAPPING: invalid global X face=', i
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+        ENDDO
+        bomMapYFace(0) = bomMapYLo
+        DO j=1,Ny
+          bomMapYFace(j) = bomMapYFace(j-1) + delY(j)
+          IF ( bomMapYFace(j).NE.bomMapYFace(j) .OR.
+     &         ABS(bomMapYFace(j)).GT.HUGE(bomMapYFace(j)) .OR.
+     &         bomMapYFace(j).LE.bomMapYFace(j-1) ) THEN
+            WRITE(msgBuf,'(A,I8)')
+     &           'BOM_INIT_MAPPING: invalid global Y face=', j
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+        ENDDO
+      ENDIF
+
       IF ( errCount.EQ.0 ) THEN
         scale = MAX( oneRL, ABS(bomMapXLo), ABS(bomMapXHi) )
         scale = MAX( scale, ABS(bomMapYLo), ABS(bomMapYHi) )
@@ -297,6 +331,12 @@ C--     Check every local tile, including all stored face intervals.
         bomMapXPeriod   = 0. _d 0
         bomMapTol       = 0. _d 0
         bomMapPeriodicX = .FALSE.
+        DO i=0,Nx
+          bomMapXFace(i) = 0. _d 0
+        ENDDO
+        DO j=0,Ny
+          bomMapYFace(j) = 0. _d 0
+        ENDDO
         WRITE(msgBuf,'(A,I4,A)')
      &       'BOM_INIT_MAPPING: detected', errCount,
      &       ' fatal error(s); mapping state is unavailable'

@@ -7,9 +7,9 @@ C     !INTERFACE:
       SUBROUTINE BOM_MAIN( myTime, myIter, myThid )
 
 C     !DESCRIPTION:
-C     Advance the compact Phase-1.3 owner state over one ocean step with
-C     equal substeps, exact release splitting, and per-slot
-C     transactional commits.  Owner migration remains a Phase-1.4 task.
+C     Advance the compact Phase-1.4 owner state over one ocean step with
+C     equal substeps, exact release splitting, halo-aware RK trials, and
+C     an owner tile/rank migration transaction after every substep.
 
 C     !USES:
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -155,7 +155,7 @@ C--           A still-WAITING record is a successful no-op.
               trialValid = .TRUE.
             ELSEIF ( doAdvance ) THEN
               IF ( bomIntegrator.EQ.'RK2' ) THEN
-                CALL BOM_RK2(
+                CALL BOM_RK2_MIGRATE(
      I               x0, y0, dtActive, bi, bj,
      O               xCandidate, yCandidate, ix, jy,
      O               oceanEast, oceanNorth,
@@ -165,7 +165,7 @@ C--           A still-WAITING record is a successful no-op.
      O               failStage, failCode, trialValid,
      I               myThid )
               ELSEIF ( bomIntegrator.EQ.'RK4' ) THEN
-                CALL BOM_RK4(
+                CALL BOM_RK4_MIGRATE(
      I               x0, y0, dtActive, bi, bj,
      O               xCandidate, yCandidate, ix, jy,
      O               oceanEast, oceanNorth,
@@ -256,6 +256,10 @@ C--             Publish all authoritative candidates exactly once.
           CALL ALL_PROC_DIE( 0 )
           STOP 'ABNORMAL END: S/R BOM_MAIN'
         ENDIF
+
+C--     No non-owner candidate may enter a state budget or next substep.
+        CALL BOM_PARTICLE_EXCHANGE(
+     I       tSub1, myIter, iSub+1, myThid )
 
         IF ( bomCheckEverySubstep ) THEN
           CALL BOM_CHECK_STATE(
