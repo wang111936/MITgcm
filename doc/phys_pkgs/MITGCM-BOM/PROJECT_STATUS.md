@@ -10,7 +10,7 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-02-entry-record` |
-| 当前阶段 PR | Phase 2 准入记录 PR 待创建 |
+| 当前阶段 PR | `wang111936/MITgcm#17`（Phase 2 准入记录） |
 | 当前阶段 | Phase 2：慢流形惯性物理（准入完成，生产实现未开始） |
 | 当前工作包 | `MITGCM-BOM-v0.2` 发布验证与 Phase 2 准入记录 |
 | 下一工作包 | P2.0 接口冻结：old/new 场、Stokes 去重、方程模式和验收矩阵 |
