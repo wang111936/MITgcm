@@ -10,7 +10,7 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/phase-01-exit-audit` |
-| 当前阶段 PR | `wang111936/MITgcm#16`（Draft，Phase 1 退出审计记录） |
+| 当前阶段 PR | `wang111936/MITgcm#16`（Phase 1 退出审计记录） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（技术退出 PASS，发布收口中） |
 | 当前工作包 | 最终 development 代码头 P1-G01 257/257 PASS；独立退出审计 PASS |
 | 下一工作包 | 合并纯文档退出审计，创建 `MITGCM-BOM-v0.2`，随后登记 Phase 2 准入 |
