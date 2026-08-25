@@ -185,8 +185,13 @@ C--   Select only providers implemented by this production increment.
      &     bomWindSource.NE.'EXF' )
      &     localErrCount = localErrCount + 1
       IF ( bomStokesSource.NE.'NONE' .AND.
-     &     bomStokesSource.NE.'FILES' )
+     &     bomStokesSource.NE.'FILES' .AND.
+     &     bomStokesSource.NE.'COUPLER' )
      &     localErrCount = localErrCount + 1
+#ifndef ALLOW_BOM_STOKES_COUPLER
+      IF ( bomStokesSource.EQ.'COUPLER' )
+     &     localErrCount = localErrCount + 1
+#endif
 #ifndef ALLOW_EXF
       IF ( bomWindSource.EQ.'EXF' )
      &     localErrCount = localErrCount + 1
@@ -270,9 +275,10 @@ C--   EXF is evaluated independently at the exact requested endpoint.
         ENDIF
       ENDIF
 
-C--   FILES Stokes is independently read at the exact requested endpoint.
+C--   FILES or compiled COUPLER Stokes is evaluated at the exact endpoint.
       stokesProviderValid = .TRUE.
-      IF ( bomStokesSource.EQ.'FILES' ) THEN
+      IF ( bomStokesSource.EQ.'FILES' .OR.
+     &     bomStokesSource.EQ.'COUPLER' ) THEN
         CALL BOM_GET_STOKES(
      I       targetTime, targetIter,
      O       failCode, stokesProviderValid,
@@ -305,7 +311,8 @@ C--   Publish the candidate NEW source values only into scratch storage.
      &             BOM_ENV_WIND,bi,bj) =
      &             bomExfWindNorthWork(i,j,1,bi,bj)
             ENDIF
-            IF ( bomStokesSource.EQ.'FILES' ) THEN
+            IF ( bomStokesSource.EQ.'FILES' .OR.
+     &           bomStokesSource.EQ.'COUPLER' ) THEN
               bomEnvEastScratch(i,j,BOM_ENV_NEW,
      &             BOM_ENV_STOKES,bi,bj) =
      &             bomStokesEastWork(i,j,1,bi,bj)

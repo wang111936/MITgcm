@@ -25,6 +25,14 @@ C     trajectory/pickup contract and must not be reused.
       PARAMETER ( BOM_ENV_NEW      = 2 )
       PARAMETER ( BOM_ENV_NEND     = 2 )
 
+C--   Stable component identifiers for copied COUPLER Stokes publication.
+      INTEGER BOM_COUPLER_EAST
+      INTEGER BOM_COUPLER_NORTH
+      INTEGER BOM_COUPLER_NCOMP
+      PARAMETER ( BOM_COUPLER_EAST  = 1 )
+      PARAMETER ( BOM_COUPLER_NORTH = 2 )
+      PARAMETER ( BOM_COUPLER_NCOMP = 2 )
+
       _RL bomEnvEast(
      &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
      &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
@@ -123,6 +131,25 @@ C     endpoint values are rotated geographic east/north components.
       COMMON /BOM_STOKES_REC_R/
      &       bomStokesU0, bomStokesU1,
      &       bomStokesV0, bomStokesV1
+
+C--   Compiled COUPLER publication is copied into BOM-owned geographic
+C     east/north C-point arrays.  Component readiness and exact labels are
+C     separate so that missing and partial external publications are fatal.
+      _RL bomCouplerStokesEast(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomCouplerStokesNorth(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_COUPLER_STOKES_R/
+     &       bomCouplerStokesEast, bomCouplerStokesNorth
+
+      _RL bomCouplerStokesTime(BOM_COUPLER_NCOMP)
+      COMMON /BOM_COUPLER_STOKES_TIME_R/ bomCouplerStokesTime
+
+      INTEGER bomCouplerStokesIter(BOM_COUPLER_NCOMP)
+      COMMON /BOM_COUPLER_STOKES_TIME_I/ bomCouplerStokesIter
+
+      LOGICAL bomCouplerStokesReady(BOM_COUPLER_NCOMP)
+      COMMON /BOM_COUPLER_STOKES_L/ bomCouplerStokesReady
 
       _RL bomEnvTimeScratch(BOM_ENV_NEND)
       COMMON /BOM_ENV_SCRATCH_TIME_R/ bomEnvTimeScratch

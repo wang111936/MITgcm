@@ -298,10 +298,12 @@ C--   Phase-2 slow-manifold parameters are active only in BOM mode.
             CALL PRINT_ERROR( msgBuf, myThid )
             errCount = errCount + 1
           ENDIF
+#ifndef ALLOW_BOM_STOKES_COUPLER
           WRITE(msgBuf,'(A)')
      &         'BOM_CHECK: COUPLER provider hook is not compiled'
           CALL PRINT_ERROR( msgBuf, myThid )
           errCount = errCount + 1
+#endif
         ELSE
           WRITE(msgBuf,'(A,A)')
      &         'BOM_CHECK: unsupported bomStokesSource=',

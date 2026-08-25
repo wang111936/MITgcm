@@ -54,6 +54,16 @@ C !LOCAL VARIABLES:
       weight0 = 0. _d 0
       weight1 = 0. _d 0
 
+#ifdef ALLOW_BOM_STOKES_COUPLER
+      IF ( bomStokesSource.EQ.'COUPLER' ) THEN
+        CALL BOM_GET_COUPLER_STOKES(
+     I       targetTime, targetIter,
+     O       failCode, stokesValid,
+     I       myThid )
+        RETURN
+      ENDIF
+#endif
+
 C--   Reject unsafe metadata before the interval helper or any file read.
       IF ( bomStokesSource.NE.'FILES' )
      &     localErrCount = localErrCount + 1

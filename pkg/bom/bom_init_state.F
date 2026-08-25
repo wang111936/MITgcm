@@ -24,7 +24,7 @@ CEOP
 
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
-      INTEGER bi, bj, i, j, ip, iEnd, iSource
+      INTEGER bi, bj, i, j, ip, iEnd, iSource, iComponent
 
       _BEGIN_MASTER(myThid)
       bomFieldsReady = .FALSE.
@@ -41,6 +41,11 @@ C !LOCAL VARIABLES:
         bomEnvIter(iEnd) = 0
         bomEnvTimeScratch(iEnd) = 0. _d 0
         bomEnvIterScratch(iEnd) = 0
+      ENDDO
+      DO iComponent=1,BOM_COUPLER_NCOMP
+        bomCouplerStokesTime(iComponent) = 0. _d 0
+        bomCouplerStokesIter(iComponent) = 0
+        bomCouplerStokesReady(iComponent) = .FALSE.
       ENDDO
       DO bj=1,nSy
        DO bi=1,nSx
@@ -73,6 +78,8 @@ C !LOCAL VARIABLES:
           bomStokesU1(i,j,1,bi,bj) = 0. _d 0
           bomStokesV0(i,j,1,bi,bj) = 0. _d 0
           bomStokesV1(i,j,1,bi,bj) = 0. _d 0
+          bomCouplerStokesEast(i,j,1,bi,bj) = 0. _d 0
+          bomCouplerStokesNorth(i,j,1,bi,bj) = 0. _d 0
           DO iSource=1,BOM_ENV_NSOURCE
            DO iEnd=1,BOM_ENV_NEND
             bomEnvEast(i,j,iEnd,iSource,bi,bj) = 0. _d 0

@@ -50,6 +50,7 @@ build_case() {
   local mpi_enabled="$3"
   local test_driver="$4"
   local packages_file="${5:-packages.conf}"
+  local bom_options="${6:-}"
   local build_dir="${BUILD_ROOT}/${name}"
   local mods_dir="${BUILD_ROOT}/${name}-mods"
   local -a args
@@ -60,6 +61,9 @@ build_case() {
   cp -a "${EXP2_CODE}/." "${mods_dir}/"
   cp "${CASE_DIR}/code/${size_file}" "${mods_dir}/SIZE.h"
   cp "${CASE_DIR}/code/${packages_file}" "${mods_dir}/packages.conf"
+  if [[ -n "${bom_options}" ]]; then
+    cp "${CASE_DIR}/code/${bom_options}" "${mods_dir}/BOM_OPTIONS.h"
+  fi
   if [[ "${test_driver}" == yes ]]; then
     cp "${CASE_DIR}/code/bom_init_varia.F" "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_endpoint_transaction.F" \
@@ -67,6 +71,8 @@ build_case() {
     cp "${CASE_DIR}/code/bom_verify_exf_endpoints.F" \
       "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_stokes_files.F" \
+      "${mods_dir}/"
+    cp "${CASE_DIR}/code/bom_verify_coupler_stokes.F" \
       "${mods_dir}/"
   fi
   args=(
@@ -89,7 +95,9 @@ build_case() {
   [[ -x "${build_dir}/mitgcmuv" ]] || fail "missing executable: ${name}"
   nm "${build_dir}/mitgcmuv" > "${build_dir}/symbols.txt"
   symbols=(bom_check_ bom_init_state_ bom_build_endpoints_ \
-           bom_try_build_endpoints_ bom_get_exf_wind_ bom_get_stokes_)
+           bom_try_build_endpoints_ bom_get_exf_wind_ bom_get_stokes_ \
+           bom_clear_coupler_stokes_ bom_set_coupler_stokes_ \
+           bom_get_coupler_stokes_)
   if [[ "${test_driver}" == yes ]]; then
     symbols+=(bom_verify_endpoint_state_ \
               bom_verify_endpoint_transaction_ \
@@ -156,6 +164,23 @@ prepare_stokes_run() {
     "${run_dir}/data.bom"
   python3 "${CASE_DIR}/input/generate_stokes_fixture.py" \
     --output-dir "${run_dir}"
+  ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" \
+    "${run_dir}/mitgcmuv"
+}
+
+prepare_coupler_run() {
+  local run_name="$1"
+  local build_name="$2"
+  local bom_input="$3"
+  local run_dir="${RUN_ROOT}/${run_name}"
+
+  mkdir -p "${run_dir}"
+  cp "${CASE_DIR}/input/data" "${run_dir}/data"
+  sed -i 's/P21-ENDPOINT-STATE/P21-COUPLER-STOKES/' \
+    "${run_dir}/data"
+  cp "${CASE_DIR}/input/eedata" "${run_dir}/eedata"
+  cp "${CASE_DIR}/input/data.pkg" "${run_dir}/data.pkg"
+  cp "${CASE_DIR}/input/${bom_input}" "${run_dir}/data.bom"
   ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" \
     "${run_dir}/mitgcmuv"
 }
@@ -279,6 +304,43 @@ run_stokes_positive() {
     'P2-E04 exact/repeat FILES Stokes and P2-N03 rollback'
 }
 
+run_coupler_positive() {
+  local name="$1"
+  local build_name="$2"
+  local ranks="$3"
+  local bom_input="$4"
+  local run_dir="${RUN_ROOT}/${name}"
+  local combined="${run_dir}/combined.log"
+  local rank
+  local rank_log
+
+  log "run ${name}"
+  prepare_coupler_run "${name}" "${build_name}" "${bom_input}"
+  if [[ "${ranks}" -eq 1 ]]; then
+    (
+      cd "${run_dir}"
+      ./mitgcmuv > run.log 2>&1
+    )
+    assert_normal_log "${run_dir}/run.log"
+    cp "${run_dir}/run.log" "${combined}"
+  else
+    (
+      cd "${run_dir}"
+      mpirun -np "${ranks}" ./mitgcmuv > mpi-launch.log 2>&1
+    )
+    : > "${combined}"
+    for ((rank=0; rank<ranks; rank++)); do
+      printf -v rank_log '%s/STDOUT.%04d' "${run_dir}" "${rank}"
+      assert_normal_log "${rank_log}"
+      cat "${rank_log}" >> "${combined}"
+    done
+  fi
+  [[ "$(grep -c 'P2.1 COUPLER STOKES PASS' "${combined}")" -eq 1 ]] \
+    || fail "COUPLER Stokes marker count is not one: ${name}"
+  record_pass "${name}" \
+    'P2-E05 copied exact labels and P2-N03 transactional rollback'
+}
+
 run_production_smoke() {
   local run_dir="${RUN_ROOT}/production-one-step"
 
@@ -331,6 +393,22 @@ run_stokes_production_smoke() {
   fi
   record_pass production-stokes-one-step \
     'production BOM-owned FILES fresh hook and one normal step'
+}
+
+run_precombined_none_smoke() {
+  local run_dir="${RUN_ROOT}/production-precombined-none"
+
+  log 'run production-precombined-none'
+  prepare_run production-precombined-none production-serial \
+    data.bom.precombined-none
+  sed -i 's/endTime=0\./endTime=1200./' "${run_dir}/data"
+  (
+    cd "${run_dir}"
+    ./mitgcmuv > run.log 2>&1
+  )
+  assert_normal_log "${run_dir}/run.log"
+  record_pass production-precombined-none \
+    'P2-E05 legal PRECOMBINED plus NONE source row'
 }
 
 run_leew_compat() {
@@ -402,6 +480,9 @@ grep -q 'CALL BOM_GET_EXF_WIND' \
 grep -q 'CALL BOM_GET_STOKES' \
   "${REPO_ROOT}/pkg/bom/bom_build_endpoints.F" \
   || fail 'production FILES Stokes provider hook missing'
+grep -q 'CALL BOM_GET_COUPLER_STOKES' \
+  "${REPO_ROOT}/pkg/bom/bom_get_stokes.F" \
+  || fail 'production COUPLER Stokes provider hook missing'
 record_pass source-contract 'frozen names; test code remains isolated'
 
 build_case serial SIZE.h.serial no yes
@@ -410,15 +491,26 @@ build_case production-serial SIZE.h.serial no no
 build_case exf-serial SIZE.h.serial no yes packages.exf.conf
 build_case exf-mpi4 SIZE.h.mpi4 yes yes packages.exf.conf
 build_case production-exf-serial SIZE.h.serial no no packages.exf.conf
+build_case coupler-serial SIZE.h.serial no yes packages.conf \
+  BOM_OPTIONS.h.coupler
+build_case coupler-mpi4 SIZE.h.mpi4 yes yes packages.conf \
+  BOM_OPTIONS.h.coupler
+build_case production-coupler-serial SIZE.h.serial no no packages.conf \
+  BOM_OPTIONS.h.coupler
 run_positive bom-serial serial 1
 run_positive bom-mpi4 mpi4 4
 run_stokes_positive bom-stokes-serial serial 1
 run_stokes_positive bom-stokes-mpi4 mpi4 4
+run_coupler_positive bom-coupler-serial coupler-serial 1 data.bom.coupler
+run_coupler_positive bom-coupler-mpi4 coupler-mpi4 4 data.bom.coupler
+run_coupler_positive bom-coupler-sigma-zero coupler-serial 1 \
+  data.bom.coupler-zero
 run_exf_positive bom-exf-serial exf-serial 1
 run_exf_positive bom-exf-mpi4 exf-mpi4 4
 run_production_smoke
 run_stokes_production_smoke
 run_exf_production_smoke
+run_precombined_none_smoke
 run_leew_compat
 run_negative current-unset data.bom.unset \
   'BOM requires explicit current policy'
@@ -433,6 +525,8 @@ run_negative bad-files data.bom.bad-files \
   'bomStokesFilePrec must be 32 or 64:'
 run_negative coupler-unavailable data.bom.coupler \
   'COUPLER provider hook is not compiled'
+run_negative duplicate-coupler data.bom.duplicate-coupler \
+  'precombined current duplicates COUPLER Stokes'
 
 cp "${RUN_ROOT}/summary.tsv" "${ARTIFACT_ROOT}/summary.tsv"
 git -C "${REPO_ROOT}" rev-parse HEAD > "${ARTIFACT_ROOT}/source-head.txt"

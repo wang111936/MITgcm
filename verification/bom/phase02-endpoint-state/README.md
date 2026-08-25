@@ -1,9 +1,9 @@
 # P2.1 environmental endpoint state gate
 
-This verification case covers the first four focused P2.1 production
+This verification case covers the first five focused P2.1 production
 increments. It validates parameter/state initialization and transactional
-exact-time ocean, `NONE`, EXF-wind, and BOM-owned FILES Stokes endpoint
-publication without activating the slow-manifold RHS. It verifies:
+exact-time ocean, `NONE`, EXF-wind, FILES Stokes, and compiled COUPLER
+Stokes endpoint publication without activating the slow-manifold RHS. It verifies:
 
 - the frozen Phase-2 runtime parameter contract and safe defaults;
 - overflow-safe conversion of `bomTauDays` to `bomTau` seconds;
@@ -23,6 +23,15 @@ publication without activating the slow-manifold RHS. It verifies:
 - independent Stokes interpolation/rotation oracles in serial and MPI4;
 - bitwise rollback for missing, partial, stale, future, NaN and bad-cycle
   Stokes sources;
+- a compile-time `ALLOW_BOM_STOKES_COUPLER` capability boundary;
+- per-component geographic C-point publication through
+  `BOM_SET_COUPLER_STOKES`, with BOM-owned copies and no producer alias;
+- exact component time/iteration labels and complete east/north availability;
+- serial/MPI4 fresh, normal, OLD/NEW and clean-retry COUPLER transactions;
+- rollback for missing, partial, stale, future, mixed-label, wrong-iteration,
+  non-finite and invalid dry-point COUPLER publications;
+- legal EULERIAN COUPLER rows with nonzero or zero sigma, legal
+  PRECOMBINED/NONE, and duplicate PRECOMBINED/COUPLER rejection;
 - production fresh initialization and one normal zero-particle step;
 - serial and four-rank MPI compilation/runtime behavior;
 - fail-fast current/Stokes policy and file-metadata checks;
@@ -38,6 +47,6 @@ Builds, runs, and evidence are written outside the source tree under the
 configured `MITGCM_BOM_TEST_*_ROOT` locations. The production package does
 not contain verification markers or test-only assertion routines.
 
-P2.1 remains open. COUPLER Stokes, stage-time interpolation, and schema-2
-field pickup are not claimed here. Spatial derivatives and the slow-manifold
-RHS remain outside this verification directory.
+P2.1 remains open. Stage-time interpolation and schema-2 field pickup are
+not claimed here. Spatial derivatives and the slow-manifold RHS remain
+outside this verification directory.

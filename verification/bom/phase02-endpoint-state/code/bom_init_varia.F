@@ -33,6 +33,10 @@ CEOP
 #endif
       ELSEIF ( the_run_name.EQ.'P21-STOKES-FILES' ) THEN
         CALL BOM_VERIFY_STOKES_FILES( myThid )
+      ELSEIF ( the_run_name.EQ.'P21-COUPLER-STOKES' ) THEN
+#ifdef ALLOW_BOM_STOKES_COUPLER
+        CALL BOM_VERIFY_COUPLER_STOKES( myThid )
+#endif
       ENDIF
 #endif
 
