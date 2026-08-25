@@ -6,10 +6,10 @@
 | 目标版本 | `MITGCM-BOM-v0.2` |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
-| 当前分支 | `MITGCM-BOM/phase-01-exit-audit` |
-| 当前 PR | `wang111936/MITgcm#16`（Phase 1 退出审计记录） |
-| 当前工作包 | 最终集成证据、独立退出审计与 v0.2 发布收口 |
-| 状态 | P1.0—P1.5 已顺序集成；最终代码头 257/257 与独立退出审计 PASS，等待审计记录合并和标签 |
+| 当前分支 | `MITGCM-BOM/development` |
+| 当前 PR | `wang111936/MITgcm#16`（已合并；Phase 1 退出审计记录） |
+| 当前工作包 | Phase 1 已完成并发布 |
+| 状态 | **完成**；最终代码头 257/257、独立退出审计、PR #16 与 `MITGCM-BOM-v0.2` 均完成 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -155,13 +155,13 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 
 ## 8. 下一恢复点
 
-从 `MITGCM-BOM/phase-01-exit-audit` 恢复：
+Phase 1 已冻结；后续从 Phase 2 记录恢复：
 
-1. 以 [`PHASE1_INTEGRATION_RESULTS.md`](../../../../verification/bom/phase01-bom-lite/PHASE1_INTEGRATION_RESULTS.md) 和 [`PHASE1_EXIT_AUDIT.md`](../../../../verification/bom/phase01-bom-lite/PHASE1_EXIT_AUDIT.md) 为最终证据入口；
-2. 核对 production code head `3f330b59d` 的 257/257 与聚合 manifest；
-3. 合并纯文档退出记录后创建 annotated tag `MITGCM-BOM-v0.2`；
-4. 标签发布后把项目状态切换为 Phase 1 完成、Phase 2 可启动；
-5. Phase 2 首个增量只冻结 old/new 环境场、Stokes 与慢流形方程接口，不混入弹簧或生物过程。
+1. Phase 1 最终证据入口保持为 [`PHASE1_INTEGRATION_RESULTS.md`](../../../../verification/bom/phase01-bom-lite/PHASE1_INTEGRATION_RESULTS.md) 和 [`PHASE1_EXIT_AUDIT.md`](../../../../verification/bom/phase01-bom-lite/PHASE1_EXIT_AUDIT.md)；
+2. `MITGCM-BOM-v0.2` tag object 固定为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`；
+3. Phase 2 的状态、边界和下一任务见 [`PHASE-02.md`](PHASE-02.md)；
+4. 不再向 Phase 1 增加新物理；必要修复必须单独评估回归和版本影响；
+5. Phase 2 P2.0 先做接口与测试冻结，再请求生产实现授权。
 
 ## 9. P1.2 启动记录
 
@@ -363,3 +363,12 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 - Julia 完整轨迹 golden 明确延至 Phase 2，Phase 1 只以锁定 RHS、单位换算和独立固定步 RK oracle 裁决已实现范围；
 - 目标服务器站点 optfile、调度器和并行文件系统验证保持 Phase 5 独立条件，不阻塞本地 GNU/MPI 的 Phase 2 准入；
 - 独立退出审计为 PASS、无开放 finding；审计前本地与远端均无 `MITGCM-BOM-v0.2`。
+
+## 12. v0.2 发布与 Phase 2 移交
+
+- Phase 1 退出审计记录 PR #16 已以 merge commit `1067c21d230e9c9619e89245b97c01e9474c7ed7` 集成；
+- 该 merge commit 的双亲为 production code head `3f330b59db76b8d7d0ca0fb2bfd007e567fbd6bc` 与审计 head `e8ff1bc4cdd77255ea752846c30767d870066be5`；
+- annotated tag `MITGCM-BOM-v0.2` 的 tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
+- 本地和 GitHub 远端的 tag object/peeled commit 完全一致，tagger 为 `WangYuLin <wang111936@outlook.com>`；
+- PR #16 与标签只归档 Phase 1 集成和退出记录，未改变 production code 或门禁驱动，因此不需要重复执行 257 项数值矩阵；
+- Phase 1 正式完成并冻结，Phase 2 准入记录转入 [`PHASE-02.md`](PHASE-02.md)。

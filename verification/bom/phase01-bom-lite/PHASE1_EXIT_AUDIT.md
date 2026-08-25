@@ -100,3 +100,17 @@ source and no-double-counting rule, derivative/metric interfaces, and
 `PAPER2024`/`JULIA` equation-mode acceptance tests before production physics
 is added. Springs, biology and HPC site optimization remain out of that first
 increment.
+
+## Post-audit release verification
+
+The documentation-only audit was independently reviewed and merged through PR
+#16 as `1067c21d230e9c9619e89245b97c01e9474c7ed7`. Its first parent is the
+audited production code head and its second parent is the fixed audit head
+`e8ff1bc4cdd77255ea752846c30767d870066be5`; the merge range contains only the
+sixteen reviewed Markdown files.
+
+Annotated tag `MITGCM-BOM-v0.2` was then created by
+`WangYuLin <wang111936@outlook.com>`. The local and remote tag object is
+`ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`, and both peel to the audit merge
+commit. This verifies the release action required by the audit without
+changing or overstating the final production-code test evidence.
