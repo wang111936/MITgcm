@@ -74,6 +74,8 @@ build_case() {
       "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_coupler_stokes.F" \
       "${mods_dir}/"
+    cp "${CASE_DIR}/code/bom_verify_env_time.F" \
+      "${mods_dir}/"
   fi
   args=(
     "${REPO_ROOT}/tools/genmake2"
@@ -96,12 +98,13 @@ build_case() {
   nm "${build_dir}/mitgcmuv" > "${build_dir}/symbols.txt"
   symbols=(bom_check_ bom_init_state_ bom_build_endpoints_ \
            bom_try_build_endpoints_ bom_get_exf_wind_ bom_get_stokes_ \
+           bom_interp_env_time_ \
            bom_clear_coupler_stokes_ bom_set_coupler_stokes_ \
            bom_get_coupler_stokes_)
   if [[ "${test_driver}" == yes ]]; then
     symbols+=(bom_verify_endpoint_state_ \
               bom_verify_endpoint_transaction_ \
-              bom_verify_stokes_files_)
+              bom_verify_stokes_files_ bom_verify_env_time_)
   fi
   if [[ "${packages_file}" == packages.exf.conf ]]; then
     symbols+=(exf_init_varia_)
@@ -128,6 +131,22 @@ prepare_run() {
   cp "${CASE_DIR}/input/data.pkg" "${run_dir}/data.pkg"
   cp "${CASE_DIR}/input/${bom_input}" "${run_dir}/data.bom"
   ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" "${run_dir}/mitgcmuv"
+}
+
+prepare_env_time_run() {
+  local run_name="$1"
+  local build_name="$2"
+  local run_dir="${RUN_ROOT}/${run_name}"
+
+  mkdir -p "${run_dir}"
+  cp "${CASE_DIR}/input/data" "${run_dir}/data"
+  sed -i 's/P21-ENDPOINT-STATE/P21-ENV-TIME/' \
+    "${run_dir}/data"
+  cp "${CASE_DIR}/input/eedata" "${run_dir}/eedata"
+  cp "${CASE_DIR}/input/data.pkg" "${run_dir}/data.pkg"
+  cp "${CASE_DIR}/input/data.bom.valid" "${run_dir}/data.bom"
+  ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" \
+    "${run_dir}/mitgcmuv"
 }
 
 prepare_exf_run() {
@@ -230,6 +249,42 @@ run_positive() {
     || fail "transaction marker count is not one: ${name}"
   record_pass "${name}" \
     'fresh/normal ocean-NONE-NONE and rollback transaction'
+}
+
+run_env_time_positive() {
+  local name="$1"
+  local build_name="$2"
+  local ranks="$3"
+  local run_dir="${RUN_ROOT}/${name}"
+  local combined="${run_dir}/combined.log"
+  local rank
+  local rank_log
+
+  log "run ${name}"
+  prepare_env_time_run "${name}" "${build_name}"
+  if [[ "${ranks}" -eq 1 ]]; then
+    (
+      cd "${run_dir}"
+      ./mitgcmuv > run.log 2>&1
+    )
+    assert_normal_log "${run_dir}/run.log"
+    cp "${run_dir}/run.log" "${combined}"
+  else
+    (
+      cd "${run_dir}"
+      mpirun -np "${ranks}" ./mitgcmuv > mpi-launch.log 2>&1
+    )
+    : > "${combined}"
+    for ((rank=0; rank<ranks; rank++)); do
+      printf -v rank_log '%s/STDOUT.%04d' "${run_dir}" "${rank}"
+      assert_normal_log "${rank_log}"
+      cat "${rank_log}" >> "${combined}"
+    done
+  fi
+  [[ "$(grep -c 'P2.1 ENV TIME PASS' "${combined}")" -eq 1 ]] \
+    || fail "environment time marker count is not one: ${name}"
+  record_pass "${name}" \
+    'P2-E06 snap/linear/secant and P2-N02 no extrapolation'
 }
 
 run_exf_positive() {
@@ -483,6 +538,9 @@ grep -q 'CALL BOM_GET_STOKES' \
 grep -q 'CALL BOM_GET_COUPLER_STOKES' \
   "${REPO_ROOT}/pkg/bom/bom_get_stokes.F" \
   || fail 'production COUPLER Stokes provider hook missing'
+grep -q 'SUBROUTINE BOM_INTERP_ENV_TIME' \
+  "${REPO_ROOT}/pkg/bom/bom_interp_env_time.F" \
+  || fail 'production environmental time interpolator missing'
 record_pass source-contract 'frozen names; test code remains isolated'
 
 build_case serial SIZE.h.serial no yes
@@ -499,6 +557,8 @@ build_case production-coupler-serial SIZE.h.serial no no packages.conf \
   BOM_OPTIONS.h.coupler
 run_positive bom-serial serial 1
 run_positive bom-mpi4 mpi4 4
+run_env_time_positive bom-env-time-serial serial 1
+run_env_time_positive bom-env-time-mpi4 mpi4 4
 run_stokes_positive bom-stokes-serial serial 1
 run_stokes_positive bom-stokes-mpi4 mpi4 4
 run_coupler_positive bom-coupler-serial coupler-serial 1 data.bom.coupler

@@ -1,6 +1,6 @@
 # P2.1 environmental endpoint state gate
 
-This verification case covers the first five focused P2.1 production
+This verification case covers the first six focused P2.1 production
 increments. It validates parameter/state initialization and transactional
 exact-time ocean, `NONE`, EXF-wind, FILES Stokes, and compiled COUPLER
 Stokes endpoint publication without activating the slow-manifold RHS. It verifies:
@@ -32,6 +32,10 @@ Stokes endpoint publication without activating the slow-manifold RHS. It verifie
   non-finite and invalid dry-point COUPLER publications;
 - legal EULERIAN COUPLER rows with nonzero or zero sigma, legal
   PRECOMBINED/NONE, and duplicate PRECOMBINED/COUPLER rejection;
+- exact/tolerance endpoint snapping, interior linear stage-time values,
+  and a constant OLD/NEW time secant for every environmental source;
+- legal fresh single-time brackets and fatal non-finite, reversed,
+  discontinuous, interval-mismatched, or out-of-bracket requests;
 - production fresh initialization and one normal zero-particle step;
 - serial and four-rank MPI compilation/runtime behavior;
 - fail-fast current/Stokes policy and file-metadata checks;
@@ -47,6 +51,6 @@ Builds, runs, and evidence are written outside the source tree under the
 configured `MITGCM_BOM_TEST_*_ROOT` locations. The production package does
 not contain verification markers or test-only assertion routines.
 
-P2.1 remains open. Stage-time interpolation and schema-2 field pickup are
-not claimed here. Spatial derivatives and the slow-manifold RHS remain
+P2.1 remains open. Schema-2 field pickup is not claimed here. Spatial
+derivatives and the slow-manifold RHS remain
 outside this verification directory.

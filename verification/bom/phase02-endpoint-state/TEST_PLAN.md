@@ -19,6 +19,8 @@
 | P2-E03 | 1800 s EXF records, 1200 s endpoints, serial/MPI4 | independent exact values; globals bitwise unchanged |
 | P2-E04 | FILES Stokes exact/repeat endpoints, serial/MPI4 | independent scaled/rotated values and exact dry mask |
 | P2-E05 | compiled COUPLER fresh/normal pairs, serial/MPI4 | copied values, exact labels, no alias and sigma policy rows |
+| P2-E06 | accepted OLD/NEW stage-time interpolation, serial/MPI4 | exact snaps, linear interior values and constant secants |
+| P2-N02 | non-finite/reversed/discontinuous brackets or outside stage | endpoint-specific `FIELD_TIME`; no clamp or extrapolation |
 | P2-N03 | EXF/FILES/COUPLER missing, partial, future, stale or non-finite | `FIELD_SOURCE/FIELD_NEW`; accepted bracket bitwise unchanged |
 | P2-N04 | NONE/sigma and PRECOMBINED/explicit source matrix | illegal rows rejected before endpoint publication |
 | P21-Z01 | Phase-1 `LEEW` defaults with new state present | normal end; no BOM-only policy rejection |
@@ -46,6 +48,6 @@ and accepted-state rollback for every P2-N03 EXF failure row.
 
 This increment intentionally does not claim P2.1 completion. Nonzero
 `bomMode='BOM'` remains rejected until the inertial RHS is connected. EXF
-wind and explicit Stokes are accepted only through exact-time providers;
-stage-time interpolation and field pickup remain later P2.1 work. No derivative
+wind and explicit Stokes use exact-time endpoint providers; schema-2 field
+pickup remains later P2.1 work. No spatial-derivative
 or slow-manifold RHS test belongs in this gate.

@@ -37,6 +37,8 @@ CEOP
 #ifdef ALLOW_BOM_STOKES_COUPLER
         CALL BOM_VERIFY_COUPLER_STOKES( myThid )
 #endif
+      ELSEIF ( the_run_name.EQ.'P21-ENV-TIME' ) THEN
+        CALL BOM_VERIFY_ENV_TIME( myThid )
       ENDIF
 #endif
 
