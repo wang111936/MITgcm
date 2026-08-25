@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 需求追踪
 
-状态：P1.1 已验收；P1.2 P1-R05—P1-R07 实现、全回归、独立复审及 PR #10—#12 收口全部完成；P1.3 单 tile 接口已冻结，setup、无状态 Leeway RHS、无状态 RK2/P1-I05、无状态 RK4/P1-I06 四个生产增量均已通过精确提交专属门禁及全部前序回归；release 状态机、事务提交与完整状态预算仍待后续增量
+状态：P1.1、P1.2 已验收；P1.3 五个生产增量、生命周期与全部前序回归已完成，Ready remediation 在 `0458910a9bb484aab8901d1a17046e3804e82165` 上补齐球面 RK2/RK4 解析位移，累计 159 项验收通过；PR #13 等待 Ready 复审
 
 本表是 Phase 1 需求、计划例程和测试之间的权威映射。实现阶段不得把“已有代码”当作完成证据；只有对应测试通过并在 `TEST_RESULTS.md` 记录后，需求状态才能改为完成。
 
@@ -8,22 +8,22 @@
 
 | ID | 需求 | 计划实现位置 | 验收测试 | 工作包 | 当前状态 |
 |---|---|---|---|---|---|
-| P1-R01 | `ALLOW_BOM`/`useBOM` 独立控制，关闭时零影响且启动参数安全 | 已有核心挂接、`BOM_CHECK` | P1-C01、P1-Z01、P1-N01b | P1.1–P1.5 回归 | P1.1 零影响回归通过；P1.3 启动数值 preflight 与 P1-N01b 设置边界完成，运动子步尚待后续 |
+| P1-R01 | `ALLOW_BOM`/`useBOM` 独立控制，关闭时零影响且启动参数安全 | 已有核心挂接、`BOM_CHECK` | P1-C01、P1-Z01、P1-N01b | P1.1–P1.5 回归 | P1.3 安全子步导出、零粒子返回、启动 preflight 与前序零影响回归完成 |
 | P1-R02 | 读取 schema 1 初始文件并拒绝损坏输入 | `BOM_INIT_VARIA`、`BOM_READ_INITIAL` | P1-S01、P1-N02 | P1.1 | P1.1 完成 |
 | P1-R03 | 全局 64 位 ID 唯一且交换/I/O 不失真 | `BOM_ID_FROM_WORDS`、后续 pack/交换/pickup | P1-S02、P1-X04、P1-P02 | P1.1、P1.4、P1.5 | P1.1 初值恢复与唯一性完成；交换/I/O 待后续 |
-| P1-R04 | 每 tile 权威 SoA、紧凑 owner 和容量安全 | `BOM.h`、`BOM_SIZE.h`、`BOM_READ_INITIAL`、`bomNPartExpected`、`BOM_CHECK_STATE` | P1-S03、P1-S04a、P1-N03a—N03b、P1-N08 | P1.1、P1.3、P1.4 | P1.1 状态/初值容量完成；`bomNPartExpected` 重置与成功发布已通过串行/MPI 回归；`BOM_CHECK_STATE` 完整预算与交换检查待后续 |
+| P1-R04 | 每 tile 权威 SoA、紧凑 owner 和容量安全 | `BOM.h`、`BOM_SIZE.h`、`BOM_READ_INITIAL`、`bomNPartExpected`、`BOM_CHECK_STATE` | P1-S03、P1-S04a、P1-N03a—N03b、P1-N08 | P1.1、P1.3、P1.4 | P1.3 单-owner 紧凑槽、全局 owner/64 位 ID/状态预算完成；迁移交换容量留给 P1.4 |
 | P1-R05 | 支持规则 Cartesian 与未旋转 spherical-polar 映射 | `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、`BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY`、兼容 `BOM_LOCATE_INITIAL` | P1-S03、P1-M01、P1-M02、P1-N04 | P1.1、P1.2 | 完成；19/19 门禁覆盖累计溢出、非有限原点/间距/末端 face 与正负极端有限经度 |
 | P1-R06 | 表层 C-grid U/V 正确转为 C 点 east/north | `BOM_BUILD_FIELDS`、`bomGrid*` 单层数组 | P1-F01、P1-F02 | P1.2 | 完成；`Nr=2` 串行/MPI4 旋转、mask 和标量 halo 门禁及前序回归通过 |
 | P1-R07 | 对湿点做一致的归一化双线性插值 | `BOM_INTERP_WET_PAIR`、`BOM_MAIN` 非移动诊断调用层 | P1-F03、P1-N05 | P1.2 | 完成；串行/MPI4 组件、生产生命周期和调用层异常终止门禁通过，权威粒子状态 bitwise 不变 |
-| P1-R08 | LEEW 海流 RHS 使用 SI 且坐标率转换正确 | `BOM_RHS_LEEWAY` | P1-I01、P1-I02、P1-I03 | P1.3 | RHS 组件、Cartesian 常值 RK2/RK4 解析位移、P1-I05 二阶和 P1-I06 四阶收敛完成；spherical/生产生命周期轨迹待后续 |
-| P1-R09 | 可选 EXF 风按独立经验系数叠加 | `BOM_CHECK`、`BOM_BUILD_FIELDS`、`bomGridWind*`、`BOM_RHS_LEEWAY` | P1-I04、P1-N06 | P1.3 | source/依赖矩阵、冻结风场与 EXF→field→RHS 串行/MPI4 端到端 P1-I04 完成；风驱生产轨迹待生命周期调用层 |
+| P1-R08 | LEEW 海流 RHS 使用 SI 且坐标率转换正确 | `BOM_RHS_LEEWAY` | P1-I01、P1-I02、P1-I03 | P1.3 | 完成；Cartesian 与非零纬度 spherical-polar 的 RK2/RK4 解析位移、零场调用方及坐标率均通过 |
+| P1-R09 | 可选 EXF 风按独立经验系数叠加 | `BOM_CHECK`、`BOM_BUILD_FIELDS`、`bomGridWind*`、`BOM_RHS_LEEWAY` | P1-I04、P1-N06 | P1.3 | 完成；source/依赖矩阵及 EXF→冻结场→RHS 串行/MPI4 端到端 Leeway 代数通过 |
 | P1-R10 | Stokes 在 Phase 1 固定关闭，误配置失败 | `BOM_READPARMS`、`BOM_CHECK` | P1-N07 | P1.1 | P1.1 完成 |
-| P1-R11 | 固定子步、显式中点 RK2 和经典 RK4 | `BOM_MAIN`、`BOM_RK2`、`BOM_RK4` | P1-S04b、P1-I05、P1-I06 | P1.3 | 子步安全导出与无状态 RK2/RK4 组件完成；P1-I05 最细两阶为 1.9885/1.9942，P1-I06 为 3.9858/3.9931；release 和生产子步调用待后续 |
+| P1-R11 | 固定子步、显式中点 RK2 和经典 RK4 | `BOM_MAIN`、`BOM_RK2`、`BOM_RK4` | P1-S04b、P1-I05、P1-I06 | P1.3 | 完成；等长子步、精确 release、生产调用方、RK2 二阶与 RK4 四阶证据全部通过 |
 | P1-R12 | 每个子步后完成唯一 owner tile/rank 迁移 | `BOM_PARTICLE_EXCHANGE`、`BOM_MAPPING` | P1-X01—P1-X04 | P1.4 | 未实现 |
 | P1-R13 | 轨迹使用独立 schema/前缀并可按 ID 重组 | `BOM_OUTPUT` | P1-O01、P1-O02 | P1.5 | 未实现 |
 | P1-R14 | 相同分解 pickup 连续/重启状态 bitwise 一致 | `BOM_READ_PICKUP`、`BOM_WRITE_PICKUP` | P1-P01、P1-P02 | P1.5 | 未实现 |
 | P1-R15 | FLT 与 BOM 状态、例程、I/O 独立且可共存 | BOM namespace、核心调度 | P1-K01、P1-K02 | P1.5 | 部分骨架，待完整验证 |
-| P1-R16 | 运行中检查有限数、CFL、owner 数和状态预算 | `BOM_RHS_LEEWAY`、`BOM_CHECK_STATE`、`BOM_MAIN` | P1-N08、P1-X03、P1-G01 | P1.3–P1.5 | 启动 preflight、RHS 稳定失败类别、RK2 NONE/K1/K2/FINAL 及 RK4 NONE/K1--K4/FINAL 首失败/回滚门禁完成；生产调用层集体诊断和全局 owner/ID/状态预算待后续 |
+| P1-R16 | 运行中检查有限数、CFL、owner 数和状态预算 | `BOM_RHS_LEEWAY`、`BOM_CHECK_STATE`、`BOM_MAIN` | P1-N08、P1-X03、P1-G01 | P1.3–P1.5 | P1.3 单-owner 部分完成：stage/CFL/回滚、生产集体诊断及全局 owner/ID/状态预算通过；迁移与 I/O 检查留给后续包 |
 
 ### P1.1 反向追踪
 
@@ -59,12 +59,12 @@
 | `BOM_CHECK` 的数值 preflight 与 EXF 依赖矩阵 | P1-R01、P1-R09、P1-R11、P1-R16 | 首增量完成；P1-N01b/P1-N06 的有限 target/系数/CFL、可表示子步和 EXF source/依赖组合门禁通过 |
 | `bomGridWindEast/bomGridWindNorth`、扩展 `BOM_BUILD_FIELDS` | P1-R09 | 首增量完成冻结、mask、标量 halo、时间标签和有限性组件证据；第二增量中与 RHS 组成同次 EXF 端到端门禁 |
 | `BOM_RHS_LEEWAY` | P1-R08、P1-R09、P1-R16 | 第二增量完成；P1-I01—I04 串行/MPI4、Cartesian/球面坐标率、EXF Leeway、半格 tie、stage CFL 和 P1-N08 RHS 失败类别 15/15 通过 |
-| `BOM_RK_COORD_UPDATE`、`BOM_RK2` | P1-R11、P1-R16 | 第三增量完成；11/11 exact-head 门禁覆盖 K1/K2/FINAL 全 RHS、溢出安全试算、bitwise 零场、常值解析位移、P1-I05 二阶收敛和阶段失败回滚；指数缩放 helper 在第四增量头再次 11/11 通过 |
-| `BOM_RK4`、`BOM_RK4_COORD_UPDATE` | P1-R11、P1-R16 | 第四增量完成；11/11 exact-head 门禁覆盖 K1--K4/FINAL 全 RHS、极值安全加权、P1-I06 最细两阶 3.9858/3.9931 和逐 stage 回滚；全部前序回归通过 |
-| `BOM_MAIN` 的等长子步和 release 状态机 | P1-R11、P1-R16 | P1-N01b、P1-S04b、P1-I01、P1-N08：安全子步导出、精确 release 分割、候选 age 和单 tile owner；待实现 |
-| `bomNPartExpected`、`BOM_CHECK_STATE` | P1-R04、P1-R16 | `bomNPartExpected` 重置/成功初值发布已完成；P1-N08 紧凑槽、全局 owner/ID/状态/release/age 预算待实现 |
+| `BOM_RK_COORD_UPDATE`、`BOM_RK2` | P1-R08、P1-R11、P1-R16 | 12/12 remediation 门禁覆盖球面 P1-I03 解析位移、K1/K2/FINAL、零场、Cartesian 解析位移、P1-I05 二阶收敛和阶段回滚 |
+| `BOM_RK4`、`BOM_RK4_COORD_UPDATE` | P1-R08、P1-R11、P1-R16 | 12/12 remediation 门禁覆盖球面 P1-I03 解析位移、K1--K4/FINAL、极值安全加权、P1-I06 四阶收敛和逐 stage 回滚 |
+| `BOM_MAIN` 的等长子步和 release 状态机 | P1-R11、P1-R16 | 完成；P1-S04b、P1-I01、P1-N08 通过安全子步、精确 release、候选 age 和单-owner 事务提交 |
+| `bomNPartExpected`、`BOM_CHECK_STATE` | P1-R04、P1-R16 | 完成；P1-N08 紧凑槽、全局 owner/精确 64 位 ID/状态/release/age 预算通过 |
 
-详细契约见 [`P1.3_INTERFACE_FREEZE.md`](P1.3_INTERFACE_FREEZE.md)。首个 setup 增量执行证据见 [`../phase01-setup/TEST_RESULTS.md`](../phase01-setup/TEST_RESULTS.md)，第二个无状态 RHS 增量证据见 [`../phase01-rhs/TEST_RESULTS.md`](../phase01-rhs/TEST_RESULTS.md)，第三个无状态 RK2/P1-I05 精确提交证据见 [`../phase01-rk2/TEST_RESULTS.md`](../phase01-rk2/TEST_RESULTS.md)，第四个无状态 RK4/P1-I06 证据账本见 [`../phase01-rk4/TEST_RESULTS.md`](../phase01-rk4/TEST_RESULTS.md)。这些组件证据不替代 release、生产生命周期、事务提交和最终复审。
+详细契约见 [`P1.3_INTERFACE_FREEZE.md`](P1.3_INTERFACE_FREEZE.md)。setup、RHS、RK2、RK4 和生产生命周期证据分别见各自 `TEST_RESULTS.md`；Ready remediation 提交 `0458910a9bb484aab8901d1a17046e3804e82165` 为 RK2/RK4 各新增一项 P1-I03 球面解析位移门禁。PR #13 的 Ready/合并/标签仍需独立授权。
 
 ## 2. 上层验证编号映射
 
