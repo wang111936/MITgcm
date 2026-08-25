@@ -41,7 +41,11 @@ C !LOCAL VARIABLES:
       _BEGIN_MASTER(myThid)
 
       WRITE(msgBuf,'(A)')
-     &     'BOM_CHECK: Phase-1.5 setup, state, migration, restart gate'
+     &     'BOM_CHECK: Phase-1.4 setup, state, and migration gate'
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      WRITE(msgBuf,'(A)')
+     &     'BOM_CHECK: Phase-1.5 restart and output extensions'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
       CALL WRITE_0D_C( bomMode, -1, INDEX_NONE,
