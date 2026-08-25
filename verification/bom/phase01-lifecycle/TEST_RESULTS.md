@@ -102,6 +102,16 @@ The affine convergence evidence remained inside the frozen ranges:
 - RK2 finest orders: `1.9885`, `1.9942`;
 - RK4 finest orders: `3.9858`, `3.9931`.
 
+## Ready-review acceptance completion
+
+The independent Ready review found that the original P1-I03 row checked the
+spherical native rate but not direct displacement. Verification commit
+`0458910a9bb484aab8901d1a17046e3804e82165` adds one analytic spherical
+displacement row to each full RK gate. RK2 and RK4 both pass 12/12 on that
+clean exact head. The cumulative P1.3 and predecessor record is therefore
+**159/159 PASS**; production source is unchanged from the original lifecycle
+matrix.
+
 ## Compatibility decisions recorded during execution
 
 1. MITgcm string `STOP` can return process status 0. Negative lifecycle

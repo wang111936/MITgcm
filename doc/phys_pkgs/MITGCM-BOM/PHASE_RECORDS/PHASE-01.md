@@ -6,10 +6,10 @@
 | 目标版本 | `MITGCM-BOM-v0.2` |
 | 基线标签 | `MITGCM-BOM-v0.1` |
 | 基线提交 | `b2f3ecf1081f7bab25749c4a6004730175d99955` |
-| 当前分支 | `MITGCM-BOM/phase-01-single-tile-integration` |
-| 当前 PR | `wang111936/MITgcm#13`（Draft，P1.3 单 tile 积分） |
-| 当前工作包 | P1.3 单 tile 积分设计复审收口 |
-| 状态 | P1.0—P1.2 已集成；P1.3 独立设计复审 PASS、无开放 finding，等待生产实现授权 |
+| 当前分支 | `MITGCM-BOM/phase-01-owner-migration` |
+| 当前 PR | `wang111936/MITgcm#14`（Draft，P1.4 owner 迁移） |
+| 当前工作包 | P1.4 同步后精确头复验与 Ready 复审准备 |
+| 状态 | P1.0—P1.3 已集成；P1.4 生产实现、owner 36/36 及同步后的 RK2/RK4 12/12 + 12/12 均通过，等待独立 Ready 复审 |
 | 开始日期 | 2026-08-23 |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -26,9 +26,9 @@ Phase 1 结束时应提供可执行证据，证明 BOM-Lite 的解析轨迹正�
 | P1.0 设计冻结 | 完成 | `MITGCM-BOM/phase-01-design` / PR #7 | merge commit `acb51051ecc92ffccdf9f368c6d5aa8dc4049f6f` |
 | P1.1 状态与初值 | 完成 | `MITGCM-BOM/phase-01-state` / PR #8 | merge commit `ab30b3dc530404fda796189e50b8de776bf4441d`；集成 P1.1/Phase 0 门禁通过 |
 | P1.2 映射与环境场 | 完成 | PR #10 `fe51332e1` / PR #11 `34edbc50c` / PR #12 `eefca92fe` | 全门禁、两轮集成记录与最终纯文档收口完成 |
-| P1.3 单 tile 积分 | 进行中 | `MITGCM-BOM/phase-01-single-tile-integration` / Draft PR #13 | 独立设计复审 PASS、P1.3-A—E 已关闭；尚无生产实现 |
-| P1.4 owner 迁移 | 未开始 | 待建立 | 等待 P1.3 门禁 |
-| P1.5 输出与重启 | 未开始 | 待建立 | 等待 P1.4 门禁 |
+| P1.3 单 tile 积分 | 完成 | `MITGCM-BOM/phase-01-single-tile-integration` / PR #13 | merge commit `41fb093866ef4c2dbda778696892457cfca160f9`；累计 159 项验收通过 |
+| P1.4 owner 迁移 | 进行中 | `MITGCM-BOM/phase-01-owner-migration` / Draft PR #14 | 生产实现、36/36 专属门禁及同步后的 RK2/RK4 12/12 + 12/12 通过，等待 Ready 复审 |
+| P1.5 输出与重启 | 未开始 | `MITGCM-BOM/phase-01-output-pickup-coexistence` / Draft PR #15 | 已有后继实现分支，待 P1.4 顺序集成后同步复验 |
 
 ## 3. P1.0 交付范围
 

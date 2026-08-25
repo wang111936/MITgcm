@@ -1,8 +1,6 @@
 # Phase 1 BOM-Lite 需求追踪
 
-状态：P1.1—P1.5 生产实现及阶段门禁完成；P1.5 专属门禁 62/62、P1.4
-及更早回归 193/193、P1-G01 总矩阵 255/255 和最终审计通过；独立 Ready
-复审仍保留
+状态：P1.1—P1.5 生产实现及原阶段门禁完成；原 P1-G01 255/255 PASS；PR #13/#14 已顺序集成，新增球面 RK2/RK4 两项后，同步头 P1.5 专属 62 项、前序 195 项及 P1-G01 257 项精确头复验待执行；独立 Ready 复审仍保留
 
 本表是 Phase 1 需求、计划例程和测试之间的权威映射。实现阶段不得把“已有代码”当作完成证据；只有对应测试通过并在 `TEST_RESULTS.md` 记录后，需求状态才能改为完成。
 
@@ -17,7 +15,7 @@
 | P1-R05 | 支持规则 Cartesian 与未旋转 spherical-polar 映射 | `BOM_INIT_MAPPING`、`BOM_NORMALIZE_X`、`BOM_MAP_XY2IJLOCAL`、`BOM_MAP_IJLOCAL2XY`、兼容 `BOM_LOCATE_INITIAL` | P1-S03、P1-M01、P1-M02、P1-N04 | P1.1、P1.2 | 完成；19/19 门禁覆盖累计溢出、非有限原点/间距/末端 face 与正负极端有限经度 |
 | P1-R06 | 表层 C-grid U/V 正确转为 C 点 east/north | `BOM_BUILD_FIELDS`、`bomGrid*` 单层数组 | P1-F01、P1-F02 | P1.2 | 完成；`Nr=2` 串行/MPI4 旋转、mask 和标量 halo 门禁及前序回归通过 |
 | P1-R07 | 对湿点做一致的归一化双线性插值 | `BOM_INTERP_WET_PAIR`、`BOM_MAIN` 非移动诊断调用层 | P1-F03、P1-N05 | P1.2 | 完成；串行/MPI4 组件、生产生命周期和调用层异常终止门禁通过，权威粒子状态 bitwise 不变 |
-| P1-R08 | LEEW 海流 RHS 使用 SI 且坐标率转换正确 | `BOM_RHS_LEEWAY` | P1-I01、P1-I02、P1-I03 | P1.3 | 完成；Cartesian/球面坐标率、常值 RK2/RK4 解析位移和生产零场生命周期均通过 |
+| P1-R08 | LEEW 海流 RHS 使用 SI 且坐标率转换正确 | `BOM_RHS_LEEWAY` | P1-I01、P1-I02、P1-I03 | P1.3 | 完成；Cartesian 与非零纬度 spherical-polar 的 RK2/RK4 解析位移、零场调用方及坐标率均通过 |
 | P1-R09 | 可选 EXF 风按独立经验系数叠加 | `BOM_CHECK`、`BOM_BUILD_FIELDS`、`bomGridWind*`、`BOM_RHS_LEEWAY` | P1-I04、P1-N06 | P1.3 | 完成；source/依赖矩阵、冻结风场与 EXF→field→RHS 串行/MPI4 端到端门禁通过 |
 | P1-R10 | Stokes 在 Phase 1 固定关闭，误配置失败 | `BOM_READPARMS`、`BOM_CHECK` | P1-N07 | P1.1 | P1.1 完成 |
 | P1-R11 | 固定子步、显式中点 RK2 和经典 RK4 | `BOM_MAIN`、`BOM_RK2`、`BOM_RK4` | P1-S04b、P1-I05、P1-I06 | P1.3 | 完成；等长子步、精确 release 分割、生产事务调用、P1-I05 1.9885/1.9942 与 P1-I06 3.9858/3.9931 均通过 |
@@ -25,7 +23,7 @@
 | P1-R13 | 轨迹使用独立 schema/前缀并可按 ID 重组 | `BOM_OUTPUT`、`BOM_WRITE_TRAJECTORY` | P1-O01、P1-O02 | P1.5 | 完成；24-field schema、双字 ID、迁移后 serial/MPI4、关闭输出和 150/60 非整除调度门禁通过 |
 | P1-R14 | 相同分解 pickup 连续/重启状态 bitwise 一致 | `BOM_READ_PICKUP`、`BOM_WRITE_PICKUP` | P1-P01、P1-P02、P1-P03 | P1.5 | 完成；核心 suffix、1/2/4 ranks 5+3 restart、事务 scratch、调度恢复和改变分解早期拒绝通过 |
 | P1-R15 | FLT 与 BOM 状态、例程、I/O 独立且可共存 | BOM namespace、核心调度 | P1-K01、P1-K02 | P1.5 | 完成；serial/MPI2 四组合及核心、FLT、BOM 双向不变性 25/25 通过 |
-| P1-R16 | 运行中检查有限数、CFL、owner 数和状态预算 | `BOM_RHS_LEEWAY`、`BOM_CHECK_STATE`、`BOM_MAIN` | P1-N08、P1-X03、P1-G01 | P1.3–P1.5 | 完成；P1.3/P1.4 事务检查保持通过，P1-G01 在同一 clean exact head 上 255/255 通过 |
+| P1-R16 | 运行中检查有限数、CFL、owner 数和状态预算 | `BOM_RHS_LEEWAY`、`BOM_CHECK_STATE`、`BOM_MAIN` | P1-N08、P1-X03、P1-G01 | P1.3–P1.5 | 原 P1-G01 255/255 通过；纳入两项球面 RK 门禁后的同步头 257 项复验待执行 |
 
 ### P1.1 反向追踪
 
@@ -61,12 +59,12 @@
 | `BOM_CHECK` 的数值 preflight 与 EXF 依赖矩阵 | P1-R01、P1-R09、P1-R11、P1-R16 | 首增量完成；P1-N01b/P1-N06 的有限 target/系数/CFL、可表示子步和 EXF source/依赖组合门禁通过 |
 | `bomGridWindEast/bomGridWindNorth`、扩展 `BOM_BUILD_FIELDS` | P1-R09 | 首增量完成冻结、mask、标量 halo、时间标签和有限性组件证据；第二增量中与 RHS 组成同次 EXF 端到端门禁 |
 | `BOM_RHS_LEEWAY` | P1-R08、P1-R09、P1-R16 | 第二增量完成；P1-I01—I04 串行/MPI4、Cartesian/球面坐标率、EXF Leeway、半格 tie、stage CFL 和 P1-N08 RHS 失败类别 15/15 通过 |
-| `BOM_RK_COORD_UPDATE`、`BOM_RK2` | P1-R11、P1-R16 | 第三增量完成；11/11 exact-head 门禁覆盖 K1/K2/FINAL 全 RHS、溢出安全试算、bitwise 零场、常值解析位移、P1-I05 二阶收敛和阶段失败回滚；指数缩放 helper 在第四增量头再次 11/11 通过 |
-| `BOM_RK4`、`BOM_RK4_COORD_UPDATE` | P1-R11、P1-R16 | 第四增量完成；11/11 exact-head 门禁覆盖 K1--K4/FINAL 全 RHS、极值安全加权、P1-I06 最细两阶 3.9858/3.9931 和逐 stage 回滚；全部前序回归通过 |
+| `BOM_RK_COORD_UPDATE`、`BOM_RK2` | P1-R08、P1-R11、P1-R16 | 12/12 门禁覆盖球面 P1-I03、K1/K2/FINAL、零场、Cartesian 解析位移、P1-I05 二阶收敛和阶段回滚 |
+| `BOM_RK4`、`BOM_RK4_COORD_UPDATE` | P1-R08、P1-R11、P1-R16 | 12/12 门禁覆盖球面 P1-I03、K1--K4/FINAL、极值安全加权、P1-I06 四阶收敛和逐 stage 回滚 |
 | `BOM_MAIN` 的等长子步和 release 状态机 | P1-R11、P1-R16 | 完成；P1-N01b、P1-S04b、P1-I01、P1-N08 覆盖安全子步、精确 release 分割、候选 age 与事务提交 |
 | `bomNPartExpected`、`BOM_CHECK_STATE` | P1-R04、P1-R16 | 完成；P1-N08 覆盖紧凑槽、全局 owner/ID/status/release/age 预算与集体诊断 |
 
-详细契约见 [`P1.3_INTERFACE_FREEZE.md`](P1.3_INTERFACE_FREEZE.md)。setup、RHS、RK2 和 RK4 增量证据分别见对应验证目录；生产 release/事务/state-budget 证据见 [`../phase01-lifecycle/TEST_RESULTS.md`](../phase01-lifecycle/TEST_RESULTS.md)，最终结论见 [`P1.3_SCOPE_AUDIT.md`](P1.3_SCOPE_AUDIT.md)。P1.3 已完成，但 Draft PR 的独立 Ready 复审仍是单独控制点。
+详细契约见 [`P1.3_INTERFACE_FREEZE.md`](P1.3_INTERFACE_FREEZE.md)。setup、RHS、RK2 和 RK4 增量证据分别见对应验证目录；生产 release/事务/state-budget 证据见 [`../phase01-lifecycle/TEST_RESULTS.md`](../phase01-lifecycle/TEST_RESULTS.md)，最终结论见 [`P1.3_SCOPE_AUDIT.md`](P1.3_SCOPE_AUDIT.md)。Ready remediation 补齐两项球面 RK 门禁，PR #13 已完成复审并以 `41fb0938` 集成。
 
 ### P1.4 反向追踪
 
@@ -77,7 +75,7 @@
 | `BOM_PARTICLE_EXCHANGE` | P1-R03、P1-R04、P1-R12、P1-R16 | 两个 Alltoallv、两字 64 位 ID、SEND/RECV/tile 容量预检、确定性排序及无部分提交；36/36 PASS |
 | `BOM_MAIN` 的每子步迁移调用 | P1-R11、P1-R12 | P1-X03 连续 16 子步逐步 hop，serial/MPI4 最终状态 bitwise 一致 |
 
-权威接口见 [`P1.4_INTERFACE_FREEZE.md`](P1.4_INTERFACE_FREEZE.md)，执行证据见 [`../phase01-owner-migration/TEST_RESULTS.md`](../phase01-owner-migration/TEST_RESULTS.md)，最终审计见 [`P1.4_SCOPE_AUDIT.md`](P1.4_SCOPE_AUDIT.md)。
+权威接口见 [`P1.4_INTERFACE_FREEZE.md`](P1.4_INTERFACE_FREEZE.md)，执行证据见 [`../phase01-owner-migration/TEST_RESULTS.md`](../phase01-owner-migration/TEST_RESULTS.md)，最终审计见 [`P1.4_SCOPE_AUDIT.md`](P1.4_SCOPE_AUDIT.md)。同步头 owner 36/36、RK2 12/12、RK4 12/12 通过，PR #14 已以 `9d258da4` 集成。
 
 ### P1.5 反向追踪
 

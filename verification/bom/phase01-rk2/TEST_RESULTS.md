@@ -76,6 +76,24 @@ Summary: 11/11 PASS.
    `dt*rate` first, then applies the bounded stage factor, avoiding premature
    underflow while retaining overflow safety.
 
+## Ready-review P1-I03 remediation
+
+Commit `0458910a9bb484aab8901d1a17046e3804e82165` adds a direct spherical-polar
+production-RK2 acceptance at nonzero latitude. Pure east and pure north SI
+velocities are advanced for 300 seconds and compared with analytic longitude
+and latitude displacement using the same `rSphere` and `deg2rad` as production.
+
+The clean exact-head gate passed **12/12**:
+
+```text
+run:      /home/wyl/runs/mitgcm-bom/phase01-single-tile/p13-ready-i03-rk2-0458910a-attempt01
+artifact: /home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p13/p13-ready-i03-rk2-0458910a-attempt01
+summary:  1d1800b750eda15d04a39c34c38341178bd427425b77d2f5520ce707ffd0fcc4
+```
+
+This remediation changes verification code and input only; production Fortran
+is unchanged.
+
 ## Remaining boundary
 
 `BOM_RK2` is a stateless trial kernel: it returns a locally accepted
