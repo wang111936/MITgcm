@@ -9,10 +9,10 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-02-entry-record` |
-| 当前阶段 PR | `wang111936/MITgcm#17`（Phase 2 准入记录） |
+| 当前任务分支 | `MITGCM-BOM/development` |
+| 当前阶段 PR | 无；最近完成 `wang111936/MITgcm#17`（Phase 2 准入记录） |
 | 当前阶段 | Phase 2：慢流形惯性物理（准入完成，生产实现未开始） |
-| 当前工作包 | `MITGCM-BOM-v0.2` 发布验证与 Phase 2 准入记录 |
+| 当前工作包 | P2.0 接口、需求与测试冻结待启动 |
 | 下一工作包 | P2.0 接口冻结：old/new 场、Stokes 去重、方程模式和验收矩阵 |
 | 当前阻塞 | 无 |
 
@@ -523,6 +523,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - Phase 1 标记为完成，最终 production code evidence 仍为 `3f330b59d` 的 257/257；审计/发布纯文档提交不改变数值结果；
 - Phase 2 准入通过但生产实现尚未开始；建立 `PHASE-02.md` 记录边界、风险、分工作包和 P2.0 唯一下一任务；
 - P2.0 首先冻结 old/new 环境场、Stokes source/去重规则、导数/度量接口、`PAPER2024`/`JULIA` 模式和 Julia golden 输入，不混入弹簧、生物或站点 HPC 优化。
+- Phase 2 准入记录 PR #17 已以 merge commit `ed767ed22db7933cfee82dc89ade14691e081f91` 集成；development 同步后唯一下一任务保持为 P2.0。
 
 ## 6. 每次会话结束时必须更新
 
