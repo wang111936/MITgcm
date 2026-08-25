@@ -164,8 +164,8 @@ grep -q 'CALL BOM_BUILD_FIELDS' "${REPO_ROOT}/pkg/bom/bom_main.F" \
   || fail 'production BOM_MAIN does not call BOM_BUILD_FIELDS'
 grep -q 'CALL ROTATE_UV2EN_RL' "${FIELD_SOURCE}" \
   || fail 'production builder does not call ROTATE_UV2EN_RL'
-[[ "$(grep -c 'CALL EXCH_3D_RL' "${FIELD_SOURCE}")" -eq 2 ]] \
-  || fail 'production builder must make two scalar EXCH_3D_RL calls'
+[[ "$(grep -c 'CALL EXCH_3D_RL' "${FIELD_SOURCE}")" -eq 4 ]] \
+  || fail 'production builder must exchange two ocean and two wind scalars'
 if rg -n 'CALL EXCH_UV|BOM_VERIFY_FIELDS|P1-F0[12]' \
     "${REPO_ROOT}/pkg/bom"; then
   fail 'vector exchange or verification marker leaked into production'
@@ -175,7 +175,7 @@ for field_name in bomGridUWork bomGridVWork \
   grep -q "${field_name}" "${REPO_ROOT}/pkg/bom/BOM.h" \
     || fail "missing field declaration: ${field_name}"
 done
-printf 'source-contract\tPASS\treal rotation and two scalar exchanges\n' \
+printf 'source-contract\tPASS\treal rotation and four scalar exchanges\n' \
   >> "${RUN_ROOT}/summary.tsv"
 
 build_case serial "${CASE_DIR}/code/SIZE.h.serial" no

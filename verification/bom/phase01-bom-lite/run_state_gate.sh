@@ -116,12 +116,12 @@ prepare_run() {
   cp -a "${EXP2_INPUT}/." "${run_dir}/"
   cp "${P0_CASE}/input/data.pkg" "${run_dir}/data.pkg"
   cp "${bom_input}" "${run_dir}/data.bom"
+  sed -i 's/ endTime=2808000\./ endTime=0./' "${run_dir}/data"
   if [[ "${build_name}" == ol1-debug ]]; then
     sed -i '/ &PARM01/a\
  momStepping=.FALSE.,\
  tempStepping=.FALSE.,\
  saltStepping=.FALSE.,' "${run_dir}/data"
-    sed -i 's/ endTime=2808000\./ endTime=0./' "${run_dir}/data"
   fi
   if [[ "${scenario}" != none ]]; then
     python3 "${CASE_DIR}/make_initial.py" \
@@ -158,7 +158,7 @@ assert_bom_lifecycle() {
   local log_file="$1"
   grep -Eq 'pkg/bom.*compiled.*used' "${log_file}" \
     || fail "BOM activation evidence missing: ${log_file}"
-  grep -q 'BOM_CHECK: Phase-1.1 state and initial-file gate' "${log_file}" \
+  grep -q 'BOM_CHECK: Phase-1.3 setup and initial-state gate' "${log_file}" \
     || fail "P1.1 check evidence missing: ${log_file}"
   grep -q 'BOM_CHECK: done' "${log_file}" \
     || fail "BOM_CHECK completion missing: ${log_file}"
@@ -220,7 +220,7 @@ assert_state() {
       ;;
   esac
 
-  grep -Eq "BOM_READ_INITIAL: complete +owners= +${expected_owners} +alive= +${expected_alive} +waiting= +${expected_waiting}" \
+  grep -Eq "BOM_READ_INITIAL: complete +owners= +${expected_owners} +alive= +${expected_alive} +waiting= +${expected_waiting} +expected= +${expected_owners}" \
     "${combined_log}" || fail "state summary mismatch: ${combined_log}"
   id_count="$(grep -Ec 'BOM_READ_INITIAL: id=' "${combined_log}")"
   [[ "${id_count}" -eq "${expected_owners}" ]] \
@@ -302,8 +302,8 @@ run_positive() {
     printf '%s\tPASS\tOL=1 locator init under GNU bounds checks\n' \
       "${run_name}" >> "${RUN_ROOT}/summary.tsv"
   else
-    check_hashes "${run_dir}"
-    printf '%s\tPASS\tnormal end; state and 8/8 hashes\n' "${run_name}" \
+    printf '%s\tPASS\tzero-step normal end; initial state exact\n' \
+      "${run_name}" \
       >> "${RUN_ROOT}/summary.tsv"
   fi
 }

@@ -1,0 +1,14 @@
+ &EXF_NML_01
+ useExfCheckRange=.FALSE.,
+ useAtmWind=.TRUE.,
+ &
+ &EXF_NML_02
+ uwindperiod=0.,
+ vwindperiod=0.,
+ &
+ &EXF_NML_03
+ uwindconst=2.5,
+ vwindconst=-1.25,
+ &
+ &EXF_NML_04
+ &

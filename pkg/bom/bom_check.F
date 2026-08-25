@@ -1,4 +1,7 @@
 #include "BOM_OPTIONS.h"
+#ifdef ALLOW_EXF
+# include "EXF_OPTIONS.h"
+#endif
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 CBOP
@@ -8,13 +11,18 @@ C !INTERFACE:
       SUBROUTINE BOM_CHECK( myThid )
 
 C !DESCRIPTION:
-C     Validate the Phase-1.1 state and initial-file configuration.
+C     Validate the Phase-1.3 setup, state, and initial-file configuration.
 
 C !USES:
+      USE, INTRINSIC :: IEEE_ARITHMETIC,
+     &     ONLY: IEEE_IS_FINITE
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
 #include "PARAMS.h"
+#ifdef ALLOW_EXF
+# include "EXF_PARAM.h"
+#endif
 #include "BOM_SIZE.h"
 #include "BOM.h"
 
@@ -25,12 +33,15 @@ CEOP
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
-      INTEGER errCount
+      INTEGER errCount, nSub
+      _RL subRatio, dtSub
+      LOGICAL deltaTFinite, targetFinite, outputFinite
+      LOGICAL pickupFinite, coeffFinite, wetFinite, cflFinite
 
       _BEGIN_MASTER(myThid)
 
       WRITE(msgBuf,'(A)')
-     &     'BOM_CHECK: Phase-1.1 state and initial-file gate'
+     &     'BOM_CHECK: Phase-1.3 setup and initial-state gate'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
       CALL WRITE_0D_C( bomMode, -1, INDEX_NONE,
@@ -46,11 +57,21 @@ C !LOCAL VARIABLES:
       CALL WRITE_0D_I( bomInitGlobalLimit, INDEX_NONE,
      &     'bomInitGlobalLimit =', ' /* global input hard limit */')
       CALL WRITE_0D_C( bomWindSource, -1, INDEX_NONE,
-     &     'bomWindSource =', ' /* Phase 1.1: NONE */')
+     &     'bomWindSource =', ' /* NONE or EXF */')
       CALL WRITE_0D_C( bomStokesSource, -1, INDEX_NONE,
      &     'bomStokesSource =', ' /* Phase 1: NONE */')
 
       errCount = 0
+      nSub = 0
+      subRatio = 0. _d 0
+      dtSub = 0. _d 0
+      deltaTFinite = IEEE_IS_FINITE(deltaTClock)
+      targetFinite = IEEE_IS_FINITE(bomDeltaTTarget)
+      outputFinite = IEEE_IS_FINITE(bomOutputFreq)
+      pickupFinite = IEEE_IS_FINITE(bomPickupFreq)
+      coeffFinite = IEEE_IS_FINITE(bomLeewayWindCoeff)
+      wetFinite = IEEE_IS_FINITE(bomWetWeightMin)
+      cflFinite = IEEE_IS_FINITE(bomAdvCFL)
 
       IF ( bomMode.NE.'LEEW' .AND.
      &     bomMode.NE.'BOM'  .AND.
@@ -80,26 +101,112 @@ C !LOCAL VARIABLES:
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomDeltaTTarget.LE.0. _d 0 ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: bomDeltaTTarget must be positive'
+      IF ( .NOT.deltaTFinite ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: non-finite deltaTClock=', deltaTClock
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSEIF ( deltaTClock.LE.0. _d 0 ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: deltaTClock must be positive, value=',
+     &       deltaTClock
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomOutputFreq.LT.0. _d 0 .OR.
-     &     bomPickupFreq.LT.0. _d 0 ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: output frequencies must be non-negative'
+      IF ( .NOT.targetFinite ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: non-finite bomDeltaTTarget=',
+     &       bomDeltaTTarget
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSEIF ( bomDeltaTTarget.LE.0. _d 0 ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: bomDeltaTTarget must be positive, value=',
+     &       bomDeltaTTarget
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomPickupFreq.NE.0. _d 0 ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: bomPickupFreq must be zero in Phase 1'
+      IF ( deltaTFinite .AND. targetFinite ) THEN
+        IF ( deltaTClock.GT.0. _d 0 .AND.
+     &       bomDeltaTTarget.GT.0. _d 0 ) THEN
+          IF ( bomDeltaTTarget.LT.
+     &         deltaTClock/DFLOAT(HUGE(nSub)) ) THEN
+            WRITE(msgBuf,'(A,2(1X,1PE24.16))')
+     &           'BOM_CHECK: subRatio exceeds INTEGER range:',
+     &           deltaTClock, bomDeltaTTarget
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ELSE
+            subRatio = deltaTClock/bomDeltaTTarget
+            IF ( .NOT.IEEE_IS_FINITE(subRatio) ) THEN
+              WRITE(msgBuf,'(A,1PE24.16)')
+     &             'BOM_CHECK: non-finite subRatio=', subRatio
+              CALL PRINT_ERROR( msgBuf, myThid )
+              errCount = errCount + 1
+            ELSEIF ( subRatio.LE.0. _d 0 ) THEN
+              WRITE(msgBuf,'(A,1PE24.16)')
+     &             'BOM_CHECK: non-positive subRatio=', subRatio
+              CALL PRINT_ERROR( msgBuf, myThid )
+              errCount = errCount + 1
+            ELSEIF ( subRatio.GT.DFLOAT(HUGE(nSub)) ) THEN
+              WRITE(msgBuf,'(A,1PE24.16,A,1PE24.16)')
+     &             'BOM_CHECK: subRatio exceeds INTEGER range: ratio=',
+     &             subRatio, ' limit=', DFLOAT(HUGE(nSub))
+              CALL PRINT_ERROR( msgBuf, myThid )
+              errCount = errCount + 1
+            ELSE
+              nSub = CEILING(subRatio)
+              IF ( nSub.LT.1 ) THEN
+                WRITE(msgBuf,'(A,I12)')
+     &               'BOM_CHECK: derived nSub must be positive, value=',
+     &               nSub
+                CALL PRINT_ERROR( msgBuf, myThid )
+                errCount = errCount + 1
+              ELSE
+                dtSub = deltaTClock/DFLOAT(nSub)
+                IF ( .NOT.IEEE_IS_FINITE(dtSub) ) THEN
+                  WRITE(msgBuf,'(A,1PE24.16,A,I12)')
+     &                 'BOM_CHECK: non-finite derived dtSub=', dtSub,
+     &                 ' nSub=', nSub
+                  CALL PRINT_ERROR( msgBuf, myThid )
+                  errCount = errCount + 1
+                ELSEIF ( dtSub.LE.0. _d 0 ) THEN
+                  WRITE(msgBuf,'(A,1PE24.16,A,I12)')
+     &                 'BOM_CHECK: non-positive derived dtSub=', dtSub,
+     &                 ' nSub=', nSub
+                  CALL PRINT_ERROR( msgBuf, myThid )
+                  errCount = errCount + 1
+                ENDIF
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+
+      IF ( .NOT.outputFinite .OR. .NOT.pickupFinite ) THEN
+        WRITE(msgBuf,'(A,2(1X,1PE24.16))')
+     &       'BOM_CHECK: non-finite output/pickup frequency=',
+     &       bomOutputFreq, bomPickupFreq
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
+      ELSEIF ( bomOutputFreq.LT.0. _d 0 .OR.
+     &         bomPickupFreq.LT.0. _d 0 ) THEN
+        WRITE(msgBuf,'(A,2(1X,1PE24.16))')
+     &       'BOM_CHECK: output frequencies must be non-negative:',
+     &       bomOutputFreq, bomPickupFreq
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+
+      IF ( pickupFinite ) THEN
+        IF ( bomPickupFreq.NE.0. _d 0 ) THEN
+          WRITE(msgBuf,'(A)')
+     &         'BOM_CHECK: bomPickupFreq must be zero in Phase 1'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
       ENDIF
 
       IF ( bomMaxParticles.LT.0 ) THEN
@@ -147,23 +254,57 @@ C-      Retain the Phase-0 gate signature while that baseline is frozen.
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomLeewayWindCoeff.LT.0. _d 0 .OR.
-     &     bomLeewayWindCoeff.GT.0.1 _d 0 ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: bomLeewayWindCoeff must be in [0,0.1]'
+      IF ( .NOT.coeffFinite ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: non-finite bomLeewayWindCoeff=',
+     &       bomLeewayWindCoeff
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSEIF ( bomLeewayWindCoeff.LT.0. _d 0 .OR.
+     &         bomLeewayWindCoeff.GT.0.1 _d 0 ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: bomLeewayWindCoeff outside [0,0.1]=',
+     &       bomLeewayWindCoeff
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomWindSource.NE.'NONE' ) THEN
-        WRITE(msgBuf,'(A,A)')
-     &       'BOM_CHECK: Phase-1.1 wind source must be NONE: ',
-     &       bomWindSource
+      IF ( bomWindSource.EQ.'NONE' ) THEN
+        IF ( coeffFinite ) THEN
+          IF ( bomLeewayWindCoeff.NE.0. _d 0 ) THEN
+            WRITE(msgBuf,'(A,1PE24.16,A)')
+     &           'BOM_CHECK: wind source=NONE coeff=',
+     &           bomLeewayWindCoeff, ' must be zero'
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+        ENDIF
+      ELSEIF ( bomWindSource.EQ.'EXF' ) THEN
+#ifndef ALLOW_EXF
+        WRITE(msgBuf,'(A,1PE24.16,A)')
+     &       'BOM_CHECK: wind source=EXF coeff=',
+     &       bomLeewayWindCoeff, ' requires ALLOW_EXF'
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
-      ELSEIF ( bomLeewayWindCoeff.NE.0. _d 0 ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: wind coefficient requires a wind source'
+#else
+        IF ( .NOT.useEXF ) THEN
+          WRITE(msgBuf,'(A,1PE24.16,A)')
+     &         'BOM_CHECK: wind source=EXF coeff=',
+     &         bomLeewayWindCoeff, ' requires useEXF=.TRUE.'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSEIF ( .NOT.useAtmWind ) THEN
+          WRITE(msgBuf,'(A,1PE24.16,A)')
+     &         'BOM_CHECK: wind source=EXF coeff=',
+     &         bomLeewayWindCoeff, ' requires useAtmWind=.TRUE.'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+#endif
+      ELSE
+        WRITE(msgBuf,'(A,A,A,1PE24.16)')
+     &       'BOM_CHECK: unsupported bomWindSource=', bomWindSource,
+     &       ' coeff=', bomLeewayWindCoeff
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
@@ -176,18 +317,30 @@ C-      Retain the Phase-0 gate signature while that baseline is frozen.
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomWetWeightMin.LE.0. _d 0 .OR.
-     &     bomWetWeightMin.GT.1. _d 0 ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: bomWetWeightMin must be in (0,1]'
+      IF ( .NOT.wetFinite ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: non-finite bomWetWeightMin=',
+     &       bomWetWeightMin
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSEIF ( bomWetWeightMin.LE.0. _d 0 .OR.
+     &         bomWetWeightMin.GT.1. _d 0 ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: bomWetWeightMin outside (0,1]=',
+     &       bomWetWeightMin
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomAdvCFL.LE.0. _d 0 .OR.
-     &     bomAdvCFL.GT.1. _d 0 ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: bomAdvCFL must be in (0,1]'
+      IF ( .NOT.cflFinite ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: non-finite bomAdvCFL=', bomAdvCFL
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSEIF ( bomAdvCFL.LE.0. _d 0 .OR.
+     &         bomAdvCFL.GT.1. _d 0 ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_CHECK: bomAdvCFL outside (0,1]=', bomAdvCFL
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
@@ -235,6 +388,11 @@ C-      Retain the Phase-0 gate signature while that baseline is frozen.
         STOP 'ABNORMAL END: S/R BOM_CHECK'
       ENDIF
 
+      WRITE(msgBuf,'(A,1PE16.8,A,I12,A,1PE16.8)')
+     &     'BOM_CHECK: substep preflight ratio=', subRatio,
+     &     ' nSub=', nSub, ' dtSub=', dtSub
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
       WRITE(msgBuf,'(A,5(I4,1X))')
      &     'BOM_CHECK: compile limits = ',
      &     bomMaxPartTile, bomMaxGhostTile, bomMaxExchange,

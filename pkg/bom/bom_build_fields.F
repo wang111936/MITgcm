@@ -1,4 +1,7 @@
 #include "BOM_OPTIONS.h"
+#ifdef ALLOW_EXF
+# include "EXF_OPTIONS.h"
+#endif
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 CBOP
@@ -8,15 +11,21 @@ C !INTERFACE:
       SUBROUTINE BOM_BUILD_FIELDS( myTime, myIter, myThid )
 
 C !DESCRIPTION:
-C     Build frozen step-end surface velocity fields at C points in
-C     geographic east/north directions and exchange them as scalars.
+C     Build frozen step-end ocean velocity and request-time EXF wind
+C     fields at C points in geographic east/north directions.
 
 C !USES:
+      USE, INTRINSIC :: IEEE_ARITHMETIC,
+     &     ONLY: IEEE_IS_FINITE
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
+#include "PARAMS.h"
 #include "DYNVARS.h"
 #include "GRID.h"
+#ifdef ALLOW_EXF
+# include "EXF_FIELDS.h"
+#endif
 #include "BOM_SIZE.h"
 #include "BOM.h"
 
@@ -29,8 +38,9 @@ CEOP
 C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER bi, bj, i, j, errCount, globalErrCount
-      _RL eastValue, northValue
-      LOGICAL invalidValue
+      INTEGER windIter
+      _RL eastValue, northValue, windEast, windNorth, windTime
+      LOGICAL invalidValue, timeFinite, deltaTFinite
 
 C--   A partial or failed rebuild must never remain published.
       _BEGIN_MASTER(myThid)
@@ -39,13 +49,66 @@ C--   A partial or failed rebuild must never remain published.
       _BARRIER
 
       errCount = 0
-      IF ( myTime.NE.myTime .OR.
-     &     ABS(myTime).GT.HUGE(myTime) ) THEN
+      windTime = 0. _d 0
+      windIter = 0
+      timeFinite = IEEE_IS_FINITE(myTime)
+      deltaTFinite = IEEE_IS_FINITE(deltaTClock)
+      IF ( .NOT.timeFinite ) THEN
         WRITE(msgBuf,'(A,1PE24.16)')
      &       'BOM_BUILD_FIELDS: non-finite field time=', myTime
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
+      ELSEIF ( .NOT.deltaTFinite ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_BUILD_FIELDS: invalid deltaTClock=', deltaTClock
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSEIF ( deltaTClock.LE.0. _d 0 ) THEN
+        WRITE(msgBuf,'(A,1PE24.16)')
+     &       'BOM_BUILD_FIELDS: invalid deltaTClock=', deltaTClock
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSEIF ( myTime.LE.-HUGE(myTime)+deltaTClock ) THEN
+        WRITE(msgBuf,'(A,2(1X,1PE24.16))')
+     &       'BOM_BUILD_FIELDS: wind time overflow: myTime/deltaT=',
+     &       myTime, deltaTClock
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSE
+        windTime = myTime-deltaTClock
+        IF ( .NOT.IEEE_IS_FINITE(windTime) ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_BUILD_FIELDS: non-finite wind time=', windTime
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
       ENDIF
+      IF ( myIter.LE.-HUGE(myIter) ) THEN
+        WRITE(msgBuf,'(A,I12)')
+     &       'BOM_BUILD_FIELDS: wind iteration overflow: myIter=',
+     &       myIter
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ELSE
+        windIter = myIter-1
+      ENDIF
+
+      IF ( bomWindSource.NE.'NONE' .AND.
+     &     bomWindSource.NE.'EXF' ) THEN
+        WRITE(msgBuf,'(A,A)')
+     &       'BOM_BUILD_FIELDS: unsupported wind source=',
+     &       bomWindSource
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+#ifndef ALLOW_EXF
+      IF ( bomWindSource.EQ.'EXF' ) THEN
+        WRITE(msgBuf,'(A)')
+     &       'BOM_BUILD_FIELDS: EXF wind is not compiled'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+#endif
 
 C--   Preserve the complete surface C-grid inputs, including halos.
       DO bj=myByLo(myThid),myByHi(myThid)
@@ -56,6 +119,15 @@ C--   Preserve the complete surface C-grid inputs, including halos.
           bomGridVWork(i,j,1,bi,bj) = vVel(i,j,1,bi,bj)
           bomGridVEast(i,j,1,bi,bj) = 0. _d 0
           bomGridVNorth(i,j,1,bi,bj) = 0. _d 0
+          bomGridWindEast(i,j,1,bi,bj) = 0. _d 0
+          bomGridWindNorth(i,j,1,bi,bj) = 0. _d 0
+#ifdef ALLOW_EXF
+          IF ( bomWindSource.EQ.'EXF' .AND.
+     &         maskC(i,j,1,bi,bj).GT.0. ) THEN
+            bomGridWindEast(i,j,1,bi,bj) = uwind(i,j,bi,bj)
+            bomGridWindNorth(i,j,1,bi,bj) = vwind(i,j,bi,bj)
+          ENDIF
+#endif
          ENDDO
         ENDDO
        ENDDO
@@ -69,6 +141,8 @@ C     component as a scalar so vector exchange cannot rotate it again.
      I     .TRUE., .TRUE., .TRUE., 1, myThid )
       CALL EXCH_3D_RL( bomGridVEast, 1, myThid )
       CALL EXCH_3D_RL( bomGridVNorth, 1, myThid )
+      CALL EXCH_3D_RL( bomGridWindEast, 1, myThid )
+      CALL EXCH_3D_RL( bomGridWindNorth, 1, myThid )
 
 C--   All published wet values must be finite; dry values must be zero.
       DO bj=myByLo(myThid),myByHi(myThid)
@@ -77,25 +151,31 @@ C--   All published wet values must be finite; dry values must be zero.
          DO i=1-OLx,sNx+OLx
           eastValue = bomGridVEast(i,j,1,bi,bj)
           northValue = bomGridVNorth(i,j,1,bi,bj)
-          invalidValue = eastValue.NE.eastValue
-     &          .OR. ABS(eastValue).GT.HUGE(eastValue)
-     &          .OR. northValue.NE.northValue
-     &          .OR. ABS(northValue).GT.HUGE(northValue)
+          windEast = bomGridWindEast(i,j,1,bi,bj)
+          windNorth = bomGridWindNorth(i,j,1,bi,bj)
+          invalidValue = .NOT.IEEE_IS_FINITE(eastValue)
+     &          .OR. .NOT.IEEE_IS_FINITE(northValue)
+     &          .OR. .NOT.IEEE_IS_FINITE(windEast)
+     &          .OR. .NOT.IEEE_IS_FINITE(windNorth)
           IF ( invalidValue ) THEN
             IF ( errCount.LT.8 ) THEN
-              WRITE(msgBuf,'(A,4I5,2(1X,1PE24.16))')
-     &             'BOM_BUILD_FIELDS: non-finite EN at',
-     &             i, j, bi, bj, eastValue, northValue
+              WRITE(msgBuf,'(A,4I5,4(1X,1PE24.16))')
+     &             'BOM_BUILD_FIELDS: non-finite ocean/wind at',
+     &             i, j, bi, bj,
+     &             eastValue, northValue, windEast, windNorth
               CALL PRINT_ERROR( msgBuf, myThid )
             ENDIF
             errCount = errCount + 1
           ELSEIF ( maskC(i,j,1,bi,bj).LE.0. .AND.
      &             ( eastValue.NE.0. _d 0 .OR.
-     &               northValue.NE.0. _d 0 ) ) THEN
+     &               northValue.NE.0. _d 0 .OR.
+     &               windEast.NE.0. _d 0 .OR.
+     &               windNorth.NE.0. _d 0 ) ) THEN
             IF ( errCount.LT.8 ) THEN
-              WRITE(msgBuf,'(A,4I5,2(1X,1PE24.16))')
-     &             'BOM_BUILD_FIELDS: nonzero dry EN at',
-     &             i, j, bi, bj, eastValue, northValue
+              WRITE(msgBuf,'(A,4I5,4(1X,1PE24.16))')
+     &             'BOM_BUILD_FIELDS: nonzero dry ocean/wind at',
+     &             i, j, bi, bj,
+     &             eastValue, northValue, windEast, windNorth
               CALL PRINT_ERROR( msgBuf, myThid )
             ENDIF
             errCount = errCount + 1
@@ -124,6 +204,8 @@ C--   Publish metadata only after rotation, exchanges, and validation.
       _BEGIN_MASTER(myThid)
       bomFieldTime = myTime
       bomFieldIter = myIter
+      bomWindFieldTime = windTime
+      bomWindFieldIter = windIter
       bomFieldsReady = .TRUE.
       _END_MASTER(myThid)
       _BARRIER

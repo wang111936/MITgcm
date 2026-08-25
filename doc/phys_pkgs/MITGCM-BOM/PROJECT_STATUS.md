@@ -4,27 +4,27 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-24 |
+| 最后更新 | 2026-08-25 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-01-mapping-environment-closeout` |
-| 当前阶段 PR | `wang111936/MITgcm#12`（Draft，P1.2 收口记录） |
+| 当前任务分支 | `MITGCM-BOM/phase-01-single-tile-integration` |
+| 当前阶段 PR | `wang111936/MITgcm#13`（Draft，P1.3 单 owner 积分） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.2 收口：PR #10 与 PR #11 已合并，PR #11 合并后全门禁再次 PASS |
-| 下一工作包 | 获得明确授权后将 Draft PR #12 标记 Ready for review |
-| 当前阻塞 | 无技术阻塞；PR #12 Ready、合并、标签与 P1.3 均等待后续明确授权 |
+| 当前工作包 | P1.3 生产实现、159 项累计验收与 Ready-review remediation 已完成；PR #13 保持 Draft |
+| 下一工作包 | 在修复 head 上重新执行 PR #13 Ready 复审；Ready、合并和标签仍需单独授权 |
+| 当前阻塞 | 无生产或测试阻塞；等待独立 Ready 复审确认两项 finding 已关闭 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对当前分支为 `MITGCM-BOM/phase-01-mapping-environment-closeout`，基线为 PR #11 merge commit `34edbc50c849379e3d4b3456f81c673c7801945b`；
-2. 读取 [P1.2 收口记录](../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT.md)、[收口独立复审](../../../verification/bom/phase01-bom-lite/P1.2_CLOSEOUT_AUDIT.md) 和 [合并后集成结果](../../../verification/bom/phase01-bom-lite/P1.2_INTEGRATION_RESULTS.md)；
-3. 核对唯一的 merge-range finding 已由 `b43a702a5197f115a956944973a00a0587a43ebc` 关闭，复审结论为 PASS、无开放 finding；
-4. 下一步等待明确授权后才可将 Draft PR #12 标记 Ready；Ready 不等于合并授权；
-5. 未获后续授权不合并 PR #12、不开始 P1.3、不创建 `MITGCM-BOM-v0.2` 标签。
+1. 核对当前分支为 `MITGCM-BOM/phase-01-single-tile-integration`，基线为 PR #12 merge commit `eefca92fe53f1b144bbfca7fcf00dc949a22afb3`；
+2. 读取 [P1.3 最终审计](../../../verification/bom/phase01-bom-lite/P1.3_SCOPE_AUDIT.md) 和 [生命周期证据](../../../verification/bom/phase01-lifecycle/TEST_RESULTS.md)；
+3. 核对生产实现保持单 owner 边界，不含 P1.4 迁移、Stokes、轨迹或 pickup；
+4. 核对 Ready remediation 提交 `0458910a9bb484aab8901d1a17046e3804e82165`，RK2/RK4 门禁各 12/12 PASS；
+5. 重新复审 PR #13；未经单独授权不得标记 Ready、合并或创建 `MITGCM-BOM-v0.2` 标签。
 
 开始前执行：
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0、P1.1 已合并；P1.2 源码 PR #10 与记录 PR #11 已合并，PR #11 合并后全门禁及 PR #12 收口独立复审均 PASS | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0—P1.2 已完成并收口；P1.3 生产实现及验收完成，等待 PR #13 Ready 复审 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
@@ -197,6 +197,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | R-012 | P1.1 locator 只覆盖规则原生坐标初值分发 | 已由 P1.2 映射核心与兼容包装关闭；完整映射、P1.1 和 Phase 0 门禁已通过 | 已关闭 |
 | R-013 | P1.2 插值组件未接入 `BOM_MAIN` 的已有粒子诊断路径 | 已实现非移动调用、上下文集体终止；串行/MPI4 权威状态 bitwise 不变门禁通过 | 已关闭 |
 | R-014 | 映射初始化未完整拒绝累计溢出、派生非有限量和末端非有限 face | 已补强预溢出、派生量、双端点和周期算术检查；19/19 门禁通过 | 已关闭 |
+| R-015 | P1.3 单 tile 阶段无法合法提交跨 owner 轨迹 | 每个 RK stage/final 离开当前 owner 时明确失败；P1.4 以迁移协议替换该边界 | Phase 1.4 |
+| R-016 | EXF 已启用但 10 m `uwind/vwind` 未更新或被误标为 BOM 步末时刻 | source 同时要求 `ALLOW_EXF`、`useEXF`、`useAtmWind`；复制到 BOM 快照并分别记录 EXF 请求 `t0` 与海流步末 `t1` | Phase 1.3 |
+| R-017 | RK2/RK4 可能被误解为对真实时变海洋场具有相同高阶精度 | P1.3 明确标记步末冻结场；只用稳态解析 fixture 验证积分器阶数，old/new 场留给 Phase 2 | Phase 2 |
 
 ## 5. 会话记录
 
@@ -481,6 +484,25 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 六份 summary 哈希重算一致且仅含 PASS；P1.1 104/104 和 P0.4 24/24 checkpoint 全为 `OK`；
 - 复审结论更新为 PASS、无开放 finding；PR #12 保持 Draft，不合并、不打标签、不开始 P1.3。
 - 以 `WangYuLin <wang111936@outlook.com>` 创建审计记录提交 `90dc64857ee2411edfcb1905d429fd294785012d`。
+
+### 2026-08-24：PR #12 合并与 P1.3 接口冻结
+
+- 在用户明确授权后将 PR #12 标记 Ready，并使用 merge commit 合并到 `MITGCM-BOM/development`；合并提交为 `eefca92fe53f1b144bbfca7fcf00dc949a22afb3`；
+- PR #12 合并对象父提交为 `34edbc50c849379e3d4b3456f81c673c7801945b` 与 `333e1c0b0043e79d8e319127d6744d5a9f93e2db`，合并内容为 8 个 Markdown；
+- 本地 `development` 已同步且工作树干净，本地/远端仍无 `MITGCM-BOM-v0.2` 标签；
+- 从 `eefca92fe` 创建 `MITGCM-BOM/phase-01-single-tile-integration`；没有读取或修改其他开发工程；
+- 只读审计当前 BOM/P1.2 生命周期、MITgcm `forward_step`/FLT、EXF 10 m 风接口和锁定 Julia `Leeway!`；
+- 冻结 `[myTime-deltaTClock,myTime]` 等长子步、精确 release 分割、`water+coeff*wind` SI RHS、Cartesian/球面坐标率、显式中点 RK2、经典 RK4、stage CFL/owner 硬检查和试算后提交；
+- 形成 P1-D021—P1-D029，并把 P1-S04b、P1-N06、P1-N08、P1-I01—I06 反向绑定到计划生产接口；其中 P1-D029 明确记录 EXF 请求时刻 `t0` 与海流步末 `t1`；
+- 本增量只修改 Markdown，不实现 Fortran、脚本或测试输入，因此不运行编译/运行矩阵；范围、链接、编号、隔离词和身份审计均通过；
+- 以 `WangYuLin <wang111936@outlook.com>` 创建设计冻结提交 `5240abcf808835f2163b4b358d4a00e99f3e7645`，推送独立分支并创建 Draft PR #13；下一步为独立设计复审。
+- 独立复审从实际 `forward_step`、`LOAD_FIELDS_DRIVER`、EXF、BOM、网格度量和锁定 Julia 源码重新取证，确认时间标签、EXF 依赖和 Julia 适用边界无误；
+- 提出 P1.3-A—P1.3-E：不安全的子步整数转换、缺失权威状态预算、CFL tie/度量/球面阈值歧义、失败/候选 age 语义不完整以及收敛 fixture 未固定；
+- 修订接口为 `EPSILON(oneRL)`、可表示 `subRatio`、精确 `bomNPartExpected`/全局 ID 预算、确定性最近 C 点与失败优先级、候选状态/age 事务和固定仿射解析场；
+- 形成 P1-D030—P1-D033 与 `P1.3_DESIGN_AUDIT.md`；下一步先提交 remediation，再从新 head 复核，当前不宣称 PASS。
+- 以 WangYuLin 身份创建整改提交 `941c74e5b855753a5700f7b883a56924b57c2fc0`，从固定基线重新审计 8 个 Markdown、3 个提交、33 项决策、16 条需求与 28 个本地链接；范围、模式、身份、隔离词、标签和 GitHub Draft PR 状态全部通过；
+- P1.3-A—P1.3-E 全部关闭，独立设计复审结论为 PASS、无开放 finding；本轮没有编译或数值运行，因为范围仍为纯 Markdown；
+- PR #13 保持 Draft，不合并、不打标签；下一步等待单独的生产实现授权。
 
 ## 6. 每次会话结束时必须更新
 

@@ -1,0 +1,13 @@
+ &BOM_PARM01
+ bomMode='LEEW',
+ bomIntegrator='RK2',
+ bomDeltaTTarget=300.,
+ bomMaxParticles=0,
+ bomInitialFile=' ',
+ &
+ &BOM_PARM02
+ bomLeewayWindCoeff=0.,
+ bomWindSource='NONE',
+ bomStokesSource='NONE',
+ bomAdvCFL=0.5,
+ &

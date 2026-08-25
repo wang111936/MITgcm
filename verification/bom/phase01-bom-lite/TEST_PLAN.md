@@ -1,6 +1,6 @@
 # Phase 1 BOM-Lite 测试计划
 
-状态：P1.1 已验收；P1.2 生产生命周期、组件门禁、前序回归、最终审计及 PR #10/PR #11 两次合并后门禁已全部通过，PR #12 纯文档收口独立复审 PASS；P1.3—P1.5 保持计划状态
+状态：P1.1、P1.2 已验收；P1.3 原 157 项矩阵及 Ready remediation 新增的球面 RK2/RK4 两项解析位移均通过，累计 159 项；PR #13 等待 Ready 复审
 
 P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边界审计见 [`P1.1_SCOPE_AUDIT.md`](P1.1_SCOPE_AUDIT.md)。
 
@@ -15,6 +15,8 @@ P1.1 权威执行记录见 [`TEST_RESULTS.md`](TEST_RESULTS.md)，工作包边�
 ```
 
 P1.2 使用新的 `p12-*` test ID，映射、字段与插值/生命周期的构建/运行根分别放在 `phase01-mapping`、`phase01-fields` 与 `phase01-interp` 下；不得复用或覆盖 `phase01-state/p11-*` 证据。冻结接口见 [`P1.2_INTERFACE_FREEZE.md`](P1.2_INTERFACE_FREEZE.md)。
+
+P1.3 使用新的 `p13-*` test ID，构建、运行和紧凑证据根分别为 `phase01-single-tile/<test-id>`、`phase01-single-tile/<test-id>` 与 `phase01/p13/<test-id>`；不得复用 P1.2 或更早证据。冻结接口见 [`P1.3_INTERFACE_FREEZE.md`](P1.3_INTERFACE_FREEZE.md)。
 
 每次运行使用唯一 `test-id`，拒绝覆盖已有证据目录。最终在本目录提交紧凑的 `TEST_RESULTS.md`，至少记录：
 
@@ -45,17 +47,22 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 |---|---|---|---|
 | P1-Z01 | BOM 关闭、编译关闭、零粒子开启；1/2/4 ranks | P1-R01 | MITgcm checkpoint 与冻结基线 SHA-256 一致 |
 | P1-N01 | 非法模式、积分器、负时间步/频率 | P1-R01 | `BOM_CHECK` 输出具体参数并全局停止 |
+| P1-N01b | 非有限 target/风系数/CFL、不可表示 `subRatio`、零/非有限 `dtSub` 或时间端点 | P1-R01、P1-R11、P1-R16 | 在 `CEILING` 或推进前输出参数名和值并终止；权威粒子状态不提交 |
 | P1-N02 | 坏 schema/meta、截断/完整或残缺尾随数据、NaN、坏状态 | P1-R02 | meta、头记录与物理长度不一致时完整拒绝，无部分粒子进入状态 |
 | P1-N03 | 容量溢出父项 | P1-R04 | 由 P1-N03a 与 P1-N03b 完成，不静默截断 |
 | P1-N03a | 初值全局或 tile 容量溢出 | P1-R04 | 输出 tile/需要量/上限后停止，不截断 |
 | P1-N03b | 交换发送或接收容量溢出 | P1-R04、P1-R12 | P1.4 输出 rank/方向/需要量/上限后停止 |
 | P1-N04 | rotated、curvilinear、EXCH2、`usingPCoords`、多线程、非正网格间距或不一致域界 | P1-R05 | Phase 1 明确拒绝并说明支持范围；不能建立部分映射状态 |
 | P1-N05 | 域外/缺失 stencil、字段未就绪、非有限字段或湿权重不足 | P1-R07 | 输出 tile、局部索引和湿权重后明确停止，不做夹取、常数外推或静默搁浅 |
-| P1-N06 | 风系数非零但 source NONE；EXF 未编译/未启用 | P1-R09 | 依赖检查失败，信息包含 source 和系数 |
+| P1-N06 | 风系数非零但 source NONE；EXF 未编译；`useEXF`/`useAtmWind` 未启用；非法 source | P1-R09 | 依赖检查失败，信息包含 source、系数和具体缺失依赖 |
 | P1-N07 | `bomStokesSource=FILES/COUPLER` | P1-R10 | Phase 1 明确拒绝，不读取外部文件 |
-| P1-N08 | NaN RHS、CFL/overlap 超限 | P1-R16 | 输出粒子 ID 和局部量后全局停止 |
+| P1-N08 | 非有限坐标率/度量、半格 CFL tie、stage CFL 超限、stage/final 离开当前 owner、age 溢出、计数/ID/状态预算损坏 | P1-R04、P1-R16 | 按冻结优先级输出首个 failCode、粒子 ID、substep、stage 和局部量后全局停止；失败粒子子步不提交 |
 
 ## 4. 状态、ID 与初值
+
+P1.1 的 BOM-active 正向用例在初始化完成后零步结束，避免初值门禁
+依赖 P1.4 才提供的跨 owner 迁移；BOM-disabled 1/2/4-rank 用例仍运行
+完整基线并验证 8/8 checkpoint 哈希。P1.3 生命周期运动由独立门禁负责。
 
 | ID | 场景 | 分解 | 需求 | 判据 |
 |---|---|---|---|---|
@@ -64,7 +71,7 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 | P1-S03 | 粒子恰在 tile 边界与角点 | 1/4 ranks | P1-R04、P1-R05 | 按 `[west,east) x [south,north)` 唯一归属；内部角点由东北 tile 拥有 |
 | P1-S04 | 未来 release time 父项 | 1 rank | P1-R04、P1-R11 | 由 P1-S04a 与 P1-S04b 共同完成 |
 | P1-S04a | WAITING 初值 | 1 rank | P1-R04 | P1.1 精确保留 future release、WAITING 和零 age |
-| P1-S04b | release 跨子步转换 | 1 rank | P1-R11 | P1.3 验证 release 前位置不变并在 release time 分割子步 |
+| P1-S04b | release 位于子步前、起点、内部、终点和未来 | 1 rank | P1-R11 | release 前位置/age 不变；内部精确分割；终点转 ALIVE 但零位移/零 age |
 
 ## 5. 映射与环境场
 
@@ -80,14 +87,14 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 
 | ID | 场景 | 分解 | 需求 | 判据 |
 |---|---|---|---|---|
-| P1-I01 | 零海流、零风 | 1 rank | P1-R08 | ALIVE 与 WAITING 位置 bitwise 不变，状态正确 |
-| P1-I02 | Cartesian 均匀海流 | 1 rank | P1-R08 | $x=x_0+ut$、$y=y_0+vt$，误差接近舍入级 |
-| P1-I03 | spherical-polar 均匀 east/north 流 | 1 rank | P1-R08 | lon/lat 位移满足球面换算容差 |
-| P1-I04 | 均匀海流+EXF 风 | 1 rank | P1-R09 | RHS 等于 `vE + bomLeewayWindCoeff*v10`；与 Julia RHS 单位换算后一致 |
-| P1-I05 | 空间线性、光滑 RHS，子步连续减半 | 1 rank | P1-R11 | RK2 误差比接近 $2^2$ |
-| P1-I06 | 同一光滑 RHS | 1 rank | P1-R11 | RK4 误差比接近 $2^4$ |
+| P1-I01 | 零海流、零风，含 ALIVE 与各类 WAITING release | 1 rank | P1-R08、P1-R11 | 位置 bitwise 不变；状态与 age 满足冻结 release 契约 |
+| P1-I02 | Cartesian 均匀海流，RK2/RK4 | 1 rank | P1-R08 | $x=x_0+ut$、$y=y_0+vt$，误差满足 `_RL` 舍入传播阈值 |
+| P1-I03 | spherical-polar 纯 east 与纯 north 均匀流，含非零纬度 | 1 rank | P1-R08 | 使用相同 `rSphere` 的 lon/lat 解析位移通过，不把 m/s 当 degree/s |
+| P1-I04 | Cartesian 均匀海流+EXF 10 m 风 | 1 rank | P1-R09 | RHS 等于 `water+bomLeewayWindCoeff*wind`；与 Julia RHS 经 m/s 和 km/day 换算后一致 |
+| P1-I05 | 双线性可表示的空间线性平滑 RHS，子步连续减半 | 1 rank | P1-R11 | RK2 最细两组观测阶均在 `[1.8,2.2]` |
+| P1-I06 | 与 I05 相同 RHS | 1 rank | P1-R11 | RK4 最细两组观测阶均在 `[3.5,4.5]` |
 
-收敛测试至少使用四个子步尺度，以最高两个误差比作为判据。阈值在脚本中固定；不能只报告一条“误差很小”的轨迹。
+I05/I06 使用 `P1.3_INTERFACE_FREEZE.md` 固定的全湿 Cartesian 仿射场：在中央 C 点定义 `T=deltaTClock`、局地 `Lx/Ly`，以 `u0=0.04Lx/T`、`ax=0.20/T`、`v0=0.03Ly/T`、`ay=-0.15/T` 和对应指数解析解裁决误差。四个子步尺度固定为 `T/4,T/8,T/16,T/32`，以最细两组的 `log2(E(h)/E(h/2))` 作为观测阶判据。必须预先证明所有 stage 留在同一 owner tile、最近 C 点度量有效且低于 CFL；不能只报告一条“误差很小”的轨迹，也不能运行后调整 fixture。
 
 ## 7. tile/MPI owner 迁移
 
@@ -119,7 +126,7 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 | P1.0 | Markdown-only 范围、链接、ID 和禁词审计 |
 | P1.1 | P1-C01、P1-C03、P1-Z01、P1-N01、P1-N02、P1-N03a、P1-N07、P1-S01—S03、P1-S04a |
 | P1.2 | P1-N04—N05、P1-M01—M02、P1-F01—F03，加前序回归 |
-| P1.3 | P1-S04b、P1-N06、P1-N08、P1-I01—I06，加前序回归 |
+| P1.3 | P1-C01、P1-C03、P1-Z01、P1-N01b、P1-S04b、P1-N06、P1-N08、P1-I01—I06，加 P1.2/P1.1/Phase 0 全部前序回归 |
 | P1.4 | P1-N03b、P1-X01—X04，加 1/2/4 ranks 前序回归 |
 | P1.5 | P1-O01—O02、P1-P01—P03、P1-K01—K02、P1-G01 |
 
@@ -142,6 +149,6 @@ P1.0 只执行 P1-C04 的 Markdown-only 变体；不编译源码。
 - Cartesian 均匀流：以 `_RL` 舍入传播上界为阈值；
 - spherical 位移：解析公式使用与实现相同的 `rSphere`，阈值按经纬转换舍入设定；
 - 双线性线性场：阈值不超过工作精度合理舍入量；
-- RK 收敛：检查阶数而非单一绝对误差；
-- Julia 对照：先统一 km/day 到 m/s、equirectangular到目标坐标和固定步设置，再设位置阈值；
+- RK 收敛：检查阶数而非单一绝对误差；RK2 观测阶 `[1.8,2.2]`，RK4 观测阶 `[3.5,4.5]`；
+- Julia 对照：P1.3 只对照 `water+coeff*wind` RHS，使用精确因子 `1 m/s = 86.4 km/day`；不把 Julia 自适应 Tsit5 轨迹当作固定步 RK 的逐步 oracle；
 - 任何容差变更必须在同一 PR 说明失败证据和数值原因。
