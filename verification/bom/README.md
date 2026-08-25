@@ -52,7 +52,8 @@ external environmental datasets remain outside the repository.
 - `phase02-endpoint-state/`: P2.1 focused increments for frozen
   runtime parameters, stable source/endpoint/failure/stage codes,
   deterministic state, ocean/NONE/NONE transactional endpoints, rollback,
-  production lifecycle, serial/MPI4, policy failures, and `LEEW` zero-impact;
+  BOM-owned exact-time EXF wind, immutable EXF globals, production lifecycle,
+  serial/MPI4, policy failures, and `LEEW` zero-impact;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 

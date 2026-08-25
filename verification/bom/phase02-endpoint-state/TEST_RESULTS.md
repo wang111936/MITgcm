@@ -130,3 +130,77 @@ The interrupted `p21-transaction-dev-gate02` and passing pre-commit
 `p21-transaction-dev-gate03` remain outside Git and were not reused.
 
 This increment accepts the ocean/`NONE`/`NONE` transaction only. P2.1 still
+required exact-time EXF wind, explicit Stokes providers, stage interpolation,
+and field pickup at that recorded commit.
+
+## Exact-time EXF wind authoritative increment
+
+- source commit: `43a79d1b14761cc355861e11b76a4d702c78cc80`;
+- branch: `MITGCM-BOM/p2.1-environment-endpoints`;
+- environment: Ubuntu 22.04, GNU debug/IEEE build, OpenMPI;
+- test ID: `p21-exf-43a79d1b1-attempt01`;
+- command:
+
+```bash
+MITGCM_BOM_TEST_ID=p21-exf-43a79d1b1-attempt01 \
+verification/bom/phase02-endpoint-state/run_endpoint_state_gate.sh
+```
+
+The exact committed source adds a BOM-owned `BOM_GET_EXF_WIND` provider.
+It resolves paired regular EXF records for the requested endpoint, proves
+physical record coverage before EXF I/O, evaluates both components in
+BOM-owned current/record arrays, rotates and masks the result, and returns
+source failure without publishing accepted state. It never aliases or writes
+the EXF `uwind`, `vwind`, `uwind0/1`, or `vwind0/1` arrays.
+
+| Case | Result | Evidence |
+|---|---|---|
+| build-exf-serial | PASS | EXF+BOM GNU debug compile/link and provider symbols |
+| build-exf-mpi4 | PASS | EXF+BOM MPI4 debug compile/link and provider symbols |
+| build-production-exf-serial | PASS | unmodified production EXF lifecycle build |
+| bom-exf-serial | PASS | P2-E03 exact values, immutable globals, six P2-N03 rollbacks |
+| bom-exf-mpi4 | PASS | identical assertions after four-rank global reductions |
+| production-exf-one-step | PASS | production fresh endpoint and one normal EXF step |
+| previous 15 cases | PASS | ocean/NONE/NONE transaction, production, LEEW and policy regressions |
+
+All 21 summary rows are `PASS`. The P2-E03 records are spaced by 1800 s
+while ocean endpoints advance by 1200 s. Independent expectations are
+`(1,-2)` at 0 s, `(3,0)` at 1200 s, and `(5,2)` at 2400 s. The test
+sets all six EXF global wind arrays to deterministic sentinels and compares
+their transferred 64-bit representations after every successful and failed
+transaction. P2-N03 covers missing, unpaired, physically partial, future
+uncovered, stale/short, and non-finite files; every row returns
+`BOM_FAIL_FIELD_SOURCE/BOM_STAGE_FIELD_NEW` with the complete accepted
+bracket bitwise unchanged.
+
+Evidence locations:
+
+```text
+build:
+  /home/wyl/build/mitgcm-bom/phase02-endpoint-state/
+  p21-exf-43a79d1b1-attempt01
+run:
+  /home/wyl/runs/mitgcm-bom/phase02-endpoint-state/
+  p21-exf-43a79d1b1-attempt01
+artifact:
+  /home/wyl/projects/mitgcm-bom-test-artifacts/phase02/
+  p21-endpoint-state/p21-exf-43a79d1b1-attempt01
+```
+
+| File | SHA-256 |
+|---|---|
+| `summary.tsv` | `5cb541c823e3f6bfa57064627c063970d9f85f548ceedd8b4838da4cb4e39c86` |
+| `source-head.txt` | `918832c76fe8904bc1cfdeea44af0a7dc076980b65c4a8e793964bf1db4e3a42` |
+| `manifest.sha256` | `18f85fb2675d19d1403c88fa468c4307ba3f2822dd1716ba4d9aaf959e02f7b0` |
+
+Development evidence remains outside Git and no test ID was reused:
+
+- `p21-exf-dev-noexf01/02` exposed malformed preprocessor/file termination
+  in the initial local patch; `p21-exf-dev-noexf03` restored 15/15;
+- `p21-exf-dev01` exposed one fixed-form marker beyond column 72;
+- `p21-exf-dev02` passed all 21 cases before the functional commit.
+
+This increment accepts P2-R04/P2-E03 and the EXF-owned rows of P2-N03.
+P2.1 remains in progress: FILES then COUPLER Stokes providers, stage-time
+interpolation, and schema-2 field pickup remain. No P2.2 derivative, P2.3
+RHS, `MITGCM-BOM-v0.3` tag, merge, or release is claimed.

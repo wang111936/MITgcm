@@ -1,11 +1,12 @@
 # MITGCM-BOM Phase 2 slow-manifold verification
 
-Status: **P2.1 IN PROGRESS; TRANSACTIONAL OCEAN/NONE/NONE ENDPOINTS IMPLEMENTED**
+Status: **P2.1 IN PROGRESS; OCEAN/NONE/NONE AND EXACT-TIME EXF WIND IMPLEMENTED**
 
 This directory is the source-controlled design and verification index for
 Phase 2. P2.0 remains the normative frozen contract. P2.1 now has runtime
-preflight, accepted/scratch endpoint storage, and ocean/NONE/NONE transaction
-publication. EXF, explicit Stokes, interpolation, and field pickup remain.
+preflight, accepted/scratch endpoint storage, ocean/NONE/NONE transaction
+publication, and BOM-owned exact-time EXF wind. Explicit Stokes, stage-time
+interpolation, and field pickup remain.
 
 ## P2.0 documents
 
@@ -67,13 +68,15 @@ manifests may be committed only after execution on a clean exact source head.
 
 ## Current P2.1 increment and unique next task
 
-The first two increments implement frozen parameters/codes, deterministic
+The first three increments implement frozen parameters/codes, deterministic
 accepted and scratch storage, fresh duplicated endpoints, normal OLD/NEW
-advancement, ocean/NONE/NONE providers, and rollback. Their focused gate is
-under `../phase02-endpoint-state/` and passes 15/15 on `b81bb0129`.
+advancement, ocean/NONE/NONE providers, BOM-owned exact-time EXF wind, and
+rollback. Their focused gate is under `../phase02-endpoint-state/` and
+passes 21/21 on exact functional commit `43a79d1b1`.
 
-The unique next implementation task is a BOM-owned exact-time EXF wind
-provider. It must evaluate both components at requested endpoints without
-mutating EXF globals, reject missing/stale/uncovered data transactionally,
-and add focused P2-E03/P2-N03 evidence. It does not add Stokes FILES/COUPLER,
-time interpolation, gradients, or an inertial RHS.
+The unique next implementation task is the BOM-owned FILES Stokes provider.
+It must evaluate paired Stokes components at exact endpoints with frozen
+scale, mask, record and repeat-cycle semantics, preserve the accepted bracket
+on P2-N03 failures, and extend P2-E04 evidence in serial and MPI4. It does not
+add the COUPLER provider, stage-time interpolation, pickup, gradients, or an
+inertial RHS.
