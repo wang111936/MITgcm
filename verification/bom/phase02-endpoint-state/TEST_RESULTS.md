@@ -204,3 +204,82 @@ This increment accepts P2-R04/P2-E03 and the EXF-owned rows of P2-N03.
 P2.1 remains in progress: FILES then COUPLER Stokes providers, stage-time
 interpolation, and schema-2 field pickup remain. No P2.2 derivative, P2.3
 RHS, `MITGCM-BOM-v0.3` tag, merge, or release is claimed.
+
+## Exact-time FILES Stokes authoritative increment
+
+- source commit: `16ab457e321ba6751488e7dda861b25be1626252`;
+- branch: `MITGCM-BOM/p2.1-environment-endpoints`;
+- environment: Ubuntu 22.04, GNU debug/IEEE build, OpenMPI;
+- test ID: `p21-stokes-16ab457e3-attempt01`;
+- command:
+
+```bash
+MITGCM_BOM_TEST_ID=p21-stokes-16ab457e3-attempt01 \
+MITGCM_BOM_MAKE_JOBS=4 \
+verification/bom/phase02-endpoint-state/run_endpoint_state_gate.sh
+```
+
+The exact committed source adds a BOM-owned `BOM_GET_STOKES` FILES
+provider without an EXF package dependency. It preflights paired global
+two-dimensional MITgcm records, resolves the exact requested time bracket,
+interpolates and applies `bomStokesInScale` in BOM-owned arrays, rotates
+model-grid U/V to geographic east/north, applies the C mask, exchanges
+halos, and returns source failure without publishing accepted state.
+
+| Case | Result | Evidence |
+|---|---|---|
+| build-serial | PASS | no-EXF GNU debug compile/link with Stokes provider symbol |
+| build-mpi4 | PASS | no-EXF MPI4 debug compile/link with provider symbol |
+| build-production-serial | PASS | unmodified production lifecycle build |
+| bom-stokes-serial | PASS | P2-E04 exact values/repeat cycle plus seven P2-N03 rollbacks |
+| bom-stokes-mpi4 | PASS | identical assertions after four-rank reductions |
+| production-stokes-one-step | PASS | production fresh endpoint and one normal FILES step |
+| previous 18 cases | PASS | ocean/NONE, EXF, production, LEEW and policy regressions |
+
+All 24 summary rows are `PASS`. Three big-endian 64-bit records are spaced
+by 1800 s and repeat every 5400 s while model endpoints advance by 1200 s.
+After input scale 2, the independent Stokes U/V expectations are `(2,-4)`
+at 0 s, `(6,0)` at 1200 s, `(10,4)` at 2400 s, `(14,8)` at 3600 s,
+`(6,0)` at 4800 s across the periodic seam, and `(4,-2)` at 6000 s.
+The test independently rotates those values with `angleCosC/angleSinC`,
+forces deterministic dry C points, and verifies exact-zero invalid dry state.
+
+P2-N03 covers missing, unpaired, physically partial, future-uncovered,
+stale/short, non-finite, and non-integral repeat-cycle sources. Every case
+returns `BOM_FAIL_FIELD_SOURCE/BOM_STAGE_FIELD_NEW`, and transferred 64-bit
+comparisons prove that all accepted fields, masks, labels, iterations and
+readiness remain unchanged. A clean retry then crosses the repeat seam.
+
+Evidence locations:
+
+```text
+build:
+  /home/wyl/build/mitgcm-bom/phase02-endpoint-state/
+  p21-stokes-16ab457e3-attempt01
+run:
+  /home/wyl/runs/mitgcm-bom/phase02-endpoint-state/
+  p21-stokes-16ab457e3-attempt01
+artifact:
+  /home/wyl/projects/mitgcm-bom-test-artifacts/phase02/
+  p21-endpoint-state/p21-stokes-16ab457e3-attempt01
+```
+
+| File | SHA-256 |
+|---|---|
+| `summary.tsv` | `7303b90e046d3baf66a123684f22518671354d4b47e7bcd0972154ebb6c94fbc` |
+| `source-head.txt` | `53e3d2dabb7c8f75fc383d80908dba92dbcb98bf26635b0827f51e765672ce21` |
+| `manifest.sha256` | `c9323e66e324cc214c4834b725e20e3f2c28ec9952c3836532ce26bc678f1cfc` |
+
+Development evidence remains outside Git and no test ID was reused:
+
+- `p21-stokes-files-dev01` exposed two missing `SIZE.h` includes in test-only
+  helpers;
+- `p21-stokes-files-dev02` built all configurations and exposed a stale
+  nonzero wind coefficient in the `wind=NONE` test input;
+- a targeted serial rerun then passed, and `p21-stokes-files-dev03` passed
+  all 24 cases before the functional commit.
+
+This increment accepts P2-E04 and the FILES portion of P2-R05/P2-N03.
+P2.1 remains in progress: COUPLER Stokes, P2-E05 policy/provider coverage,
+stage-time interpolation, and schema-2 field pickup remain. No P2.2
+derivative, P2.3 RHS, `MITGCM-BOM-v0.3` tag, merge, or release is claimed.
