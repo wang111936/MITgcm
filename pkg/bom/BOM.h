@@ -32,12 +32,21 @@ CEOP
       INTEGER bomMaxParticles
       INTEGER bomMaxHop
       INTEGER bomInitGlobalLimit
+      INTEGER bomInitialIter
       COMMON /BOM_PARM_I/
      &       bomSeed, bomMaxParticles, bomMaxHop,
-     &       bomInitGlobalLimit
+     &       bomInitGlobalLimit, bomInitialIter
 
       LOGICAL bomCheckEverySubstep
       COMMON /BOM_PARM_L/ bomCheckEverySubstep
+
+C--   P1.5 trajectory schedule.  The next time is advanced only after a
+C     complete post-migration output event.
+      _RL bomNextOutputTime
+      COMMON /BOM_OUTPUT_R/ bomNextOutputTime
+
+      LOGICAL bomOutputScheduleReady
+      COMMON /BOM_OUTPUT_L/ bomOutputScheduleReady
 
 C--   Stable status values.  Biology and beaching are reserved until
 C     Phase 4, but their numeric codes must not be reused.

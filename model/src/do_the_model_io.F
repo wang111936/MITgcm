@@ -117,6 +117,13 @@ C     Write model state to binary file
         CALL WRITE_STATE( myTime, myIter, myThid )
       ENDIF
 
+#ifdef ALLOW_BOM
+C--   Write only the completed post-migration BOM owner state.
+      IF ( useBOM ) THEN
+        CALL BOM_OUTPUT( myTime, myIter, myThid )
+      ENDIF
+#endif
+
 #ifdef ALLOW_FIZHI
       IF ( useFIZHI )
      &     CALL FIZHI_WRITE_STATE( myTime, myIter, myThid )

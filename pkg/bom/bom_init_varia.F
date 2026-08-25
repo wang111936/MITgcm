@@ -8,13 +8,14 @@ C !INTERFACE:
       SUBROUTINE BOM_INIT_VARIA( myThid )
 
 C !DESCRIPTION:
-C     Initialise the compact owner state and, when requested, read the
-C     bounded Phase-1.1 global initial-particle file.
+C     Initialise a fresh compact owner state at bomInitialIter, or restore
+C     the transactional P1.5 pickup for a later core restart iteration.
 
 C !USES:
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
+#include "PARAMS.h"
 #include "BOM_SIZE.h"
 #include "BOM.h"
 
@@ -23,9 +24,26 @@ C !INPUT PARAMETERS:
 CEOP
 
 #ifdef ALLOW_BOM
+C !LOCAL VARIABLES:
+      CHARACTER*(MAX_LEN_MBUF) msgBuf
+
       CALL BOM_INIT_STATE( myThid )
-      IF ( bomMaxParticles.GT.0 ) THEN
-        CALL BOM_READ_INITIAL( myThid )
+      IF ( nIter0.EQ.bomInitialIter ) THEN
+        IF ( bomMaxParticles.GT.0 ) THEN
+          CALL BOM_READ_INITIAL( myThid )
+        ENDIF
+        CALL BOM_INIT_OUTPUT_SCHEDULE( startTime, myThid )
+      ELSEIF ( nIter0.GT.bomInitialIter ) THEN
+        CALL BOM_READ_PICKUP( myThid )
+      ELSE
+        _BEGIN_MASTER(myThid)
+        WRITE(msgBuf,'(A,2I12)')
+     &       'BOM_INIT_VARIA: nIter0 below bomInitialIter=',
+     &       nIter0, bomInitialIter
+        CALL PRINT_ERROR( msgBuf, myThid )
+        _END_MASTER(myThid)
+        CALL ALL_PROC_DIE( 0 )
+        STOP 'ABNORMAL END: S/R BOM_INIT_VARIA'
       ENDIF
 #endif
 

@@ -8,7 +8,7 @@ C !INTERFACE:
       SUBROUTINE BOM_READPARMS( myThid )
 
 C !DESCRIPTION:
-C     Set the Phase-1.1 defaults and read the pkg/bom namelists.
+C     Set the Phase-1.5 defaults and read the pkg/bom namelists.
 C     Return without reading data.bom when useBOM is false.
 
 C !USES:
@@ -32,7 +32,8 @@ C !LOCAL VARIABLES:
       NAMELIST /BOM_PARM01/
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
-     &       bomSeed, bomMaxParticles, bomInitialFile
+     &       bomSeed, bomMaxParticles, bomInitialIter,
+     &       bomInitialFile
       NAMELIST /BOM_PARM02/
      &       bomLeewayWindCoeff, bomWindSource,
      &       bomStokesSource, bomWetWeightMin, bomAdvCFL,
@@ -49,15 +50,16 @@ C-    pkg BOM is not used; report an unexpected data.bom if present.
 
       _BEGIN_MASTER(myThid)
 
-C--   Safe Phase-1.1 defaults: state is optional and never moves here.
+C--   Safe Phase-1.5 defaults retain an inactive state and inactive output.
       bomMode          = 'LEEW'
       bomEquationMode  = 'PAPER2024'
       bomIntegrator    = 'RK4'
       bomDeltaTTarget  = deltaTClock
-      bomOutputFreq    = 3600. _d 0
+      bomOutputFreq    = 0. _d 0
       bomPickupFreq    = 0. _d 0
       bomSeed           = 20240801
       bomMaxParticles   = 0
+      bomInitialIter    = 0
       bomInitialFile    = ' '
       bomLeewayWindCoeff = 0. _d 0
       bomWindSource       = 'NONE'

@@ -1,0 +1,26 @@
+CBOP
+C    !ROUTINE: SIZE.h
+C    !INTERFACE:
+C    include SIZE.h
+C    !DESCRIPTION:
+C     Two X ranks with two local Y tiles for the exp4 coexistence grid.
+CEOP
+      INTEGER sNx, sNy, OLx, OLy
+      INTEGER nSx, nSy, nPx, nPy
+      INTEGER Nx, Ny, Nr
+      PARAMETER (
+     &           sNx =  40,
+     &           sNy =  21,
+     &           OLx =   3,
+     &           OLy =   3,
+     &           nSx =   1,
+     &           nSy =   2,
+     &           nPx =   2,
+     &           nPy =   1,
+     &           Nx  = sNx*nSx*nPx,
+     &           Ny  = sNy*nSy*nPy,
+     &           Nr  =   8)
+
+      INTEGER MAX_OLX, MAX_OLY
+      PARAMETER ( MAX_OLX = OLx,
+     &            MAX_OLY = OLy )

@@ -33,6 +33,8 @@ C !LOCAL VARIABLES:
       bomFieldIter = 0
       bomWindFieldIter = 0
       bomNPartExpected = 0
+      bomNextOutputTime = 0. _d 0
+      bomOutputScheduleReady = .FALSE.
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = 0

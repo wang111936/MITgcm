@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-01-owner-migration` |
-| 当前阶段 PR | `wang111936/MITgcm#14`（Draft，P1.4 owner 迁移） |
+| 当前任务分支 | `MITGCM-BOM/phase-01-output-pickup-coexistence` |
+| 当前阶段 PR | `wang111936/MITgcm#15`（Draft，P1.5 输出、pickup 与 FLT 共存） |
 | 当前阶段 | Phase 1：BOM-Lite / Leeway（进行中） |
-| 当前工作包 | P1.3 已以 merge commit `41fb0938` 集成；P1.4 同步头 36/36 + RK2 12/12 + RK4 12/12 PASS |
-| 下一工作包 | 对 PR #14 执行独立 Ready 复审，随后按顺序集成并同步 P1.5 |
-| 当前阻塞 | 无生产或测试阻塞；等待 PR #14 独立 Ready 复审 |
+| 当前工作包 | P1.5 生产实现、62/62 专属门禁、195/195 前序回归及 P1-G01 257/257 PASS |
+| 下一工作包 | 对 PR #15 执行独立 Ready 复审；通过后顺序集成并运行集成分支退出门禁 |
+| 当前阻塞 | 无生产或测试阻塞；等待 PR #15 独立 Ready 复审 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对当前分支为 `MITGCM-BOM/phase-01-owner-migration`，已包含 PR #13 merge commit `41fb093866ef4c2dbda778696892457cfca160f9`；
-2. 读取 [P1.4 最终审计](../../../verification/bom/phase01-bom-lite/P1.4_SCOPE_AUDIT.md) 和 [owner 迁移证据](../../../verification/bom/phase01-owner-migration/TEST_RESULTS.md)；
-3. 核对同步 merge commit `55d6eac29d748e41f194247c70dd28f8f33817ff` 未改变 P1.4 生产源码；
-4. 核对该 clean head 的 owner 36/36、RK2 12/12、RK4 12/12 门禁及摘要哈希；
-5. 对 PR #14 执行独立 Ready 复审；合并前不创建 `MITGCM-BOM-v0.2` 标签。
+1. 核对当前分支为 `MITGCM-BOM/phase-01-output-pickup-coexistence`，已包含 PR #14 merge commit `9d258da4ff43d84f4877ba11d894af0e96b3177b`；
+2. 读取 [P1.5 最终审计](../../../verification/bom/phase01-bom-lite/P1.5_SCOPE_AUDIT.md) 和 [P1.5 执行证据](../../../verification/bom/phase01-output-pickup-coexistence/TEST_RESULTS.md)；
+3. 核对 clean exact head `adb9e315836079d8ef1280e15d7ede7aa52fee6c` 的 P1.5 专属 62/62 与前序 195/195；
+4. 核对聚合根 `p15-g01-adb9e315-attempt01` 的 257/257、9 份原生 manifest 与总 manifest；
+5. 对 PR #15 执行独立 Ready 复审；集成分支退出门禁前不创建 `MITGCM-BOM-v0.2` 标签。
 
 开始前执行：
 
@@ -40,7 +40,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0—P1.3 已集成；P1.4 生产实现与同步精确头门禁通过，等待 PR #14 Ready 复审 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0—P1.4 已集成；P1.5 实现及 P1-G01 257/257 通过，等待 PR #15 Ready 复审与最终集成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |

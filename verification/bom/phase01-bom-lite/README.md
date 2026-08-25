@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 1 verification index
 
-This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, accepted P1.2 evidence, the completed P1.3 single-tile contract, and the implemented and exact-head-tested P1.4 owner-migration contract. Build trees, runtime output, and generated binary evidence remain outside Git.
+This directory is the source-controlled Phase 1 BOM-Lite verification index. It contains the executable P1.1 state gate, accepted P1.2 evidence, the completed P1.3 single-tile contract, the exact-head-tested P1.4 owner-migration contract, and the implemented and exact-head-tested P1.5 output, pickup/restart, and FLT-coexistence contract. Build trees, runtime output, and generated binary evidence remain outside Git.
 
 ## Executable P1.1 gate scope
 
@@ -24,7 +24,10 @@ release-time integration, authoritative transactional commits, and the compact
 global state budget are implemented and tested. P1.4 owner location,
 halo-aware integration, same-rank/cross-rank migration, periodic X, exact-ID
 exchange, deterministic ordering, and capacity-safe commit are also complete.
-Output, pickup, and FLT coexistence remain P1.5.
+P1.5 trajectory scheduling, exact-ID output, same-decomposition transactional
+pickup/restart, changed-decomposition rejection, and FLT coexistence are also
+complete. Its 62/62 dedicated gates and 193/193 predecessors form the 255/255
+P1-G01 exact-head matrix.
 
 ## Run
 
@@ -88,6 +91,19 @@ The driver refuses to reuse build or run roots. Defaults are:
   recorded under `../phase01-owner-migration/`.
 - `P1.4_SCOPE_AUDIT.md` records the final P1.4 source, transaction, scope, and
   evidence audit while retaining the independent Ready review for Draft PR #14.
+- `P1.5_INTERFACE_FREEZE.md` freezes post-migration output scheduling and its
+  24-field schema, core-suffix pickup files, exact-ID transactional restore,
+  same-decomposition signatures, and strict FLT/BOM isolation.
+- `P1.5_DESIGN_AUDIT.md` records the source-backed lifecycle, MDS I/O,
+  precision, restart and coexistence decisions before implementation.
+- `../phase01-output-pickup-coexistence/TEST_PLAN.md` is the executable
+  P1-O01—O02, P1-P01—P03, P1-K01—K02 and P1-G01 acceptance plan.
+- `../phase01-output-pickup-coexistence/TEST_RESULTS.md` records the 62/62
+  dedicated gates, 193/193 predecessors and manifest-verified 255/255 P1-G01
+  evidence.
+- `P1.5_SCOPE_AUDIT.md` records the final output, restart transaction,
+  coexistence, exclusion and evidence audit while retaining the independent
+  Ready review for Draft PR #15.
 
 ## Input schema 1
 

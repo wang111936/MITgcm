@@ -42,6 +42,9 @@ external environmental datasets remain outside the repository.
 - `phase01-owner-migration/`: P1.4 same-rank tile and MPI-rank owner
   migration, periodic-X transfer, exact two-word 64-bit IDs, bounded
   exchange transactions, and 1/2/4-rank decomposition consistency;
+- `phase01-output-pickup-coexistence/`: P1.5 trajectory scheduling/schema,
+  same-decomposition pickup/restart, decomposition-signature rejection,
+  and independent FLT+BOM build/runtime consistency;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 
