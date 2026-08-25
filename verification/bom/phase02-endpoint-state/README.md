@@ -1,13 +1,19 @@
 # P2.1 environmental endpoint state gate
 
-This verification case covers the first P2.1 production increment without
-activating the not-yet-connected environmental providers or slow-manifold
+This verification case covers the first two focused P2.1 production
+increments. It validates parameter/state initialization and the transactional
+ocean/`NONE`/`NONE` endpoint publisher without activating the slow-manifold
 RHS. It verifies:
 
 - the frozen Phase-2 runtime parameter contract and safe defaults;
 - overflow-safe conversion of `bomTauDays` to `bomTau` seconds;
 - stable source, endpoint, failure, and diagnostic-stage codes;
 - deterministic initialization of both accepted environmental endpoints;
+- fresh duplicated and normal OLD/NEW endpoint publication;
+- surface-ocean rotation, mask, halo and source-validity behavior;
+- exact zero `NONE` wind and Stokes providers;
+- accepted-state preservation after time-continuity and source failures;
+- production fresh initialization and one normal zero-particle step;
 - serial and four-rank MPI compilation/runtime behavior;
 - fail-fast current/Stokes policy and file-metadata checks;
 - no change to the accepted Phase-1 `LEEW` field state.
@@ -21,3 +27,7 @@ verification/bom/phase02-endpoint-state/run_endpoint_state_gate.sh
 Builds, runs, and evidence are written outside the source tree under the
 configured `MITGCM_BOM_TEST_*_ROOT` locations. The production package does
 not contain verification markers or test-only assertion routines.
+
+P2.1 remains open. Exact EXF wind, FILES/COUPLER Stokes, time interpolation,
+and schema-2 field pickup are not claimed here. Spatial derivatives and the
+slow-manifold RHS remain outside this verification directory.

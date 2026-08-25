@@ -1,4 +1,4 @@
-# P2.1 first-increment test results
+# P2.1 endpoint-state and transaction test results
 
 Status: **PASS ON EXACT FUNCTIONAL COMMIT; P2.1 REMAINS IN PROGRESS**
 
@@ -70,7 +70,7 @@ artifact:
   the reproducible `LEEW` compatibility run;
 - no failed directory was reused or overwritten.
 
-## Scope conclusion
+## First-increment scope conclusion
 
 This result accepts the first P2.1 increment only: runtime parameters,
 stable codes, and deterministic accepted endpoint storage. Nonzero `BOM`
@@ -78,3 +78,55 @@ particles remain explicitly unavailable. Exact-time ocean/wind/Stokes
 providers, transactional publication, interpolation, and field pickup are
 still required before P2.1 can close. No P2.2 derivative or P2.3 RHS code is
 present, and no `MITGCM-BOM-v0.3` tag was created.
+
+## Transactional publisher authoritative increment
+
+- source commit: `b81bb01293dbc4279db544174efe9558382115a3`;
+- branch: `MITGCM-BOM/p2.1-environment-endpoints`;
+- environment: Ubuntu 22.04, GNU debug/IEEE build, OpenMPI;
+- test ID: `p21-transaction-b81bb0129-attempt01`;
+- command:
+
+```bash
+MITGCM_BOM_TEST_ID=p21-transaction-b81bb0129-attempt01 \
+verification/bom/phase02-endpoint-state/run_endpoint_state_gate.sh
+```
+
+The exact committed source adds independent transaction scratch storage,
+fresh duplicated endpoints, normal accepted-NEW to scratch-OLD advancement,
+ocean rotation/colocation, exact `NONE` wind/Stokes fields, and atomic commit.
+
+| Case | Result | Evidence |
+|---|---|---|
+| source-contract | PASS | production lifecycle hooks present; test markers isolated |
+| build-serial | PASS | GNU debug transaction build |
+| build-mpi4 | PASS | MPI4 debug transaction build |
+| build-production-serial | PASS | unmodified production lifecycle build |
+| bom-serial | PASS | fresh, two normal advances, continuity/source rollback |
+| bom-mpi4 | PASS | same endpoint, halo, validity and rollback assertions on four ranks |
+| production-one-step | PASS | production fresh hook and one normal zero-particle step |
+| leew-compat | PASS | accepted Phase-1 defaults and normal end preserved |
+| current-unset | PASS | missing current policy rejected |
+| nan-alpha | PASS | non-finite parameter rejected |
+| tau-overflow | PASS | seconds conversion overflow rejected |
+| none-sigma | PASS | invalid NONE/sigma policy rejected |
+| duplicate-files | PASS | duplicate explicit Stokes rejected |
+| bad-files | PASS | invalid FILES metadata rejected |
+| coupler-unavailable | PASS | unavailable provider rejected |
+
+All 15 summary rows are `PASS`. Direct component checks prove that accepted
+metadata, all Eulerian values, auxiliary zero fields, and all validity masks
+remain unchanged after continuity and source failures.
+
+| File | SHA-256 |
+|---|---|
+| `summary.tsv` | `7f6bd0426866908bd83a79ae29cf9c11a96940ff795a1e6fe8ceedf76ddd8ee5` |
+| `source-head.txt` | `251bc886149c104b1f2a60d08a19bba5de6af1314e46845a0d7be5fc66dc4380` |
+| `manifest.sha256` | `8d5b36b33e884f19029c5e11613a31a9fdc88279caae28bee472e1761a05877c` |
+
+Evidence root:
+`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-transaction-b81bb0129-attempt01`.
+The interrupted `p21-transaction-dev-gate02` and passing pre-commit
+`p21-transaction-dev-gate03` remain outside Git and were not reused.
+
+This increment accepts the ocean/`NONE`/`NONE` transaction only. P2.1 still

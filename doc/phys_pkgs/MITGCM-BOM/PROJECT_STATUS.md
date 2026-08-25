@@ -4,16 +4,16 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-25 |
+| 最后更新 | 2026-08-26 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/p2.1-environment-endpoints` |
-| 当前阶段 PR | Draft PR #20；P2.1 首增量功能提交 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af` |
+| 当前阶段 PR | Draft PR #20；事务端点功能提交 `b81bb01293dbc4279db544174efe9558382115a3` |
 | 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
-| 当前工作包 | P2.1 首增量完成：参数契约、稳定代码、accepted endpoint 零状态 |
-| 下一工作包 | P2.1 transactional publisher 与 ocean/NONE/NONE exact endpoints |
+| 当前工作包 | P2.1 fresh/normal ocean/NONE/NONE transaction 15/15 PASS |
+| 下一工作包 | P2.1 BOM-owned exact-time EXF wind provider |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -23,8 +23,8 @@
 1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
 2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
 3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 从功能提交 `920e22fbd` 继续 P2.1，先实现 fresh 双端点和正常 old/new 的 transactional publisher；
-5. 首先接通 ocean、`wind=NONE`、`Stokes=NONE` 的 exact endpoints 与 rollback 门禁，仍禁止提前加入导数、RHS 或 RK stage 接线。
+4. 从功能提交 `b81bb0129` 继续 P2.1，实现 BOM-owned exact-time EXF wind provider；
+5. 证明 EXF global arrays 不变，并覆盖缺失/过期/未覆盖 source rollback；不加入 Stokes、插值、导数或 RHS。
 
 开始前执行：
 
@@ -41,7 +41,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 首增量 13/13 PASS；下一步 transactional endpoints | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 事务端点 15/15 PASS；下一步 exact EXF wind | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -186,6 +186,16 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - GNU 串行与 MPI4 构建、BOM 串行/MPI4 初始化、LEEW 零影响及 7 项负向门禁均 PASS；
 - summary SHA-256 为 `29453e3305d6d6a43bb8b055995417109644e3a53dbf5a5f93b38e1969440293`；
 - 本结果不关闭 P2.1：exact-time providers、事务发布、插值与 field pickup 仍待实现；
+- 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
+
+### P2.1 transactional ocean/NONE/NONE 端点增量
+
+- 功能提交 `b81bb01293dbc4279db544174efe9558382115a3` 增加独立 scratch、fresh/normal transaction 和 production hooks；
+- ocean 复制表层 C-grid 后旋转/共置并交换标量 halo；NONE wind/Stokes 发布湿点有效的精确零；
+- continuity 和 source failure 直接测试证明 accepted metadata、fields、validity 全部不变；
+- 权威 `p21-transaction-b81bb0129-attempt01` 在精确提交上 15/15 PASS；
+- summary SHA-256 为 `7f6bd0426866908bd83a79ae29cf9c11a96940ff795a1e6fe8ceedf76ddd8ee5`；
+- 本结果不关闭 P2.1：EXF、FILES/COUPLER、时间插值和 field pickup 仍待实现；
 - 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
@@ -555,6 +565,17 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 功能提交为 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af`；权威门禁 13/13 PASS；
 - 当前明确保留非零 `BOM` 拒绝，P2.1 尚未关闭，不创建 `MITGCM-BOM-v0.3`；
 - 唯一下一任务为 transactional fresh/normal endpoint publisher 与 ocean/NONE/NONE providers。
+
+### 2026-08-26：P2.1 transactional ocean/NONE/NONE endpoints
+
+- 新增独立 transaction scratch 和生产 `BOM_BUILD_ENDPOINTS`/`BOM_TRY_BUILD_ENDPOINTS`；
+- fresh 发布相同 `(startTime,nIter0)`，normal 验证连续性并将 accepted NEW 精确复制到 OLD；
+- ocean provider 完成表层复制、C 点共置、east/north 旋转、mask、halo 和有限性校验；
+- `wind=NONE`、`Stokes=NONE` 发布精确零且湿点 valid，失败不修改 accepted state；
+- 功能提交 `b81bb01293dbc4279db544174efe9558382115a3` 的权威门禁为 15/15 PASS；
+- 中断开发尝试 `p21-transaction-dev-gate02` 和通过的 pre-commit gate03 均保留在仓库外且未覆盖；
+- Draft PR #20 仍未 Ready、未合并；P2.1 未关闭，未创建 `MITGCM-BOM-v0.3`；
+- 唯一下一任务为 BOM-owned exact-time EXF wind provider 与 P2-E03/P2-N03 focused gate。
 
 ## 6. 每次会话结束时必须更新
 

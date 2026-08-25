@@ -1,11 +1,11 @@
 # MITGCM-BOM Phase 2 slow-manifold verification
 
-Status: **P2.1 IN PROGRESS; FIRST PARAMETER/STATE INCREMENT IMPLEMENTED**
+Status: **P2.1 IN PROGRESS; TRANSACTIONAL OCEAN/NONE/NONE ENDPOINTS IMPLEMENTED**
 
 This directory is the source-controlled design and verification index for
-Phase 2. P2.0 remains the normative frozen contract. The first P2.1 increment
-adds runtime preflight and accepted endpoint storage, while exact-time source
-providers, transactions, interpolation, and field pickup remain pending.
+Phase 2. P2.0 remains the normative frozen contract. P2.1 now has runtime
+preflight, accepted/scratch endpoint storage, and ocean/NONE/NONE transaction
+publication. EXF, explicit Stokes, interpolation, and field pickup remain.
 
 ## P2.0 documents
 
@@ -67,11 +67,13 @@ manifests may be committed only after execution on a clean exact source head.
 
 ## Current P2.1 increment and unique next task
 
-The first increment implements frozen parameters, stable integer codes, and
-deterministic accepted endpoint storage, with its focused gate under
-`../phase02-endpoint-state/`.
+The first two increments implement frozen parameters/codes, deterministic
+accepted and scratch storage, fresh duplicated endpoints, normal OLD/NEW
+advancement, ocean/NONE/NONE providers, and rollback. Their focused gate is
+under `../phase02-endpoint-state/` and passes 15/15 on `b81bb0129`.
 
-The unique next implementation task is the P2.1 transactional publisher for
-fresh duplicated endpoints and normal old/new advancement using ocean plus
-`NONE` wind/Stokes providers. It must preserve accepted state on component
-failure and still must not add gradients or an inertial RHS.
+The unique next implementation task is a BOM-owned exact-time EXF wind
+provider. It must evaluate both components at requested endpoints without
+mutating EXF globals, reject missing/stale/uncovered data transactionally,
+and add focused P2-E03/P2-N03 evidence. It does not add Stokes FILES/COUPLER,
+time interpolation, gradients, or an inertial RHS.

@@ -8,8 +8,8 @@
 | 基线 tag object | `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1` |
 | 基线提交 | `1067c21d230e9c9619e89245b97c01e9474c7ed7` |
 | 准入日期 | 2026-08-25 |
-| 状态 | **进行中（P2.0 完成，P2.1 首增量实现并通过开发门禁）** |
-| 当前工作包 | P2.1 参数契约、稳定代码与 accepted endpoint 状态 |
+| 状态 | **进行中（P2.1 事务端点增量在精确提交上 15/15 PASS）** |
+| 当前工作包 | P2.1 transactional ocean/NONE/NONE endpoints 已实现 |
 | 准入记录 | PR #17/#18 已合并；当前集成基线 `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` |
 | P2.0 记录 | PR #19；设计提交 `628a6bb4621429bf6f58e9e46a13216c21de7815` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
@@ -58,7 +58,7 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 | 工作包 | 交付 | 主要验收 | 当前状态 |
 |---|---|---|---|
 | P2.0 设计冻结 | 需求、接口、方程、时间层、Stokes 去重、golden/test plan | 18 需求、18 决定、编号/链接/范围与 PR patch | 完成（PR #19） |
-| P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 进行中（首增量：参数/代码/状态） |
+| P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 进行中（事务 ocean/NONE/NONE 已通过） |
 | P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 未开始 |
 | P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 未开始 |
 | P2.4 积分与 golden | RK stage 时间插值、固定 Julia 对照 | B05、B16、收敛与 rollback | 未开始 |
@@ -93,15 +93,15 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 
 继续当前 `MITGCM-BOM/p2.1-environment-endpoints` 分支，下一增量只实现：
 
-- fresh start 将同一 `(startTime,nIter0)` 事务发布到 OLD/NEW；
-- 正常步将已接受 NEW 复制到 scratch OLD，并构建 exact-time NEW；
-- 首先接通 ocean、`wind=NONE`、`Stokes=NONE` provider；
-- component failure 保持 accepted state 完全不变；
-- 增补 P2-E01/E02/E06 与连续性/rollback 直接门禁。
+- 新增 BOM-owned exact-time EXF wind provider；
+- 在 fresh 和 normal NEW 请求时独立求值 `uwind/vwind`；
+- 不修改或重新标记 EXF global current/record arrays；
+- 缺失、过期、未来、非有限或未覆盖请求必须事务失败；
+- 增补 P2-E03 与 P2-N03 focused serial/MPI4 门禁。
 
-P2.1 不加入空间导数、协变项、慢流形 RHS 或 RK stage 接线；这些依次
-属于 P2.2—P2.4。若实现需要改变已冻结的时间、来源、去重或 schema
-语义，必须先更新 P2.0 契约和追踪表。
+本增量不加入 Stokes FILES/COUPLER、时间插值、pickup、空间导数、慢流形
+RHS 或 RK stage 接线。若需要改变冻结的 EXF 所有权或请求时间语义，必须
+先更新 P2.0 契约和追踪表。
 
 ## 8. P2.0 完成记录
 
@@ -124,4 +124,17 @@ P2.1 不加入空间导数、协变项、慢流形 RHS 或 RK stage 接线；这
 - summary SHA-256：`29453e3305d6d6a43bb8b055995417109644e3a53dbf5a5f93b38e1969440293`；
 - 证据目录：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-endpoint-920e22fbd-attempt01`；
 - 边界：未实现 exact-time providers、transaction commit、时间插值、field pickup、导数或 RHS；
+- 状态：P2.1 继续进行，无开放 finding，不创建 `MITGCM-BOM-v0.3`。
+
+## 10. P2.1 事务端点增量记录
+
+- 功能提交：`b81bb01293dbc4279db544174efe9558382115a3`；
+- 实现 fresh 双端点、normal NEW→scratch OLD、exact ocean/NONE/NONE provider 与原子提交；
+- 连续性或 source component 失败保持 accepted metadata、全部 fields 和 validity 完全不变；
+- 生产生命周期覆盖 fresh 初始化和零粒子一步 normal advance；
+- 权威测试 ID：`p21-transaction-b81bb0129-attempt01`；
+- 结果：source、3 构建、串行/MPI4 transaction、production step、LEEW 与 7 项负测共 15/15 PASS；
+- summary SHA-256：`7f6bd0426866908bd83a79ae29cf9c11a96940ff795a1e6fe8ceedf76ddd8ee5`；
+- 证据目录：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-transaction-b81bb0129-attempt01`；
+- 边界：EXF、FILES/COUPLER、时间插值、field pickup、导数及 RHS 仍未实现；
 - 状态：P2.1 继续进行，无开放 finding，不创建 `MITGCM-BOM-v0.3`。
