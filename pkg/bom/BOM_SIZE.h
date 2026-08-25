@@ -23,6 +23,10 @@ CEOP
       INTEGER bomPickupSchema
       INTEGER bomPickupFields
       INTEGER bomPickupSigFields
+      INTEGER bomPickupSchema2
+      INTEGER bomPickup2SigBase
+      INTEGER bomPickupEnvHeader
+      INTEGER bomPickupChunkFields
       PARAMETER ( bomMaxInitRecords = 10000 )
       PARAMETER ( bomMaxPartTile    = 64 )
       PARAMETER ( bomMaxGhostTile   = 1 )
@@ -38,5 +42,9 @@ CEOP
       PARAMETER ( bomPickupSchema   = 1 )
       PARAMETER ( bomPickupFields   = 24 )
       PARAMETER ( bomPickupSigFields = 16 )
+      PARAMETER ( bomPickupSchema2  = 2 )
+      PARAMETER ( bomPickup2SigBase = 52 )
+      PARAMETER ( bomPickupEnvHeader = 12 )
+      PARAMETER ( bomPickupChunkFields = 24 )
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|

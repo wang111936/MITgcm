@@ -8,8 +8,8 @@ C !INTERFACE:
      I                 suffix, myTime, myIter, myThid )
 
 C !DESCRIPTION:
-C     Write the schema-1 P1.5 global decomposition signature and tiled
-C     owner state using the suffix selected by the core pickup scheduler.
+C     Write the mode-selected pickup transaction.  LEEW retains the exact
+C     schema-1 layout; BOM adds schema-2 fingerprint and endpoint sidecars.
 
 C !USES:
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -35,19 +35,48 @@ C !FUNCTIONS:
 C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_FNAM) fileName, sigName
       CHARACTER*(MAX_LEN_MBUF) msgBuf
-      _RL signature(bomPickupSigFields)
+      _RL signature(
+     &     bomPickup2SigBase+2*MAX_LEN_FNAM+256)
       _RL record(bomPickupFields)
       _RL timeScale, timeTol
       _RS dummyRS(1)
       INTEGER bi, bj, ip, k, ioUnit, iRecord, suffixLen
       INTEGER iGlobal, jGlobal
       INTEGER localErrCount, globalErrCount
+      INTEGER envLocalErr, activeSchema, sigFields, envFields
+      INTEGER sigRecordFields, sigRecords, sigIndex, writeRecord
       INTEGER localOwnerCount, globalOwnerCount
       INTEGER*8 idRadix, idHi8, idLo8
+      LOGICAL schemaValid
 
       idRadix = 4294967296_8
       localErrCount = 0
       localOwnerCount = 0
+      activeSchema = bomPickupSchema
+      sigFields = bomPickupSigFields
+      sigRecordFields = sigFields
+      envFields = 0
+      schemaValid = .TRUE.
+      IF ( bomMode.EQ.'BOM' ) THEN
+        activeSchema = bomPickupSchema2
+        CALL BOM_GET_PICKUP2_SIZES(
+     O       sigFields, envFields )
+        sigRecordFields = bomPickupChunkFields
+        CALL BOM_VALIDATE_ENV_PICKUP_STATE(
+     I       myTime, myIter,
+     O       envLocalErr,
+     I       myThid )
+        localErrCount = localErrCount + envLocalErr
+        CALL BOM_BUILD_PICKUP2_SIGNATURE(
+     I       myTime, myIter, bomNPartExpected, bomNextOutputTime,
+     I       bomEnvTime(BOM_ENV_OLD), bomEnvTime(BOM_ENV_NEW),
+     I       bomEnvIter(BOM_ENV_OLD), bomEnvIter(BOM_ENV_NEW),
+     I       bomEnvReady,
+     O       signature, sigFields, envFields, schemaValid,
+     I       myThid )
+        IF ( .NOT.schemaValid ) localErrCount = localErrCount + 1
+      ENDIF
+      sigRecords = (sigFields+sigRecordFields-1)/sigRecordFields
       suffixLen = ILNBLNK(suffix)
       timeScale = MAX(oneRL,ABS(myTime),ABS(bomOutputFreq),
      &                ABS(bomNextOutputTime))
@@ -116,30 +145,47 @@ C--   The full state budget is meaningful only for a nonempty owner set.
       WRITE(sigName,'(A,A)') fileName(1:ILNBLNK(fileName)), '.sig'
 
       _BEGIN_MASTER(myThid)
-      DO k=1,bomPickupSigFields
-        signature(k) = 0. _d 0
+      IF ( activeSchema.EQ.bomPickupSchema ) THEN
+        DO k=1,sigFields
+          signature(k) = 0. _d 0
+        ENDDO
+        signature(1) = bomPickupSchema
+        signature(2) = bomPickupSigFields
+        signature(3) = nPx
+        signature(4) = nPy
+        signature(5) = sNx
+        signature(6) = sNy
+        signature(7) = nSx
+        signature(8) = nSy
+        signature(9) = Nx
+        signature(10) = Ny
+        signature(11) = bomMaxPartTile
+        signature(12) = bomNPartExpected
+        signature(13) = myIter
+        signature(14) = myTime
+        signature(15) = bomOutputFreq
+        signature(16) = bomNextOutputTime
+      ENDIF
+      ioUnit = -1
+      DO iRecord=1,sigRecords
+        DO k=1,sigRecordFields
+          record(k) = 0. _d 0
+          sigIndex = (iRecord-1)*sigRecordFields+k
+          IF ( sigIndex.LE.sigFields )
+     &         record(k) = signature(sigIndex)
+        ENDDO
+        writeRecord = iRecord
+        IF ( iRecord.LT.sigRecords ) writeRecord = -iRecord
+        CALL MDS_WRITEVEC_LOC(
+     I       sigName, precFloat64, ioUnit,
+     I       'RL', sigRecordFields, record, dummyRS,
+     I       0, 0, writeRecord, myIter, myThid )
       ENDDO
-      signature(1) = bomPickupSchema
-      signature(2) = bomPickupSigFields
-      signature(3) = nPx
-      signature(4) = nPy
-      signature(5) = sNx
-      signature(6) = sNy
-      signature(7) = nSx
-      signature(8) = nSy
-      signature(9) = Nx
-      signature(10) = Ny
-      signature(11) = bomMaxPartTile
-      signature(12) = bomNPartExpected
-      signature(13) = myIter
-      signature(14) = myTime
-      signature(15) = bomOutputFreq
-      signature(16) = bomNextOutputTime
-      ioUnit = 0
-      CALL MDS_WRITEVEC_LOC(
-     I     sigName, precFloat64, ioUnit,
-     I     'RL', bomPickupSigFields, signature, dummyRS,
-     I     0, 0, 1, myIter, myThid )
+      IF ( ioUnit.GT.0 ) CLOSE(ioUnit)
+      IF ( activeSchema.EQ.bomPickupSchema2 ) THEN
+        CALL BOM_WRITE_PICKUP_ENV(
+     I       fileName, myTime, myIter, envFields, myThid )
+      ENDIF
 
       DO bj=1,nSy
        DO bi=1,nSx
@@ -148,7 +194,7 @@ C--   The full state budget is meaningful only for a nonempty owner set.
         ENDDO
         iGlobal = myXGlobalLo + (bi-1)*sNx
         jGlobal = myYGlobalLo + (bj-1)*sNy
-        record(1) = bomPickupSchema
+        record(1) = activeSchema
         record(2) = bomPickupFields
         record(3) = bomNPartTile(bi,bj)
         record(4) = bomNPartExpected
