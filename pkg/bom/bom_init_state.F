@@ -24,7 +24,7 @@ CEOP
 
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
-      INTEGER bi, bj, i, j, ip
+      INTEGER bi, bj, i, j, ip, iEnd, iSource
 
       _BEGIN_MASTER(myThid)
       bomFieldsReady = .FALSE.
@@ -35,6 +35,11 @@ C !LOCAL VARIABLES:
       bomNPartExpected = 0
       bomNextOutputTime = 0. _d 0
       bomOutputScheduleReady = .FALSE.
+      bomEnvReady = .FALSE.
+      DO iEnd=1,BOM_ENV_NEND
+        bomEnvTime(iEnd) = 0. _d 0
+        bomEnvIter(iEnd) = 0
+      ENDDO
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = 0
@@ -46,6 +51,13 @@ C !LOCAL VARIABLES:
           bomGridVNorth(i,j,1,bi,bj) = 0. _d 0
           bomGridWindEast(i,j,1,bi,bj) = 0. _d 0
           bomGridWindNorth(i,j,1,bi,bj) = 0. _d 0
+          DO iSource=1,BOM_ENV_NSOURCE
+           DO iEnd=1,BOM_ENV_NEND
+            bomEnvEast(i,j,iEnd,iSource,bi,bj) = 0. _d 0
+            bomEnvNorth(i,j,iEnd,iSource,bi,bj) = 0. _d 0
+            bomEnvValid(i,j,iEnd,iSource,bi,bj) = .FALSE.
+           ENDDO
+          ENDDO
          ENDDO
         ENDDO
         DO ip=1,bomMaxPartTile

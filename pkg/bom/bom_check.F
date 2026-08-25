@@ -37,6 +37,10 @@ C !LOCAL VARIABLES:
       _RL subRatio, dtSub
       LOGICAL deltaTFinite, targetFinite, outputFinite
       LOGICAL pickupFinite, coeffFinite, wetFinite, cflFinite
+      LOGICAL alphaFinite, tauDaysFinite, rFinite, sigmaFinite
+      LOGICAL stokesStartFinite, stokesPeriodFinite
+      LOGICAL stokesRepFinite, stokesScaleFinite
+      LOGICAL tauDaysInRange
 
       _BEGIN_MASTER(myThid)
 
@@ -65,7 +69,9 @@ C !LOCAL VARIABLES:
       CALL WRITE_0D_C( bomWindSource, -1, INDEX_NONE,
      &     'bomWindSource =', ' /* NONE or EXF */')
       CALL WRITE_0D_C( bomStokesSource, -1, INDEX_NONE,
-     &     'bomStokesSource =', ' /* Phase 1: NONE */')
+     &     'bomStokesSource =', ' /* NONE, FILES, COUPLER */')
+      CALL WRITE_0D_C( bomCurrentPolicy, -1, INDEX_NONE,
+     &     'bomCurrentPolicy =', ' /* explicit current policy */')
 
       errCount = 0
       nSub = 0
@@ -78,11 +84,19 @@ C !LOCAL VARIABLES:
       coeffFinite = IEEE_IS_FINITE(bomLeewayWindCoeff)
       wetFinite = IEEE_IS_FINITE(bomWetWeightMin)
       cflFinite = IEEE_IS_FINITE(bomAdvCFL)
+      alphaFinite = IEEE_IS_FINITE(bomAlpha)
+      tauDaysFinite = IEEE_IS_FINITE(bomTauDays)
+      rFinite = IEEE_IS_FINITE(bomR)
+      sigmaFinite = IEEE_IS_FINITE(bomSigma)
+      stokesStartFinite = IEEE_IS_FINITE(bomStokesStartTime)
+      stokesPeriodFinite = IEEE_IS_FINITE(bomStokesPeriod)
+      stokesRepFinite = IEEE_IS_FINITE(bomStokesRepCycle)
+      stokesScaleFinite = IEEE_IS_FINITE(bomStokesInScale)
+      tauDaysInRange = .FALSE.
+      bomTau = 0. _d 0
 
       IF ( bomMode.NE.'LEEW' .AND.
-     &     bomMode.NE.'BOM'  .AND.
-     &     bomMode.NE.'EBOM' .AND.
-     &     bomMode.NE.'EBOMB' ) THEN
+     &     bomMode.NE.'BOM' ) THEN
         WRITE(msgBuf,'(A,A)')
      &       'BOM_CHECK: unsupported bomMode: ', bomMode
         CALL PRINT_ERROR( msgBuf, myThid )
@@ -105,6 +119,196 @@ C !LOCAL VARIABLES:
      &       bomIntegrator
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
+      ENDIF
+
+C--   Phase-2 slow-manifold parameters are active only in BOM mode.
+      IF ( bomMode.EQ.'BOM' ) THEN
+        IF ( bomCurrentPolicy.NE.'EULERIAN' .AND.
+     &       bomCurrentPolicy.NE.'PRECOMBINED' ) THEN
+          WRITE(msgBuf,'(A,A)')
+     &         'BOM_CHECK: BOM requires explicit current policy: ',
+     &         bomCurrentPolicy
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+
+        IF ( .NOT.alphaFinite ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: non-finite bomAlpha=', bomAlpha
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSEIF ( bomAlpha.LT.0. _d 0 .OR.
+     &           bomAlpha.GT.1. _d 0 ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: bomAlpha outside [0,1]=', bomAlpha
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+
+        IF ( .NOT.tauDaysFinite ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: non-finite bomTauDays=', bomTauDays
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSEIF ( bomTauDays.LT.0. _d 0 ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: negative bomTauDays=', bomTauDays
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSEIF ( bomTauDays.GT.
+     &           HUGE(oneRL)/86400. _d 0 ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: bomTauDays overflows seconds=',
+     &         bomTauDays
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSE
+          tauDaysInRange = .TRUE.
+          bomTau = 86400. _d 0*bomTauDays
+        ENDIF
+        IF ( tauDaysInRange ) THEN
+          IF ( .NOT.IEEE_IS_FINITE(bomTau) ) THEN
+            WRITE(msgBuf,'(A,1PE24.16)')
+     &           'BOM_CHECK: non-finite derived bomTau=', bomTau
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+        ENDIF
+
+        IF ( .NOT.rFinite ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: non-finite bomR=', bomR
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSEIF ( bomR.LE.0. _d 0 .OR. bomR.GT.1. _d 0 ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: bomR outside (0,1]=', bomR
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+
+        IF ( .NOT.sigmaFinite ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: non-finite bomSigma=', bomSigma
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSEIF ( bomSigma.LT.0. _d 0 ) THEN
+          WRITE(msgBuf,'(A,1PE24.16)')
+     &         'BOM_CHECK: negative bomSigma=', bomSigma
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+
+        IF ( bomWindSource.EQ.'NONE' .AND. alphaFinite ) THEN
+          IF ( bomAlpha.NE.0. _d 0 ) THEN
+            WRITE(msgBuf,'(A,1PE24.16)')
+     &           'BOM_CHECK: wind source=NONE requires alpha=0:',
+     &           bomAlpha
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+        ENDIF
+
+        IF ( bomStokesSource.EQ.'NONE' ) THEN
+          IF ( sigmaFinite ) THEN
+            IF ( bomSigma.NE.0. _d 0 ) THEN
+              WRITE(msgBuf,'(A,1PE24.16)')
+     &             'BOM_CHECK: Stokes source=NONE requires sigma=0:',
+     &             bomSigma
+              CALL PRINT_ERROR( msgBuf, myThid )
+              errCount = errCount + 1
+            ENDIF
+          ENDIF
+        ELSEIF ( bomStokesSource.EQ.'FILES' ) THEN
+          IF ( bomCurrentPolicy.EQ.'PRECOMBINED' ) THEN
+            WRITE(msgBuf,'(2A)')
+     &           'BOM_CHECK: precombined current duplicates ',
+     &           'FILES Stokes'
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+          IF ( bomUStokesFile.EQ.' ' .OR.
+     &         bomVStokesFile.EQ.' ' ) THEN
+            WRITE(msgBuf,'(A)')
+     &           'BOM_CHECK: FILES requires paired Stokes filenames'
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+          IF ( .NOT.stokesStartFinite ) THEN
+            WRITE(msgBuf,'(A,1PE24.16)')
+     &           'BOM_CHECK: non-finite bomStokesStartTime=',
+     &           bomStokesStartTime
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+          IF ( .NOT.stokesPeriodFinite ) THEN
+            WRITE(msgBuf,'(A,1PE24.16)')
+     &           'BOM_CHECK: non-finite bomStokesPeriod=',
+     &           bomStokesPeriod
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ELSEIF ( bomStokesPeriod.LE.0. _d 0 ) THEN
+            WRITE(msgBuf,'(A,1PE24.16)')
+     &           'BOM_CHECK: bomStokesPeriod must be positive=',
+     &           bomStokesPeriod
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+          IF ( .NOT.stokesRepFinite ) THEN
+            WRITE(msgBuf,'(A,1PE24.16)')
+     &           'BOM_CHECK: non-finite bomStokesRepCycle=',
+     &           bomStokesRepCycle
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ELSEIF ( bomStokesRepCycle.LT.0. _d 0 ) THEN
+            WRITE(msgBuf,'(A,1PE24.16)')
+     &           'BOM_CHECK: negative bomStokesRepCycle=',
+     &           bomStokesRepCycle
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ELSEIF ( stokesPeriodFinite .AND.
+     &             bomStokesRepCycle.GT.0. _d 0 .AND.
+     &             bomStokesRepCycle.LT.bomStokesPeriod ) THEN
+            WRITE(msgBuf,'(A,2(1X,1PE24.16))')
+     &           'BOM_CHECK: repeat cycle shorter than period=',
+     &           bomStokesRepCycle, bomStokesPeriod
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+          IF ( .NOT.stokesScaleFinite ) THEN
+            WRITE(msgBuf,'(A,1PE24.16)')
+     &           'BOM_CHECK: non-finite bomStokesInScale=',
+     &           bomStokesInScale
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+          IF ( bomStokesFilePrec.NE.32 .AND.
+     &         bomStokesFilePrec.NE.64 ) THEN
+            WRITE(msgBuf,'(A,I8)')
+     &           'BOM_CHECK: bomStokesFilePrec must be 32 or 64:',
+     &           bomStokesFilePrec
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+        ELSEIF ( bomStokesSource.EQ.'COUPLER' ) THEN
+          IF ( bomCurrentPolicy.EQ.'PRECOMBINED' ) THEN
+            WRITE(msgBuf,'(2A)')
+     &           'BOM_CHECK: precombined current duplicates ',
+     &           'COUPLER Stokes'
+            CALL PRINT_ERROR( msgBuf, myThid )
+            errCount = errCount + 1
+          ENDIF
+          WRITE(msgBuf,'(A)')
+     &         'BOM_CHECK: COUPLER provider hook is not compiled'
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ELSE
+          WRITE(msgBuf,'(A,A)')
+     &         'BOM_CHECK: unsupported bomStokesSource=',
+     &         bomStokesSource
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
       ENDIF
 
       IF ( .NOT.deltaTFinite ) THEN
@@ -281,10 +485,10 @@ C-      Retain the Phase-0 gate signature while that baseline is frozen.
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomMaxParticles.GT.0 .AND. bomMode.NE.'LEEW' ) THEN
-        WRITE(msgBuf,'(A,A)')
-     &       'BOM_CHECK: non-zero Phase-1.1 state requires LEEW: ',
-     &       bomMode
+      IF ( bomMaxParticles.GT.0 .AND. bomMode.EQ.'BOM' ) THEN
+        WRITE(msgBuf,'(2A)')
+     &       'BOM_CHECK: non-zero BOM endpoint providers are ',
+     &       'not connected in the P2.1 first increment'
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
@@ -344,9 +548,10 @@ C-      Retain the Phase-0 gate signature while that baseline is frozen.
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomStokesSource.NE.'NONE' ) THEN
+      IF ( bomMode.NE.'BOM' .AND.
+     &     bomStokesSource.NE.'NONE' ) THEN
         WRITE(msgBuf,'(A,A)')
-     &       'BOM_CHECK: Phase-1 Stokes source must be NONE: ',
+     &       'BOM_CHECK: LEEW Stokes source must be NONE: ',
      &       bomStokesSource
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1

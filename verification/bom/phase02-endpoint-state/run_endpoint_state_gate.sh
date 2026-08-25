@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+readonly CASE_DIR
+REPO_ROOT="$(cd "${CASE_DIR}/../../.." && pwd -P)"
+readonly REPO_ROOT
+readonly TEST_ID="${MITGCM_BOM_TEST_ID:-p21-endpoint-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
+readonly BUILD_PARENT="${MITGCM_BOM_TEST_BUILD_ROOT:-/home/wyl/build/mitgcm-bom/phase02-endpoint-state}"
+readonly RUN_PARENT="${MITGCM_BOM_TEST_RUN_ROOT:-/home/wyl/runs/mitgcm-bom/phase02-endpoint-state}"
+readonly ARTIFACT_PARENT="${MITGCM_BOM_TEST_ARTIFACT_ROOT:-/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state}"
+readonly BUILD_ROOT="${BUILD_PARENT}/${TEST_ID}"
+readonly RUN_ROOT="${RUN_PARENT}/${TEST_ID}"
+readonly ARTIFACT_ROOT="${ARTIFACT_PARENT}/${TEST_ID}"
+readonly OPTFILE="${MITGCM_BOM_OPTFILE:-${REPO_ROOT}/tools/build_options/linux_amd64_gfortran}"
+readonly MAKE_JOBS="${MITGCM_BOM_MAKE_JOBS:-4}"
+readonly EXP2_CODE="${REPO_ROOT}/verification/exp2/code"
+
+fail() {
+  printf 'P2.1 ENDPOINT STATE GATE FAIL: %s\n' "$*" >&2
+  exit 1
+}
+
+log() {
+  printf '[P2.1-endpoint] %s\n' "$*"
+}
+
+for required in bash make nm grep shellcheck mpirun sha256sum; do
+  command -v "${required}" >/dev/null 2>&1 \
+    || fail "required command not found: ${required}"
+done
+[[ -x "${REPO_ROOT}/tools/genmake2" ]] || fail 'genmake2 not executable'
+[[ -f "${OPTFILE}" ]] || fail "optfile not found: ${OPTFILE}"
+for root in "${BUILD_ROOT}" "${RUN_ROOT}" "${ARTIFACT_ROOT}"; do
+  [[ ! -e "${root}" ]] || fail "evidence root already exists: ${root}"
+done
+
+mkdir -p "${BUILD_ROOT}" "${RUN_ROOT}" "${ARTIFACT_ROOT}"
+bash -n "${BASH_SOURCE[0]}"
+shellcheck "${BASH_SOURCE[0]}"
+printf 'case\tresult\tdetail\n' > "${RUN_ROOT}/summary.tsv"
+
+record_pass() {
+  printf '%s\tPASS\t%s\n' "$1" "$2" >> "${RUN_ROOT}/summary.tsv"
+}
+
+build_case() {
+  local name="$1"
+  local size_file="$2"
+  local mpi_enabled="$3"
+  local build_dir="${BUILD_ROOT}/${name}"
+  local mods_dir="${BUILD_ROOT}/${name}-mods"
+  local -a args
+
+  log "build ${name}"
+  mkdir -p "${build_dir}" "${mods_dir}"
+  cp -a "${EXP2_CODE}/." "${mods_dir}/"
+  cp "${CASE_DIR}/code/${size_file}" "${mods_dir}/SIZE.h"
+  cp "${CASE_DIR}/code/packages.conf" "${mods_dir}/packages.conf"
+  cp "${CASE_DIR}/code/bom_init_varia.F" "${mods_dir}/"
+  args=(
+    "${REPO_ROOT}/tools/genmake2"
+    "-rootdir=${REPO_ROOT}"
+    "-mods=${mods_dir}"
+    "-of=${OPTFILE}"
+    -ieee
+    -devel
+  )
+  if [[ "${mpi_enabled}" == yes ]]; then
+    args+=( -mpi )
+  fi
+  (
+    cd "${build_dir}"
+    "${args[@]}" > genmake.log 2>&1
+    make depend > build.log 2>&1
+    make -j "${MAKE_JOBS}" >> build.log 2>&1
+  )
+  [[ -x "${build_dir}/mitgcmuv" ]] || fail "missing executable: ${name}"
+  nm "${build_dir}/mitgcmuv" > "${build_dir}/symbols.txt"
+  for symbol in bom_check_ bom_init_state_ bom_verify_endpoint_state_; do
+    grep -q "${symbol}" "${build_dir}/symbols.txt" \
+      || fail "missing ${symbol} in ${name}"
+  done
+  record_pass "build-${name}" 'debug compile and endpoint symbols'
+}
+
+prepare_run() {
+  local run_name="$1"
+  local build_name="$2"
+  local bom_input="$3"
+  local run_dir="${RUN_ROOT}/${run_name}"
+
+  mkdir -p "${run_dir}"
+  cp "${CASE_DIR}/input/data" "${run_dir}/data"
+  cp "${CASE_DIR}/input/eedata" "${run_dir}/eedata"
+  cp "${CASE_DIR}/input/data.pkg" "${run_dir}/data.pkg"
+  cp "${CASE_DIR}/input/${bom_input}" "${run_dir}/data.bom"
+  ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" "${run_dir}/mitgcmuv"
+}
+
+assert_normal_log() {
+  local log_file="$1"
+  grep -q 'PROGRAM MAIN: Execution ended Normally' "${log_file}" \
+    || fail "normal-end marker missing: ${log_file}"
+  if grep -Eq 'ABNORMAL END|fatal error|S/R ALL_PROC_DIE' "${log_file}"; then
+    fail "fatal marker found: ${log_file}"
+  fi
+}
+
+run_positive() {
+  local name="$1"
+  local build_name="$2"
+  local ranks="$3"
+  local run_dir="${RUN_ROOT}/${name}"
+  local combined="${run_dir}/combined.log"
+  local rank
+  local rank_log
+
+  log "run ${name}"
+  prepare_run "${name}" "${build_name}" data.bom.valid
+  if [[ "${ranks}" -eq 1 ]]; then
+    (
+      cd "${run_dir}"
+      ./mitgcmuv > run.log 2>&1
+    )
+    assert_normal_log "${run_dir}/run.log"
+    cp "${run_dir}/run.log" "${combined}"
+  else
+    (
+      cd "${run_dir}"
+      mpirun -np "${ranks}" ./mitgcmuv > mpi-launch.log 2>&1
+    )
+    : > "${combined}"
+    for ((rank=0; rank<ranks; rank++)); do
+      printf -v rank_log '%s/STDOUT.%04d' "${run_dir}" "${rank}"
+      assert_normal_log "${rank_log}"
+      cat "${rank_log}" >> "${combined}"
+    done
+  fi
+  [[ "$(grep -c 'P2.1 ENDPOINT STATE PASS' "${combined}")" -eq 1 ]] \
+    || fail "positive marker count is not one: ${name}"
+  record_pass "${name}" 'parameter conversion and zero endpoint state'
+}
+
+run_leew_compat() {
+  local run_dir="${RUN_ROOT}/leew-compat"
+
+  log 'run leew-compat'
+  prepare_run leew-compat serial data.bom.leew
+  sed -i 's/P21-ENDPOINT-STATE/P21-LEEW-COMPAT/' \
+    "${run_dir}/data"
+  (
+    cd "${run_dir}"
+    ./mitgcmuv > run.log 2>&1
+  )
+  assert_normal_log "${run_dir}/run.log"
+  grep -q "'UNSET'" "${run_dir}/run.log" \
+    || fail 'LEEW compatibility run did not retain UNSET default'
+  if grep -q 'BOM requires explicit current policy' \
+      "${run_dir}/run.log"; then
+    fail 'BOM-only current-policy check leaked into LEEW'
+  fi
+  record_pass leew-compat 'Phase-1 defaults and normal end preserved'
+}
+
+run_negative() {
+  local name="$1"
+  local bom_input="$2"
+  local expected="$3"
+  local run_dir="${RUN_ROOT}/${name}"
+  local status
+
+  log "run expected failure ${name}"
+  prepare_run "${name}" serial "${bom_input}"
+  set +e
+  (
+    cd "${run_dir}"
+    ./mitgcmuv > run.log 2>&1
+  )
+  status=$?
+  set -e
+  if grep -q 'PROGRAM MAIN: Execution ended Normally' "${run_dir}/run.log"; then
+    fail "negative case ended normally: ${name}"
+  fi
+  grep -q "${expected}" "${run_dir}/run.log" \
+    || fail "expected rejection missing: ${name}"
+  grep -Eq 'ABNORMAL END|S/R ALL_PROC_DIE' "${run_dir}/run.log" \
+    || fail "fatal marker missing: ${name}"
+  record_pass "${name}" "rejected before init; status=${status}"
+}
+
+log 'audit frozen names and production/test separation'
+for name in bomCurrentPolicy bomTauDays bomEnvEast bomEnvNorth \
+            bomEnvTime bomEnvIter bomEnvValid bomEnvReady; do
+  grep -R -q "${name}" "${REPO_ROOT}/pkg/bom" \
+    || fail "missing production interface: ${name}"
+done
+if grep -R -n 'P2.1 ENDPOINT STATE PASS\|BOM_VERIFY_ENDPOINT' \
+    "${REPO_ROOT}/pkg/bom"; then
+  fail 'verification marker leaked into production source'
+fi
+record_pass source-contract 'frozen names; test code remains isolated'
+
+build_case serial SIZE.h.serial no
+build_case mpi4 SIZE.h.mpi4 yes
+run_positive bom-serial serial 1
+run_positive bom-mpi4 mpi4 4
+run_leew_compat
+run_negative current-unset data.bom.unset \
+  'BOM requires explicit current policy'
+run_negative nan-alpha data.bom.nan-alpha 'non-finite bomAlpha='
+run_negative tau-overflow data.bom.tau-overflow \
+  'bomTauDays overflows seconds='
+run_negative none-sigma data.bom.none-sigma \
+  'Stokes source=NONE requires sigma=0:'
+run_negative duplicate-files data.bom.duplicate-files \
+  'precombined current duplicates FILES Stokes'
+run_negative bad-files data.bom.bad-files \
+  'bomStokesFilePrec must be 32 or 64:'
+run_negative coupler-unavailable data.bom.coupler \
+  'COUPLER provider hook is not compiled'
+
+cp "${RUN_ROOT}/summary.tsv" "${ARTIFACT_ROOT}/summary.tsv"
+git -C "${REPO_ROOT}" rev-parse HEAD > "${ARTIFACT_ROOT}/source-head.txt"
+(
+  cd "${ARTIFACT_ROOT}"
+  sha256sum summary.tsv source-head.txt > manifest.sha256
+)
+
+log 'P2.1 ENDPOINT STATE GATE PASS'
+log "build root:    ${BUILD_ROOT}"
+log "run root:      ${RUN_ROOT}"
+log "artifact root: ${ARTIFACT_ROOT}"
+cat "${RUN_ROOT}/summary.tsv"

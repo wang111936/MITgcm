@@ -8,8 +8,8 @@
 | 基线 tag object | `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1` |
 | 基线提交 | `1067c21d230e9c9619e89245b97c01e9474c7ed7` |
 | 准入日期 | 2026-08-25 |
-| 状态 | **进行中（P2.0 完成，P2.1 待启动）** |
-| 当前工作包 | P2.0 接口、需求与测试冻结完成 |
+| 状态 | **进行中（P2.0 完成，P2.1 首增量实现并通过开发门禁）** |
+| 当前工作包 | P2.1 参数契约、稳定代码与 accepted endpoint 状态 |
 | 准入记录 | PR #17/#18 已合并；当前集成基线 `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` |
 | P2.0 记录 | PR #19；设计提交 `628a6bb4621429bf6f58e9e46a13216c21de7815` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
@@ -58,7 +58,7 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 | 工作包 | 交付 | 主要验收 | 当前状态 |
 |---|---|---|---|
 | P2.0 设计冻结 | 需求、接口、方程、时间层、Stokes 去重、golden/test plan | 18 需求、18 决定、编号/链接/范围与 PR patch | 完成（PR #19） |
-| P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 未开始 |
+| P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 进行中（首增量：参数/代码/状态） |
 | P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 未开始 |
 | P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 未开始 |
 | P2.4 积分与 golden | RK stage 时间插值、固定 Julia 对照 | B05、B16、收敛与 rollback | 未开始 |
@@ -91,13 +91,13 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 
 ## 7. 唯一下一任务
 
-从合并 PR #19 后的 `MITGCM-BOM/development` 建立 P2.1 分支，只实现：
+继续当前 `MITGCM-BOM/p2.1-environment-endpoints` 分支，下一增量只实现：
 
-- `BOM_FIELDS.h` 的 old/new、source、time、iteration、valid/ready 状态；
-- `bomEquationMode`、`bomStokesSource`、`bomCurrentPolicy` 与 P2.1 参数读取/检查；
-- 海流、EXF 风、FILES/COUPLER Stokes 的精确端点 provider；
-- 线性时间插值、Stokes 去重和 schema-2 环境场预检/状态；
-- P2-C01/C02、P2-Z01、P2-E01—E06 与 P2-N01—N04。
+- fresh start 将同一 `(startTime,nIter0)` 事务发布到 OLD/NEW；
+- 正常步将已接受 NEW 复制到 scratch OLD，并构建 exact-time NEW；
+- 首先接通 ocean、`wind=NONE`、`Stokes=NONE` provider；
+- component failure 保持 accepted state 完全不变；
+- 增补 P2-E01/E02/E06 与连续性/rollback 直接门禁。
 
 P2.1 不加入空间导数、协变项、慢流形 RHS 或 RK stage 接线；这些依次
 属于 P2.2—P2.4。若实现需要改变已冻结的时间、来源、去重或 schema

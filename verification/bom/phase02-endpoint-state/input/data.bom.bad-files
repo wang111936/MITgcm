@@ -1,0 +1,13 @@
+ &BOM_PARM01
+ bomMode='BOM', bomDeltaTTarget=300., bomMaxParticles=0,
+ bomInitialFile=' ',
+ &
+ &BOM_PARM02
+ bomCurrentPolicy='EULERIAN',
+ bomAlpha=0., bomTauDays=0.0103, bomR=0.823, bomSigma=1.2,
+ bomLeewayWindCoeff=0., bomWindSource='NONE',
+ bomStokesSource='FILES',
+ bomUStokesFile=' ', bomVStokesFile=' ',
+ bomStokesPeriod=0., bomStokesFilePrec=16,
+ bomAdvCFL=0.5,
+ &

@@ -1,10 +1,11 @@
 # MITGCM-BOM Phase 2 slow-manifold verification
 
-Status: **P2.0 INTERFACE AND TEST CONTRACT FROZEN; NO PRODUCTION PHASE-2 CODE**
+Status: **P2.1 IN PROGRESS; FIRST PARAMETER/STATE INCREMENT IMPLEMENTED**
 
 This directory is the source-controlled design and verification index for
-Phase 2. P2.0 is a Markdown-only increment. It does not modify `pkg/bom`,
-MITgcm lifecycle hooks, test drivers, namelists, or generated evidence.
+Phase 2. P2.0 remains the normative frozen contract. The first P2.1 increment
+adds runtime preflight and accepted endpoint storage, while exact-time source
+providers, transactions, interpolation, and field pickup remain pending.
 
 ## P2.0 documents
 
@@ -40,7 +41,7 @@ authority for grid metrics, lifecycle ordering, MPI, and I/O.
 
 | Work package | Allowed production scope | Mandatory gate before the next package |
 |---|---|---|
-| P2.1 | old/new endpoint storage, source providers, time interpolation, schema-2 field pickup | P2-E01--E06, P2-N01--N04 and all Phase-1 regressions |
+| P2.1 (in progress) | old/new endpoint storage, source providers, time interpolation, schema-2 field pickup | P2-E01--E06, P2-N01--N04 and all Phase-1 regressions |
 | P2.2 | C-point SI gradients, covariant terms, vorticity, metric validity | P2-D01--D05 and P2-N05 |
 | P2.3 | stateless `PAPER2024`/`JULIA` component RHS and diagnostics | P2-H01--H06 and P2-N06 |
 | P2.4 | stage-time RK integration, B04/B05, fixed Julia B16 files and checksums | P2-I01--I06 and P2-N07 |
@@ -56,16 +57,21 @@ recording a new `P2-Dxxx` decision.
 Executable work starts in P2.1. All generated content remains outside Git:
 
 ```text
-/home/wyl/build/mitgcm-bom/phase02-slow-manifold/<test-id>/
-/home/wyl/runs/mitgcm-bom/phase02-slow-manifold/<test-id>/
+/home/wyl/build/mitgcm-bom/phase02-endpoint-state/<test-id>/
+/home/wyl/runs/mitgcm-bom/phase02-endpoint-state/<test-id>/
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase02/<work-package>/<test-id>/
 ```
 
 Drivers must reject reuse of a test ID. Compact Markdown results and
 manifests may be committed only after execution on a clean exact source head.
 
-## Unique next task
+## Current P2.1 increment and unique next task
 
-After P2.0 review and merge, the only production task is P2.1: add the
-transactional two-endpoint environment-field state and source-provider
-interfaces, without adding gradients or an inertial RHS in the same PR.
+The first increment implements frozen parameters, stable integer codes, and
+deterministic accepted endpoint storage, with its focused gate under
+`../phase02-endpoint-state/`.
+
+The unique next implementation task is the P2.1 transactional publisher for
+fresh duplicated endpoints and normal old/new advancement using ocean plus
+`NONE` wind/Stokes providers. It must preserve accepted state on component
+failure and still must not add gradients or an inertial RHS.
