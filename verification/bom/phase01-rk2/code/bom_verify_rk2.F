@@ -36,7 +36,8 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       _RL savedX, savedY, savedAge, savedRelease
       _RL negZero, negZeroTrial
       LOGICAL coordValid, isValid, convValid
-      LOGICAL isZero, isConstant, isConvergence, isN08
+      LOGICAL isZero, isConstant, isSpherical
+      LOGICAL isConvergence, isN08
       DATA nStepList / 4, 8, 16, 32 /
 
       nFail = 0
@@ -44,10 +45,12 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       tol = 65536. _d 0*EPSILON(oneRL)
       isZero = the_run_name.EQ.'P1-RK2-ZERO'
       isConstant = the_run_name.EQ.'P1-RK2-CONST'
+      isSpherical = the_run_name.EQ.'P1-I03-SPHERE'
       isConvergence = the_run_name.EQ.'P1-I05-RK2'
       isN08 = the_run_name.EQ.'P1-N08-RK2'
       CALL BOM_VERIFY_RK2_ASSERT(
-     &     isZero .OR. isConstant .OR. isConvergence .OR. isN08,
+     &     isZero .OR. isConstant .OR. isSpherical
+     &     .OR. isConvergence .OR. isN08,
      &     'recognized RK2 scenario', nFail, myThid )
 
       savedCoeff = bomLeewayWindCoeff
@@ -134,6 +137,66 @@ C--     The coordinate helper must also preserve the sign bit of zero.
      &         'constant field analytic step and final diagnostics',
      &         nFail, myThid )
           caseCount = caseCount + 1
+         ENDDO
+        ENDDO
+
+      ELSEIF ( isSpherical ) THEN
+C--     P1-I03 applies the production RK2 kernel to constant SI east and
+C     north velocities on a nonzero-latitude spherical-polar grid.
+        bomAdvCFL = 0.5 _d 0
+        stepDt = 300. _d 0
+        DO bj=myByLo(myThid),myByHi(myThid)
+         DO bi=myBxLo(myThid),myBxHi(myThid)
+          CALL BOM_MAP_IJLOCAL2XY(
+     &         2. _d 0, 2. _d 0, bi, bj,
+     &         x0, y0, coordValid, myThid )
+
+          CALL BOM_VERIFY_RK2_FILL_CONSTANT(
+     &         2. _d 0, 0. _d 0, myThid )
+          CALL BOM_RK2(
+     &         x0, y0, stepDt, bi, bj,
+     &         x1, y1, ix, jy,
+     &         oceanEast, oceanNorth, windEast, windNorth,
+     &         driftEast, driftNorth, wetWeight, stageCFL,
+     &         failStage, failCode, isValid, myThid )
+          xExact = x0 + stepDt*2. _d 0/
+     &         (rSphere*deg2rad*COS(deg2rad*y0))
+          CALL BOM_VERIFY_RK2_ASSERT(
+     &         coordValid .AND. ABS(y0).GT.0. _d 0
+     &         .AND. isValid .AND. failStage.EQ.BOM_STAGE_NONE
+     &         .AND. failCode.EQ.BOM_FAIL_NONE,
+     &         'P1-I03 spherical east RK2 valid', nFail, myThid )
+          CALL BOM_VERIFY_RK2_ASSERT(
+     &         ABS(x1-xExact).LE.tol*MAX(oneRL,ABS(xExact))
+     &         .AND. y1.EQ.y0
+     &         .AND. ABS(oceanEast-2. _d 0).LE.tol
+     &         .AND. oceanNorth.EQ.0. _d 0
+     &         .AND. stageCFL.EQ.0. _d 0,
+     &         'P1-I03 east analytic longitude displacement',
+     &         nFail, myThid )
+
+          CALL BOM_VERIFY_RK2_FILL_CONSTANT(
+     &         0. _d 0, 3. _d 0, myThid )
+          CALL BOM_RK2(
+     &         x0, y0, stepDt, bi, bj,
+     &         x1, y1, ix, jy,
+     &         oceanEast, oceanNorth, windEast, windNorth,
+     &         driftEast, driftNorth, wetWeight, stageCFL,
+     &         failStage, failCode, isValid, myThid )
+          yExact = y0 + stepDt*3. _d 0/(rSphere*deg2rad)
+          CALL BOM_VERIFY_RK2_ASSERT(
+     &         isValid .AND. failStage.EQ.BOM_STAGE_NONE
+     &         .AND. failCode.EQ.BOM_FAIL_NONE,
+     &         'P1-I03 spherical north RK2 valid', nFail, myThid )
+          CALL BOM_VERIFY_RK2_ASSERT(
+     &         x1.EQ.x0
+     &         .AND. ABS(y1-yExact).LE.tol*MAX(oneRL,ABS(yExact))
+     &         .AND. oceanEast.EQ.0. _d 0
+     &         .AND. ABS(oceanNorth-3. _d 0).LE.tol
+     &         .AND. stageCFL.EQ.0. _d 0,
+     &         'P1-I03 north analytic latitude displacement',
+     &         nFail, myThid )
+          caseCount = caseCount + 2
          ENDDO
         ENDDO
 
@@ -375,6 +438,9 @@ C--     A finite K1 rate whose midpoint product would overflow.
         ELSEIF ( isConstant ) THEN
           WRITE(msgBuf,'(A)')
      &         'P1-RK2 CONSTANT PASS: analytic displacement'
+        ELSEIF ( isSpherical ) THEN
+          WRITE(msgBuf,'(A)')
+     &         'P1-I03 RK2 PASS: spherical analytic displacement'
         ELSEIF ( isConvergence ) THEN
           WRITE(msgBuf,'(A,2F8.4)')
      &         'P1-I05 RK2 PASS: two finest orders=',

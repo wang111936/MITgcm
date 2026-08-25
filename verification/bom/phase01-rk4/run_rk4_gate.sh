@@ -113,11 +113,15 @@ prepare_run() {
   local run_dir="${RUN_ROOT}/${run_name}"
 
   mkdir -p "${run_dir}"
-  cp "${CASE_DIR}/input/data.cartesian" "${run_dir}/data"
+  if [[ "${scenario}" == P1-I03-SPHERE ]]; then
+    cp "${CASE_DIR}/input/data.spherical" "${run_dir}/data"
+  else
+    cp "${CASE_DIR}/input/data.cartesian" "${run_dir}/data"
+    sed -i "s/the_run_name='P1-I01-ZERO'/the_run_name='${scenario}'/" "${run_dir}/data"
+  fi
   cp "${CASE_DIR}/input/data.pkg" "${run_dir}/data.pkg"
   cp "${CASE_DIR}/input/data.bom" "${run_dir}/data.bom"
   cp "${CASE_DIR}/input/eedata" "${run_dir}/eedata"
-  sed -i "s/the_run_name='P1-I01-ZERO'/the_run_name='${scenario}'/" "${run_dir}/data"
   ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" "${run_dir}/mitgcmuv"
 }
 
@@ -244,6 +248,7 @@ run_case zero-serial serial 1 P1-RK4-ZERO 'P1-RK4 ZERO PASS: bitwise stationary 
 run_case zero-mpi4 mpi4 4 P1-RK4-ZERO 'P1-RK4 ZERO PASS: bitwise stationary step'
 run_case constant-serial serial 1 P1-RK4-CONST 'P1-RK4 CONSTANT PASS: analytic displacement'
 run_case constant-mpi4 mpi4 4 P1-RK4-CONST 'P1-RK4 CONSTANT PASS: analytic displacement'
+run_case i03-spherical-serial serial 1 P1-I03-SPHERE 'P1-I03 RK4 PASS: spherical analytic displacement'
 run_case i06-convergence-serial serial 1 P1-I06-RK4 'P1-I06 RK4 PASS: two finest orders='
 run_case n08-rk4-serial serial 1 P1-N08-RK4 'P1-N08 RK4 PASS: staged failure rollback'
 
