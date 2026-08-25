@@ -113,3 +113,16 @@ UndefVarError: generate_rp_example not defined
 - 生成 `input_checksums.sha256`；
 - 生成第一组 `golden_*.csv`；
 - 完成后将状态从 `PROVISIONAL` 改为 `LOCKED`。
+
+## 8. Phase 1 退出结论
+
+Phase 1 不把固定 Julia 提交的自适应 Tsit5 整轨迹当作 MITgcm 固定步
+RK2/RK4 的逐步 oracle。最终集成门禁在固定提交
+`156557359185e4413ce82829f3ed26a4eb8c6283` 上验证了 `water+alpha*wind`
+RHS 代数、`1 m/s = 86.4 km/day` 单位换算，并用独立 Julia 仿射场
+fixture 验证显式中点 RK2 和经典 RK4 的阶数。该证据足以裁决 Phase 1
+实际实现的 Leeway 范围。
+
+完整 trajectory golden、论文 `PAPER2024` 与旧 `JULIA` 方程模式差异、
+old/new 时变场和 Stokes 输入属于 Phase 2。因此本参考锁对 trajectory
+golden 继续保持 `PROVISIONAL`，但该限制已明确且不阻塞 Phase 1 退出。

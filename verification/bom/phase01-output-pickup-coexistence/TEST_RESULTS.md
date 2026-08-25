@@ -1,6 +1,6 @@
 # P1.5 output, pickup, and FLT coexistence results
 
-状态：**SYNCHRONIZED EXACT-HEAD PASS — INDEPENDENT READY REVIEW PENDING**
+状态：**COMPLETE — PR #15 MERGED；FINAL DEVELOPMENT-HEAD 257/257 PASS**
 
 | 项目 | 值 |
 |---|---|
@@ -100,9 +100,10 @@ P1-R03、P1-R13—P1-R16 中属于 P1.5 的输出、精确 ID I/O、事务性
 pickup/restart、改变分解拒绝和 FLT/BOM 共存要求均有直接运行证据；
 P1-G01 的专属及前序矩阵无开放发现。P1.5 的实现与证据门禁通过。
 
-本结论不等于独立 PR Ready 复审，不授权把 PR #15 改为 Ready、合并、
-创建 `MITGCM-BOM-v0.2` 标签或发布。记录本文件的文档提交还须在新的
-clean exact head 上复验，并把最终提交与证据位置补充到 Draft PR #15。
+以上是合并前的控制边界：当时不等于独立 Ready 复审，也不授权合并或
+创建 `MITGCM-BOM-v0.2`。随后 Ready 复审已 PASS、PR #15 已合并；最终
+development-head 证据和发布前裁决分别见第 8 节与
+`../phase01-bom-lite/PHASE1_EXIT_AUDIT.md`。
 
 ## 7. P1.4 integration synchronization and final P1-G01
 
@@ -135,3 +136,26 @@ and a self-validating aggregate manifest. SHA-256 values:
 - aggregate manifest: `5ef39863d8f3284a7c41dbde26e2c851b4da2411bc6e8b48a18f130d94ab36a2`;
 - row audit: `62ef52b7367dcaca6720198556dbefa97050ce05379093bb356c21911abe27bb`;
 - exit audit: `dfaac4a9f07bddcafbae83a527f6b7cc9ddde827511590c28bbe3364df93397e`.
+
+## 8. PR #15 合并后的最终 development-head 门禁
+
+PR #15 已以 merge commit
+`3f330b59db76b8d7d0ca0fb2bfd007e567fbd6bc` 集成。随后在该 clean
+production code head 上用全新测试 ID 重新执行完整矩阵：
+
+| 范围 | PASS |
+|---|---:|
+| output/pickup + migration I/O + FLT/BOM coexistence | 62 |
+| P1.4 owner migration | 36 |
+| P1.3 lifecycle/setup/RHS/RK2/RK4 | 69 |
+| P1.2 interpolation/fields/mapping | 35 |
+| P1.1 state | 42 |
+| Phase 0 final + nested P0.4 | 13 |
+| **P1-G01** | **257** |
+
+聚合证据根为
+`/home/wyl/projects/mitgcm-bom-test-artifacts/phase01/p15/p1-integrated-g01-3f330b59-attempt01`。
+aggregate manifest、row audit 和 exit count SHA-256 分别为
+`d5a83b7d0e1033bfc105aaab52f688aec38ac2de871ab7824d9135f864290af7`、
+`737c489957c7dbe65a8665955090dd2cbb76afc6e3f4fe463367b7414ad28fce`、
+`dfaac4a9f07bddcafbae83a527f6b7cc9ddde827511590c28bbe3364df93397e`。
