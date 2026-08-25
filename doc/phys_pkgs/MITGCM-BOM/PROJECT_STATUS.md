@@ -9,22 +9,22 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase-01-exit-audit` |
-| 当前阶段 PR | `wang111936/MITgcm#16`（Phase 1 退出审计记录） |
-| 当前阶段 | Phase 1：BOM-Lite / Leeway（技术退出 PASS，发布收口中） |
-| 当前工作包 | 最终 development 代码头 P1-G01 257/257 PASS；独立退出审计 PASS |
-| 下一工作包 | 合并纯文档退出审计，创建 `MITGCM-BOM-v0.2`，随后登记 Phase 2 准入 |
+| 当前任务分支 | `MITGCM-BOM/phase-02-entry-record` |
+| 当前阶段 PR | `wang111936/MITgcm#17`（Phase 2 准入记录） |
+| 当前阶段 | Phase 2：慢流形惯性物理（准入完成，生产实现未开始） |
+| 当前工作包 | `MITGCM-BOM-v0.2` 发布验证与 Phase 2 准入记录 |
+| 下一工作包 | P2.0 接口冻结：old/new 场、Stokes 去重、方程模式和验收矩阵 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对代码集成头为 PR #15 merge commit `3f330b59db76b8d7d0ca0fb2bfd007e567fbd6bc`；
-2. 读取 [Phase 1 集成结果](../../../verification/bom/phase01-bom-lite/PHASE1_INTEGRATION_RESULTS.md) 和 [独立退出审计](../../../verification/bom/phase01-bom-lite/PHASE1_EXIT_AUDIT.md)；
-3. 核对聚合根 `p1-integrated-g01-3f330b59-attempt01` 的 257/257、9 份原生 manifest 和总 manifest；
-4. 只合并退出审计文档，不改动已验收生产源码；
-5. 审计记录集成后创建 annotated tag `MITGCM-BOM-v0.2`，再把项目状态切换为 Phase 2 可启动。
+1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
+2. 读取 [Phase 1 独立退出审计](../../../verification/bom/phase01-bom-lite/PHASE1_EXIT_AUDIT.md) 和 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md)；
+3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
+4. 下一开发任务是 P2.0 纯文档接口/测试冻结，不直接加入慢流形生产方程；
+5. P2.0 必须先解决 old/new 时间层、Stokes 不重复计入、`PAPER2024`/`JULIA` 模式与 golden 输入契约。
 
 开始前执行：
 
@@ -40,8 +40,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 |---|---|---|---|---|
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
-| Phase 1 BOM-Lite | 进行中 | v0.2 | P1.0—P1.5 已顺序集成；最终代码头 P1-G01 257/257 与独立退出审计 PASS，等待审计记录合并和标签 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 未开始 | v0.3 | 等待 Phase 1 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-2慢流形惯性物理) |
+| Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
+| Phase 2 慢流形惯性 | 未开始 | v0.3 | 准入条件通过；下一步 P2.0 接口与测试冻结 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -514,6 +514,15 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 9 份原生 manifest、15 份 summary、同一 source head、空 Git 状态、环境和门禁脚本哈希均复验通过；
 - Julia 参考适用边界与完整 trajectory golden 延期结论、目标服务器独立验证条件均已明确记录；
 - 独立退出审计结论为 PASS、无开放 finding；审计前本地与远端均不存在 `MITGCM-BOM-v0.2`。
+
+### 2026-08-25：Phase 1 发布与 Phase 2 准入
+
+- Phase 1 退出审计 PR #16 已以 merge commit `1067c21d230e9c9619e89245b97c01e9474c7ed7` 集成；first-parent 范围为 16 个 Markdown；
+- annotated tag `MITGCM-BOM-v0.2` 已创建并推送，tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
+- 本地/远端 tag object 与 peeled commit 一致，tagger 为 `WangYuLin <wang111936@outlook.com>`；
+- Phase 1 标记为完成，最终 production code evidence 仍为 `3f330b59d` 的 257/257；审计/发布纯文档提交不改变数值结果；
+- Phase 2 准入通过但生产实现尚未开始；建立 `PHASE-02.md` 记录边界、风险、分工作包和 P2.0 唯一下一任务；
+- P2.0 首先冻结 old/new 环境场、Stokes source/去重规则、导数/度量接口、`PAPER2024`/`JULIA` 模式和 Julia golden 输入，不混入弹簧、生物或站点 HPC 优化。
 
 ## 6. 每次会话结束时必须更新
 
