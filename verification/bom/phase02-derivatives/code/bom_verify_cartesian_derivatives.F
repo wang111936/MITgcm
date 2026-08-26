@@ -1,4 +1,5 @@
 #include "BOM_OPTIONS.h"
+#include "FCORI_MACROS.h"
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 CBOP
@@ -32,14 +33,14 @@ CEOP
       _RL expected, tolerance, fieldScale, metricScale
       _RL stageEast, stageNorth, dtEast, dtNorth
       _RL h, errCoarse, errFine, orderCentral, orderForward
-      _RL a0, a1, a2, deriv, savedGrad
+      _RL a0, a1, a2, deriv, savedGrad, savedTau, savedFCori
       _RL dEast, dNorth
       _RL stageDEE, stageDNE, stageDEN, stageDNN
       LOGICAL gradInterpValid
       _RS savedMetric
       LOGICAL pointValid, interpValid, coeffValid, applyValid
       LOGICAL tryValid, gradValid, metricValid, valueValid
-      LOGICAL savedReady
+      LOGICAL savedReady, savedMetricReady, savedMetricValid
       LOGICAL savedValidM2, savedValidM1
       LOGICAL savedValidP1, savedValidP2
 
@@ -95,7 +96,8 @@ C--   Publish two affine endpoint fields on the actual nonuniform grid.
 
       CALL BOM_BUILD_DERIVATIVES( myThid )
       CALL BOM_VERIFY_DERIV_ASSERT(
-     &     bomGradReady, 'gradient publication ready',
+     &     bomGradReady .AND. bomMetricReady,
+     &     'gradient and metric publication ready',
      &     nFail, myThid )
 
 C--   D01: affine derivatives on interior points, including tile seams.
@@ -135,6 +137,13 @@ C--   D01: affine derivatives on interior points, including tile seams.
      &           ABS(bomGradNorthEast(i,j,BOM_ENV_OLD,
      &                 BOM_ENV_EULERIAN,bi,bj)-aNE).LE.tolerance,
      &           'affine dN(east)', nFail, myThid )
+            CALL BOM_VERIFY_DERIV_ASSERT(
+     &           bomMetricValid(i,j,bi,bj) .AND.
+     &           bomTauSphere(i,j,bi,bj).EQ.0. _d 0 .AND.
+     &           bomFCori(i,j,bi,bj).EQ.
+     &                DBLE(_fCori(i,j,bi,bj)),
+     &           'Cartesian tauSphere zero and MITgcm fCori',
+     &           nFail, myThid )
             CALL BOM_VERIFY_DERIV_ASSERT(
      &           ABS(bomGradEastNorth(i,j,BOM_ENV_OLD,
      &                 BOM_ENV_EULERIAN,bi,bj)-aEN).LE.tolerance,
@@ -314,6 +323,10 @@ C--   Zero and NaN metrics fail scratch construction without publication.
       savedReady = bomGradReady
       savedMetric = dxC(iTest,jTest,biTest,bjTest)
       dxC(iTest,jTest,biTest,bjTest) = 0.
+      savedTau = bomTauSphere(iTest,jTest,biTest,bjTest)
+      savedFCori = bomFCori(iTest,jTest,biTest,bjTest)
+      savedMetricReady = bomMetricReady
+      savedMetricValid = bomMetricValid(iTest,jTest,biTest,bjTest)
       CALL BOM_TRY_BUILD_DERIVATIVES(
      I     .FALSE.,
      O     failCode, tryValid,
@@ -321,6 +334,13 @@ C--   Zero and NaN metrics fail scratch construction without publication.
       CALL BOM_VERIFY_DERIV_ASSERT(
      &     .NOT.tryValid .AND. failCode.EQ.BOM_FAIL_METRIC
      &     .AND. (bomGradReady.EQV.savedReady)
+     &     .AND. (bomMetricReady.EQV.savedMetricReady)
+     &     .AND. (bomMetricValid(iTest,jTest,biTest,bjTest)
+     &                   .EQV.savedMetricValid)
+     &     .AND. bomTauSphere(iTest,jTest,biTest,bjTest)
+     &                   .EQ.savedTau
+     &     .AND. bomFCori(iTest,jTest,biTest,bjTest)
+     &                   .EQ.savedFCori
      &     .AND. bomGradEastEast(iTest,jTest,BOM_ENV_OLD,
      &              BOM_ENV_EULERIAN,biTest,bjTest).EQ.savedGrad,
      &     'zero metric rollback', nFail, myThid )
@@ -336,6 +356,13 @@ C--   Zero and NaN metrics fail scratch construction without publication.
       CALL BOM_VERIFY_DERIV_ASSERT(
      &     .NOT.tryValid .AND. failCode.EQ.BOM_FAIL_METRIC
      &     .AND. (bomGradReady.EQV.savedReady)
+     &     .AND. (bomMetricReady.EQV.savedMetricReady)
+     &     .AND. (bomMetricValid(iTest,jTest,biTest,bjTest)
+     &                   .EQV.savedMetricValid)
+     &     .AND. bomTauSphere(iTest,jTest,biTest,bjTest)
+     &                   .EQ.savedTau
+     &     .AND. bomFCori(iTest,jTest,biTest,bjTest)
+     &                   .EQ.savedFCori
      &     .AND. bomGradEastEast(iTest,jTest,BOM_ENV_OLD,
      &              BOM_ENV_EULERIAN,biTest,bjTest).EQ.savedGrad,
      &     'NaN metric rollback', nFail, myThid )

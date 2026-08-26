@@ -47,6 +47,7 @@ C !LOCAL VARIABLES:
 C--   Scratch is complete on every rank: publish one derived-state commit.
       _BEGIN_MASTER(myThid)
       bomGradReady = .FALSE.
+      bomMetricReady = .FALSE.
       _END_MASTER(myThid)
       _BARRIER
       DO bj=myByLo(myThid),myByHi(myThid)
@@ -69,10 +70,18 @@ C--   Scratch is complete on every rank: publish one derived-state commit.
           ENDDO
          ENDDO
         ENDDO
+        DO j=1-OLy,sNy+OLy
+         DO i=1-OLx,sNx+OLx
+          bomTauSphere(i,j,bi,bj) = bomTauSphereScratch(i,j,bi,bj)
+          bomFCori(i,j,bi,bj) = bomFCoriScratch(i,j,bi,bj)
+          bomMetricValid(i,j,bi,bj) = bomMetricValidScratch(i,j,bi,bj)
+         ENDDO
+        ENDDO
        ENDDO
       ENDDO
       _BARRIER
       _BEGIN_MASTER(myThid)
+      bomMetricReady = .TRUE.
       bomGradReady = .TRUE.
       _END_MASTER(myThid)
       _BARRIER
@@ -119,6 +128,7 @@ CEOP
 
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
+      LOGICAL metricsValid
       INTEGER bi, bj, i, j, iEnd, iSource
       INTEGER localMetricErr, globalMetricErr
       INTEGER localGradErr, globalGradErr
@@ -134,10 +144,10 @@ C !LOCAL VARIABLES:
       localMetricErr = 0
       localGradErr = 0
 
-C--   First P2.2 increment supports the frozen Cartesian operator only.
+C--   P2.2 supports exactly one frozen regular-grid geometry.
       IF ( OLx.LT.2 .OR. OLy.LT.2 ) localMetricErr = 1
-      IF ( .NOT.usingCartesianGrid .OR.
-     &     usingSphericalPolarGrid ) localMetricErr = 1
+      IF ( usingCartesianGrid.EQV.usingSphericalPolarGrid )
+     &     localMetricErr = 1
       IF ( .NOT.useEnvScratch .AND. .NOT.bomEnvReady )
      &     localGradErr = 1
       globalMetricErr = localMetricErr
@@ -149,6 +159,16 @@ C--   First P2.2 increment supports the frozen Cartesian operator only.
         RETURN
       ELSEIF ( globalGradErr.GT.0 ) THEN
         failCode = BOM_FAIL_GRADIENT
+        RETURN
+      ENDIF
+
+C--   Build Cartesian or spherical C-point metric state in the same scratch
+C     transaction.  No accepted metric is changed by this routine.
+      CALL BOM_TRY_BUILD_METRICS(
+     O     failCode, metricsValid,
+     I     myThid )
+      IF ( .NOT.metricsValid ) THEN
+        failCode = BOM_FAIL_METRIC
         RETURN
       ENDIF
 

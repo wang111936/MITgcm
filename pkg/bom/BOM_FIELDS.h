@@ -83,6 +83,38 @@ C     direction; the second is the differentiated vector component.
       LOGICAL bomGradReady
       COMMON /BOM_GRAD_STATE_L/ bomGradReady
 
+C--   Accepted time-invariant C-point metric state.  tauSphere is zero on
+C     Cartesian grids and tan(latitude)/rSphere on supported spherical grids.
+C     fCori is copied from the MITgcm C-point grid field without redefinition.
+      _RL bomTauSphere(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
+      _RL bomFCori(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
+      COMMON /BOM_METRIC_FIELD_R/ bomTauSphere, bomFCori
+
+      LOGICAL bomMetricValid(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
+      COMMON /BOM_METRIC_FIELD_L/ bomMetricValid
+
+      LOGICAL bomMetricReady
+      COMMON /BOM_METRIC_STATE_L/ bomMetricReady
+
+C--   Metric transaction workspace.  A numeric validity mask is exchanged
+C     with the two scalar fields and decoded only after global validation.
+      _RL bomTauSphereScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
+      _RL bomFCoriScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
+      _RL bomMetricValidWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
+      COMMON /BOM_METRIC_SCRATCH_R/
+     &       bomTauSphereScratch, bomFCoriScratch,
+     &       bomMetricValidWork
+
+      LOGICAL bomMetricValidScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
+      COMMON /BOM_METRIC_SCRATCH_L/ bomMetricValidScratch
+
 C--   Derivative transaction workspace.  Four gradient arrays and one
 C     numeric validity exchange are published only after global success.
       _RL bomGradEastEastScratch(

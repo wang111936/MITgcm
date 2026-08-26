@@ -37,6 +37,7 @@ C !LOCAL VARIABLES:
       bomOutputScheduleReady = .FALSE.
       bomEnvReady = .FALSE.
       bomGradReady = .FALSE.
+      bomMetricReady = .FALSE.
       DO iEnd=1,BOM_ENV_NEND
         bomEnvTime(iEnd) = 0. _d 0
         bomEnvIter(iEnd) = 0
@@ -74,6 +75,13 @@ C !LOCAL VARIABLES:
           bomExfWindV1(i,j,1,bi,bj) = 0. _d 0
           bomStokesUWork(i,j,1,bi,bj) = 0. _d 0
           bomStokesVWork(i,j,1,bi,bj) = 0. _d 0
+          bomTauSphere(i,j,bi,bj) = 0. _d 0
+          bomFCori(i,j,bi,bj) = 0. _d 0
+          bomMetricValid(i,j,bi,bj) = .FALSE.
+          bomTauSphereScratch(i,j,bi,bj) = 0. _d 0
+          bomFCoriScratch(i,j,bi,bj) = 0. _d 0
+          bomMetricValidWork(i,j,bi,bj) = 0. _d 0
+          bomMetricValidScratch(i,j,bi,bj) = .FALSE.
           bomStokesEastWork(i,j,1,bi,bj) = 0. _d 0
           bomStokesNorthWork(i,j,1,bi,bj) = 0. _d 0
           bomStokesU0(i,j,1,bi,bj) = 0. _d 0

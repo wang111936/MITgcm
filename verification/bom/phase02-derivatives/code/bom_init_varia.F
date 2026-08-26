@@ -6,13 +6,20 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
+#include "PARAMS.h"
 #include "BOM_SIZE.h"
 #include "BOM.h"
       INTEGER myThid
 
 #ifdef ALLOW_BOM
       CALL BOM_INIT_STATE( myThid )
-      CALL BOM_VERIFY_CARTESIAN_DERIVATIVES( myThid )
+      IF ( usingCartesianGrid .AND.
+     &     .NOT.usingSphericalPolarGrid ) THEN
+        CALL BOM_VERIFY_CARTESIAN_DERIVATIVES( myThid )
+      ELSEIF ( usingSphericalPolarGrid .AND.
+     &         .NOT.usingCartesianGrid ) THEN
+        CALL BOM_VERIFY_SPHERICAL_DERIVATIVES( myThid )
+      ENDIF
 #endif
 
       RETURN
