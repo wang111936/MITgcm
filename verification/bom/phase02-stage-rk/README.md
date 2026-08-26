@@ -1,6 +1,6 @@
 # MITGCM-BOM P2.4 stage-time RK verification
 
-Status: **P2.4 functional gate implemented; exact-head closure pending**
+Status: **P2.4 CLOSED; P2.5 IS THE UNIQUE NEXT WORK PACKAGE**
 
 This case verifies the production slow-manifold stage sampler and the
 transactional explicit midpoint RK2/classical RK4 integrators. The
@@ -48,3 +48,6 @@ P2.4 stores the stable 27-component diagnostic vector in live particle
 state, but does not extend trajectory output or pickup schemas. Schema-2
 particle output/restart integration, 1/2/4-rank total-system comparison and
 FLT coexistence remain P2.5 scope.
+
+Exact functional-head results and aggregate predecessor evidence are recorded
+in `TEST_RESULTS.md`.

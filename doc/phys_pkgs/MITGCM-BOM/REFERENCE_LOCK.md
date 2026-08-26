@@ -1,8 +1,8 @@
 # MITGCM-BOM 参考版本锁
 
-状态：`PROVISIONAL`（源码、依赖、包加载和纯函数 smoke 已验证，BOM 专用 Julia golden 测试尚未建立）
+状态：`LOCKED`（P2.4 BOM 专用解析输入、固定步长 golden、完整来源预检与 B16 比较已通过）
 
-日期：2026-08-23
+日期：2026-08-27
 
 ## 1. MITgcm
 
@@ -70,7 +70,7 @@ env JULIA_DEPOT_PATH=/home/wyl/opt/mitgcm-bom/julia-depot \
 1. 源码行为以固定提交为准；
 2. 依赖版本以本文件保存的 Manifest 为准；
 3. 论文模式不能仅凭 Julia 输出定义；
-4. Phase 2 必须先比较 RHS 分量和解析场，再将整条 Julia 轨迹升级为 golden；
+4. Phase 2 已先比较全部 27 个 RHS 分量和解析场，再接受固定步长 RK2/RK4 轨迹为 golden；
 5. 如果重建环境无法通过参考项目测试，不能静默升级包，必须建立新的设计决定记录。
 
 ## 6. 已执行验证
@@ -107,12 +107,39 @@ UndefVarError: generate_rp_example not defined
 - 不调用陈旧 `generate_rp_example`，不依赖默认环境场，也不下载数据；
 - 详细记录见 `verification/bom/phase00-final-gate/TEST_RESULTS.md`。
 
-## 7. 尚待完成
+### P2.4 B16 专用 golden 与比较
 
-- 建立 BOM 专用解析输入；
-- 生成 `input_checksums.sha256`；
-- 生成第一组 `golden_*.csv`；
-- 完成后将状态从 `PROVISIONAL` 改为 `LOCKED`。
+- 解析输入 schema：`MITGCM-BOM-B16-v1`，3 个粒子、3 套互异仿射场、
+  900 s 固定步长、86400 s 积分区间；
+- `JULIA` 模式 RHS：原生坐标率和全部 27 个诊断分量通过冻结容差；
+- 固定步长 RK2/RK4：每个粒子 97 个时刻的位置和累计路径通过物理容差；
+- N07：物理源码、Project、Manifest、输入、golden、源码提交和 Julia
+  版本 7 种变异均在生成/比较前失败；
+- 精确功能提交：`4b2d09d40b96cd4408a64e1ee0d4716b7a6255ad`；
+- B16 证据：`p24-b16/p24-closure-4b2d09d40-b16-attempt01`，12/12 PASS；
+- P2.4 聚合证据：`p24-closure/p24-closure-4b2d09d40-attempt01`，
+  358/358 PASS。
+
+固定文件 SHA-256：
+
+```text
+505a1f1d39c3223e1697a0d626623ac16e02369d11e726dd6215b3f5e2f6f012  golden_rhs_julia_v1.csv
+af62593cca8f2bdd2184cb5c153f4a2cbab154b4e0e3b1ad4e3a6a07be5f5790  golden_traj_julia_rk2_v1.csv
+30082f0d47bd1ae406935bb5eab4003a36d83869b52eeaf82f138bc5ae0cde0a  golden_traj_julia_rk4_v1.csv
+74c8036bcaf183fb13692de0d1063cfd8d13c5a4615b8206a64feed13755cb1a  context_tsit5_julia_v1.csv
+```
+
+最后一个文件由实际 `OrdinaryDiffEqTsit5` 在
+`abstol=reltol=1e-12` 下生成，两次结果逐字节一致；其每行明确记录
+`gating=false`，仅作自适应求解上下文，不裁决 MITgcm 固定 RK2/RK4。
+
+## 7. 锁定结论与变更规则
+
+- BOM 专用解析输入、三份固定步长 golden 和独立 Tsit5 上下文均已建立；
+- 输入、生成器、预检、golden 与上下文分别由 checksum 清单保护；
+- 本参考锁正式从 `PROVISIONAL` 升级为 `LOCKED`；
+- 后续任何源码、Julia、Project/Manifest、输入或 golden 变化都必须建立
+  新版本与设计决定，禁止静默更新。
 
 ## 8. Phase 1 退出结论
 
@@ -124,5 +151,7 @@ fixture 验证显式中点 RK2 和经典 RK4 的阶数。该证据足以裁决 P
 实际实现的 Leeway 范围。
 
 完整 trajectory golden、论文 `PAPER2024` 与旧 `JULIA` 方程模式差异、
-old/new 时变场和 Stokes 输入属于 Phase 2。因此本参考锁对 trajectory
-golden 继续保持 `PROVISIONAL`，但该限制已明确且不阻塞 Phase 1 退出。
+old/new 时变场和 Stokes 输入当时被正确留给 Phase 2。P2.4 已完成这些
+范围中的 B04/B05/B16 固定参考与比较，因此 Phase 1 退出时保留的
+`PROVISIONAL` 限制现已解除；P2.5 仍负责输出、pickup、MPI 与 FLT 的
+最终系统集成，而不重新定义本参考锁。

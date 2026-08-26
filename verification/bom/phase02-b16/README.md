@@ -1,6 +1,6 @@
 # MITGCM-BOM P2.4 B16 Julia-reference verification
 
-Status: **P2.4 functional gate implemented; exact-head closure pending**
+Status: **P2.4 CLOSED; P2.5 IS THE UNIQUE NEXT WORK PACKAGE**
 
 This isolated serial comparator verifies the production `JULIA` equation
 path against the locked Phase-2 B16 fixture. It uses three particles in a
@@ -46,3 +46,6 @@ verification/bom/phase02-b16/run_b16_gate.sh
 The summary contains 12 required PASS rows: seven P2-N07 rejections, the
 source/environment/regeneration lock, one production build, P2-I05 RHS, and
 P2-I06 RK2/RK4 trajectories.
+
+Exact functional-head results, artifact hashes, and the non-gating Tsit5
+record are documented in `TEST_RESULTS.md`.
