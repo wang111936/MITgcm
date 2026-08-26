@@ -1,8 +1,8 @@
 # P2.1 environmental endpoint state gate
 
-This verification case covers the first six focused P2.1 production
-increments. It validates parameter/state initialization and transactional
-exact-time ocean, `NONE`, EXF-wind, FILES Stokes, and compiled COUPLER
+This verification case covers the complete P2.1 production scope. It validates
+parameter/state initialization and transactional exact-time ocean, `NONE`,
+EXF-wind, FILES Stokes, and compiled COUPLER
 Stokes endpoint publication without activating the slow-manifold RHS. It verifies:
 
 - the frozen Phase-2 runtime parameter contract and safe defaults;
@@ -40,17 +40,28 @@ Stokes endpoint publication without activating the slow-manifold RHS. It verifie
 - serial and four-rank MPI compilation/runtime behavior;
 - fail-fast current/Stokes policy and file-metadata checks;
 - no change to the accepted Phase-1 `LEEW` field state.
+- schema-2 exact mode, parameter, schedule, decomposition and provider
+  fingerprint validation;
+- OLD/NEW Eulerian, wind and Stokes endpoint sidecars with exact labels,
+  masks and fresh-duplicate checks;
+- scratch-only read preflight followed by one field/particle metadata commit;
+- nonzero FILES Stokes continuous/split pickup bitwise identity;
+- unchanged LEEW schema-1 128-byte signature and no endpoint sidecar;
+- schema-1-to-BOM, changed-parameter and truncated-sidecar early rejection;
+- serial and MPI4 schema-2 write/read behavior;
+- complete Phase-1/Phase-0 257/257 predecessor regression.
 
 Run from any directory:
 
 ```bash
 verification/bom/phase02-endpoint-state/run_endpoint_state_gate.sh
+verification/bom/phase02-endpoint-state/run_pickup_gate.sh
 ```
 
 Builds, runs, and evidence are written outside the source tree under the
 configured `MITGCM_BOM_TEST_*_ROOT` locations. The production package does
 not contain verification markers or test-only assertion routines.
 
-P2.1 remains open. Schema-2 field pickup is not claimed here. Spatial
-derivatives and the slow-manifold RHS remain
-outside this verification directory.
+P2.1 is complete on its recorded exact functional commit. Spatial derivatives
+and the slow-manifold RHS remain outside this verification directory; P2.2 is
+the next work package.

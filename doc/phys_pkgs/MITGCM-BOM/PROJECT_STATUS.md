@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/p2.1-environment-endpoints` |
-| 当前阶段 PR | Draft PR #20；COUPLER 功能提交 `6247ee6ba0fd1e796047bff944558c8e80c3511f` |
+| 当前阶段 PR | Draft PR #20；P2.1 精确功能头 `41d0dbc20404df1759a7a5d1b274bc85d5c415fd` |
 | 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
-| 当前工作包 | P2.1 exact-time ocean/NONE/EXF/FILES/COUPLER 32/32 PASS |
-| 下一工作包 | P2.1 `BOM_INTERP_ENV_TIME` 与 P2-E06/P2-N02 |
+| 当前工作包 | P2.1 完成：endpoint 34/34、pickup 10/10、前序 257/257 |
+| 下一工作包 | P2.2 Cartesian derivatives 与 P2-D01--D03/P2-N05 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -23,8 +23,8 @@
 1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
 2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
 3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 从功能提交 `6247ee6ba` 继续 P2.1，实现 `BOM_INTERP_ENV_TIME` exact endpoint/interior interpolation；
-5. 覆盖 endpoint snap、midpoint、release split、secant derivative 和禁止外推；不加入 pickup、空间导数、RHS 或 RK stage 接线。
+4. 从精确功能头 `41d0dbc20` 创建 `MITGCM-BOM/p2.2-derivatives`；
+5. 首先实现 Cartesian nonuniform C-point derivative/validity/time-secant，并建立 P2-D01--D03/P2-N05；不加入 RHS 或 RK stage 接线。
 
 开始前执行：
 
@@ -41,7 +41,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 exact providers 32/32 PASS；下一步 E06 时间插值 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 精确头 301/301 完成；下一步 P2.2 导数网格 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -599,6 +599,28 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - Draft PR #20 仍未 Ready、未合并，未创建 `MITGCM-BOM-v0.3`，无开放阻塞；
 - 唯一下一任务为 `BOM_INTERP_ENV_TIME` 和 P2-E06/P2-N02 focused serial/MPI4 gate；
 - schema-2 pickup、空间导数、RHS 和 RK stage 接线保持后置。
+
+### 2026-08-26：P2.1 时间插值、schema-2 pickup 与工作包收口
+
+- `83913ce594158f3c5e52907f56e5f69881ad9791` 完成 exact endpoint/interior
+  `BOM_INTERP_ENV_TIME`，P2-E06/P2-N02 聚合门禁 34/34 PASS；
+- `df67380a803a7c675ee8c4456f693ecbbd88a022` 完成 schema-2 exact
+  fingerprint、OLD/NEW endpoint sidecar、scratch preflight 和一次提交；
+- MPI 开发测试暴露全局 signature 非 owner rank 关闭未打开 unit，修复为仅
+  对正 file unit 关闭；最终串行/MPI4 pickup 门禁 10/10 PASS；
+- P1.4 的两个验证专用 `BOM_SIZE.h` 已同步 schema-2 常量，精确头 36/36；
+  P1.1 LEEW/FILES 仍在初始化前拒绝，并使用稳定语义片段匹配；
+- 最终精确功能头为 `41d0dbc20404df1759a7a5d1b274bc85d5c415fd`；
+- 同一头上 P1-G01 15 组 257/257、endpoint 34/34、pickup 10/10，
+  聚合 301/301 PASS，11 份原生 manifest、全部 summary、source head 和
+  空 Git 状态均完成自验证；
+- 聚合证据根：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/`
+  `p21-closure/p21-closure-41d0dbc20-attempt02`；row audit 与 manifest
+  SHA-256 分别为 `7b15d0540f5d1228760e93e879ce8e8b9b45d47a0307865ebd4d55a1fa442559`
+  和 `423c679704876f68a4962f56c43bfe02f66a38f6088ef4914228170d61774d9c`；
+- P2.1 标记完成，Draft PR #20 尚未 Ready/合并，未创建 v0.3；
+- 唯一下一任务为创建本地 `MITGCM-BOM/p2.2-derivatives` 并实现 Cartesian
+  C-point derivative/time-secant 与 P2-D01--D03/P2-N05 首增量。
 
 ## 6. 每次会话结束时必须更新
 

@@ -1,6 +1,6 @@
 # P2.1 endpoint-state and transaction test results
 
-Status: **PASS ON EXACT FUNCTIONAL COMMIT; P2.1 REMAINS IN PROGRESS**
+Status: **P2.1 COMPLETE ON EXACT FUNCTIONAL COMMIT; 301/301 CLOSURE PASS**
 
 ## Authoritative source and command
 
@@ -394,3 +394,93 @@ This increment closes the P2.1 field-value portion of P2-R07 and accepts
 P2-E06/P2-N02 for endpoint time interpolation. P2.1 remains open only for the
 schema-2 field pickup increment. It adds no endpoint spatial derivatives,
 slow-manifold RHS, particle RK-stage wiring, merge, tag, or release.
+
+## Schema-2 endpoint pickup authoritative increment
+
+- exact functional head: `41d0dbc20404df1759a7a5d1b274bc85d5c415fd`;
+- principal production commit: `df67380a803a7c675ee8c4456f693ecbbd88a022`;
+- compatibility commits: `c603fc706` and `41d0dbc20`;
+- branch: `MITGCM-BOM/p2.1-environment-endpoints`;
+- environment: Ubuntu 22.04, GNU debug/IEEE build, OpenMPI;
+- pickup test ID: `p21-pickup-41d0dbc20-attempt01`;
+- endpoint regression ID: `p21-endpoint-41d0dbc20-attempt01`.
+
+Schema 2 adds an exact fingerprint for mode, equation/current/Stokes/wind
+policy, SI parameters, schedule, forcing configuration, endpoint metadata,
+decomposition and compiled provider capabilities. In the current build its
+logical signature has 1332 values and is written as fixed 24-value MDS
+records, avoiding dependence on the model-grid MDS buffer size.
+
+Each globally numbered tile has a separate endpoint sidecar containing OLD
+and NEW Eulerian, Stokes and wind east/north fields, validity masks and exact
+time/iteration/readiness metadata, including halos. Reads validate signature,
+sidecars and particle tiles in scratch storage; accepted fields, particle
+state, labels and readiness are published only after the global preflight.
+Spatial derivatives are intentionally rebuilt deterministically from restored
+endpoints in P2.2 rather than persisted as independent authoritative state.
+
+LEEW retains the exact schema-1 signature and particle layout: its signature
+is 128 bytes and it writes no endpoint sidecar. A schema-1 pickup requested in
+BOM mode is rejected before particle or field commit. Coupler identity is
+represented by the explicit source selection and compiled capability because
+the current runtime API has no stable external producer identifier; a future
+provider-ID extension requires a new schema rather than silent reinterpretation.
+
+| Case | Result | Evidence |
+|---|---|---|
+| build-serial | PASS | production debug build and schema-2 symbols |
+| build-mpi4 | PASS | four-rank production debug build |
+| schema2-write | PASS | fingerprint, particle files and endpoint sidecars |
+| schema2-read | PASS | scratch preflight and zero-particle atomic restore |
+| stokes-bitwise | PASS | nonzero FILES Stokes continuous/split step-2 pickup identity |
+| leew-schema1 | PASS | unchanged 128-byte signature and restart |
+| schema1-bom-reject | PASS | early stable schema failure |
+| parameter-fingerprint | PASS | legal changed SI tau rejected exactly |
+| endpoint-preflight | PASS | truncated sidecar rejected before commit |
+| mpi4-schema2 | PASS | globally tiled four-rank write and restart |
+
+All 10 pickup rows are `PASS`. Development attempt 01 exposed an invalid
+close on MPI ranks that do not open the global signature; the production fix
+closes only a positive file unit. The next exact run passed MPI4 write/read.
+The P1.4 regression then exposed two verification-only `BOM_SIZE.h` overrides
+that lacked the new constants; both were synchronized and P1.4 passed 36/36.
+P1.1 retained the same pre-initialization LEEW/FILES rejection while its
+diagnostic matcher was made stable across the more precise Phase-2 wording.
+
+Evidence roots:
+
+```text
+pickup:
+  /home/wyl/projects/mitgcm-bom-test-artifacts/phase02/
+  p21-pickup/p21-pickup-41d0dbc20-attempt01
+endpoint:
+  /home/wyl/projects/mitgcm-bom-test-artifacts/phase02/
+  p21-endpoint-state/p21-endpoint-41d0dbc20-attempt01
+closure:
+  /home/wyl/projects/mitgcm-bom-test-artifacts/phase02/
+  p21-closure/p21-closure-41d0dbc20-attempt02
+```
+
+| File | SHA-256 |
+|---|---|
+| pickup `summary.tsv` | `90f92e9ef047433f47f53d993a2a4392258668df3551fc74c17e3ad5db29e132` |
+| pickup `manifest.sha256` | `9f3446ec0a48fc09f59139641a367488abc6e7672b67e7dee495869d2bdf330f` |
+| endpoint `summary.tsv` | `af80775a11cf86fb999e1707898c6c837d8732f9925eb6d1adfda7045c0d0201` |
+| endpoint `manifest.sha256` | `e607f9eb47d79cbe7a377bf2f6bc4d418d06a1568bfd8a8159012357e563c8e7` |
+| closure `row-audit.tsv` | `7b15d0540f5d1228760e93e879ce8e8b9b45d47a0307865ebd4d55a1fa442559` |
+| closure `manifest.sha256` | `423c679704876f68a4962f56c43bfe02f66a38f6088ef4914228170d61774d9c` |
+
+## P2.1 closure decision
+
+The exact functional head passed 15 predecessor groups (257/257), the full
+endpoint/provider gate (34/34), and the schema-2 pickup gate (10/10), for an
+aggregate 301/301. Eleven native manifests, every summary row, the exact
+source head and an empty Git status were independently revalidated by the
+closure artifact.
+
+P2.1 therefore closes P2-R03--P2-R05, the field-value portion of P2-R07, and
+the field-state/schema-preflight portion of P2-R16/P2-R18. P2-R02 and P2-R06
+retain their RHS diagnostic consumers, while full nonzero-particle restart,
+same-decomposition P2-P03, coexistence and final integration remain P2.5.
+P2.2 derivatives are the only next implementation scope. No P2.3 RHS,
+P2.4 stage integration, PR merge, release or `MITGCM-BOM-v0.3` tag is claimed.

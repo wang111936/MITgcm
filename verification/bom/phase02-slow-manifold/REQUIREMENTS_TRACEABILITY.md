@@ -1,12 +1,12 @@
 # Phase 2 slow-manifold requirements traceability
 
-Status: **P2.0 FROZEN; P2.1 IMPLEMENTATION IN PROGRESS**
+Status: **P2.0 FROZEN; P2.1 CLOSED; P2.2 NEXT**
 
 A requirement is complete only after its production implementation and the
 listed executable evidence are both recorded. P2.0 freezes the mapping.
-P2-R03--P2-R05 have exact-commit focused evidence through compiled COUPLER
-Stokes. The field-value part of P2-R07 now has P2-E06/P2-N02 evidence;
-derivative and RK-stage consumers remain later work.
+P2-R03--P2-R05, the field-value portion of P2-R07, and the P2.1 field-state
+portion of P2-R16/P2-R18 have exact-commit evidence at `41d0dbc20`.
+Derivative, RHS, RK-stage and full integration consumers remain later work.
 
 ## 1. Requirement matrix
 
@@ -27,9 +27,9 @@ derivative and RK-stage consumers remain later work.
 | P2-R13 | Pass B04 solid-body-rotation analytical component and trajectory gates | derivative/RHS/RK integration | P2-I01, P2-I02 | P2.4 | planned |
 | P2-R14 | Pass B05 time-varying-uniform exact and endpoint-refinement order gates | endpoint/RHS/RK integration | P2-I03, P2-I04 | P2.4 | planned |
 | P2-R15 | Generate and pass locked, checksummed B16 Julia RHS and fixed-step trajectories | Julia generator and MITgcm comparison | P2-I05, P2-I06, P2-N07 | P2.4 | planned |
-| P2-R16 | Restore schema-2 mode, fingerprint and two-endpoint state transactionally; constrain schema-1 migration | pickup read/write | P2-P01, P2-P02, P2-P04 | P2.1/P2.5 | planned |
+| P2-R16 | Restore schema-2 mode, fingerprint and two-endpoint state transactionally; constrain schema-1 migration | pickup read/write | P2-P01, P2-P02, P2-P04 | P2.1/P2.5 | field/schema preflight verified `41d0dbc20`; full particle/P2-P03 remain P2.5 |
 | P2-R17 | Preserve 1/2/4-rank decomposition consistency, same-decomposition restart and FLT isolation | migration, pickup, lifecycle | P2-M01, P2-P03, P2-K01 | P2.5 | planned |
-| P2-R18 | Append stable failure/stage codes, direct diagnostics and complete predecessor regression | all Phase-2 paths | all negative gates, P2-P04, P2-G01 | P2.1--P2.5 | planned |
+| P2-R18 | Append stable failure/stage codes, direct diagnostics and complete predecessor regression | all Phase-2 paths | all negative gates, P2-P04, P2-G01 | P2.1--P2.5 | P2.1 codes/preflight and 257 predecessors verified; later packages remain |
 
 ## 2. Reverse traceability by planned interface
 
@@ -70,6 +70,11 @@ derivative and RK-stage consumers remain later work.
 | P2.3 | P2-R10--R12 and de-dup diagnostics | accepted P2.2 derivatives |
 | P2.4 | P2-R13--R15 | accepted P2.3 stateless RHS |
 | P2.5 | P2-R01, P2-R16--R18 and remaining integration evidence | accepted P2.1--P2.4 |
+
+P2.1 closure evidence is
+`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-closure/`
+`p21-closure-41d0dbc20-attempt02` with 301/301 PASS. This closes the work
+package boundary without claiming the P2.5 full-particle integration rows.
 
 A work package must not mark a later requirement complete by using a test-only
 stub in place of the planned production owner. Component tests may inject

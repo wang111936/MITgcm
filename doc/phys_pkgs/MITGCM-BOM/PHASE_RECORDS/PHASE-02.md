@@ -8,8 +8,8 @@
 | 基线 tag object | `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1` |
 | 基线提交 | `1067c21d230e9c9619e89245b97c01e9474c7ed7` |
 | 准入日期 | 2026-08-25 |
-| 状态 | **进行中（P2.1 exact-time provider 门禁在精确提交上 32/32 PASS）** |
-| 当前工作包 | P2.1 ocean/NONE/EXF/FILES/COUPLER exact endpoints 已实现 |
+| 状态 | **进行中（P2.1 已在精确功能头完成；301/301 收口门禁 PASS）** |
+| 当前工作包 | P2.2 导数网格为唯一下一工作包 |
 | 准入记录 | PR #17/#18 已合并；当前集成基线 `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` |
 | P2.0 记录 | PR #19；设计提交 `628a6bb4621429bf6f58e9e46a13216c21de7815` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
@@ -58,8 +58,8 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 | 工作包 | 交付 | 主要验收 | 当前状态 |
 |---|---|---|---|
 | P2.0 设计冻结 | 需求、接口、方程、时间层、Stokes 去重、golden/test plan | 18 需求、18 决定、编号/链接/范围与 PR patch | 完成（PR #19） |
-| P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 进行中（exact providers 32/32；下一步 E06） |
-| P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 未开始 |
+| P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 完成（精确头 `41d0dbc20`；301/301） |
+| P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 下一步 |
 | P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 未开始 |
 | P2.4 积分与 golden | RK stage 时间插值、固定 Julia 对照 | B05、B16、收敛与 rollback | 未开始 |
 | P2.5 集成收口 | 全回归、MPI/restart、独立退出审计 | Phase 2 总门禁与 v0.3 决策 | 未开始 |
@@ -82,6 +82,7 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 ## 6. Phase 2 总退出条件
 
 - [x] P2.0 设计、需求、接口和测试契约已冻结并通过 PR #19 补丁复审；
+- [x] P2.1 exact endpoints、时间插值、schema-2 field pickup 与全部前序回归通过；
 - [ ] P2.0—P2.5 全部完成并顺序集成；
 - [ ] B04、B05、B16 与 RK 收敛门禁通过；
 - [ ] `PAPER2024`/`JULIA` 分量、Stokes 去重和单位/符号有直接证据；
@@ -91,17 +92,18 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 
 ## 7. 唯一下一任务
 
-继续当前 `MITGCM-BOM/p2.1-environment-endpoints` 分支，下一增量只实现：
+从 P2.1 精确功能头 `41d0dbc20` 创建
+`MITGCM-BOM/p2.2-derivatives`，首个 P2.2 增量只实现：
 
-- 新增生产 `BOM_INTERP_ENV_TIME` 环境场时间选择接口；
-- 对 accepted OLD/NEW 的每个来源在 exact endpoint 和区间内部线性插值；
-- endpoint 采用冻结容差精确吸附，内部返回常值 secant 时间导数；
-- 非有限、反向、零宽或区间外 stage time 返回 `FIELD_TIME` 且不改状态；
-- 增补 P2-E06 与 P2-N02 focused serial/MPI4 门禁。
+- 冻结 derivative COMMON 存储、validity 和 OLD/NEW 发布边界；
+- 实现 Cartesian C-point 非均匀二阶 centered/允许的一侧差分；
+- 只使用全湿 stencil，禁止跨陆地取值或无效零填充；
+- 从 accepted OLD/NEW 构造时间 secant，并保持输入端点只读；
+- 先建立 P2-D01--D03 与不足 stencil 的 P2-N05 serial/MPI 门禁。
 
-本增量不加入 schema-2 pickup、空间导数、慢流形 RHS、粒子 stage 调度
-或 RK stage 接线。若需要改变冻结的插值或无外推语义，必须先更新 P2.0
-契约和追踪表。
+本首增量不加入 spherical covariant terms、P2.3 RHS、粒子 stage 调度或
+RK 接线。球面 `tauSphere`、covariant derivative 与 vorticity 在同一 P2.2
+工作包的下一增量完成后，才允许宣称 P2.2 关闭。
 
 ## 8. P2.0 完成记录
 
@@ -154,3 +156,42 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 - P2-R05 已由 exact-commit evidence 覆盖 NONE/FILES/COUPLER；P2-R06 的 endpoint policy matrix 已覆盖，H04 可审计 RHS 诊断留在 P2.3；
 - 边界：stage-time interpolation 和 schema-2 field pickup 仍未实现，P2.1 不关闭；
 - Draft PR #20 保持未 Ready、未合并，且未创建 `MITGCM-BOM-v0.3`。
+
+## 12. P2.1 环境时间插值记录
+
+- 功能提交：`83913ce594158f3c5e52907f56e5f69881ad9791`；
+- 生产 `BOM_INTERP_ENV_TIME` 对 exact/tolerance endpoint 进行精确吸附，
+  对区间内部线性插值并返回常值 OLD/NEW secant；
+- fresh duplicated bracket 仅接受唯一端点并返回精确零时间导数；
+- 非有限、反向、错误迭代连续性、未发布或区间外请求均返回 FIELD_TIME，
+  输出候选无效且 accepted bracket bitwise 不变；
+- 权威门禁 `p21-envtime-83913ce59-attempt02` 为 34/34 PASS；
+- P2-E06/P2-N02 与 P2-R07 的 field-value 部分关闭。
+
+## 13. P2.1 schema-2 pickup 与工作包收口
+
+- 生产主提交：`df67380a803a7c675ee8c4456f693ecbbd88a022`；
+- P1.4 尺寸覆盖兼容提交：`c603fc706`；P1.1 稳定诊断兼容提交：
+  `41d0dbc20404df1759a7a5d1b274bc85d5c415fd`；
+- schema 2 精确指纹覆盖模式、方程/current/source policy、SI 参数、调度、
+  forcing、endpoint metadata、分解与 compiled capability；
+- 每个全局 tile 的 sidecar 保存 OLD/NEW Eulerian、wind、Stokes、validity
+  与 exact labels；全部 signature、sidecar 和 particle tile 先在 scratch
+  预检，之后只提交一次；
+- LEEW 保持 schema-1 128-byte signature、原粒子布局且不写 sidecar；
+  schema-1-to-BOM、参数指纹变化与损坏 sidecar 均在提交前拒绝；
+- nonzero FILES Stokes 连续/分段运行的 step-2 全部 BOM pickup 文件
+  SHA-256 完全相同；串行和 MPI4 schema-2 写读均通过；
+- 空间导数不写入 schema 2，将由 P2.2 从已恢复端点确定性重建；当前
+  coupler API 没有稳定 runtime producer ID，因此指纹记录 source 与
+  compiled capability；未来增加 provider ID 必须升级 schema；
+- 精确功能头 `41d0dbc20` 上 pickup 10/10、endpoint/provider 34/34、
+  Phase-1/Phase-0 15 组 257/257，聚合 301/301 PASS；
+- 聚合证据：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/`
+  `p21-closure/p21-closure-41d0dbc20-attempt02`；
+- row audit SHA-256：
+  `7b15d0540f5d1228760e93e879ce8e8b9b45d47a0307865ebd4d55a1fa442559`；
+- aggregate manifest SHA-256：
+  `423c679704876f68a4962f56c43bfe02f66a38f6088ef4914228170d61774d9c`；
+- P2.1 状态为完成；P2.2 成为唯一下一工作包。Draft PR #20 仍未合并，
+  未创建 `MITGCM-BOM-v0.3`。

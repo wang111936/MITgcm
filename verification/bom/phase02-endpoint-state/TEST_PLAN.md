@@ -31,6 +31,11 @@
 | P21-N05 | `PRECOMBINED` plus `FILES` | fatal duplicate-Stokes declaration |
 | P21-N06 | invalid FILES precision/metadata | fatal metadata preflight |
 | P21-N07 | unavailable `COUPLER` hook | fatal provider-availability check |
+| P21-P01 | BOM schema-2 serial write/read | fingerprint, endpoints and particles validate in scratch and commit once |
+| P21-P02 | nonzero FILES Stokes continuous/split restart | all step-2 BOM pickup files are bitwise identical |
+| P21-P03 | unchanged LEEW schema-1 and schema-1-to-BOM attempt | 128-byte layout/restart retained; BOM rejects before commit |
+| P21-P04 | changed legal SI parameter or truncated endpoint sidecar | stable schema failure; no complete marker or partial commit |
+| P21-P05 | BOM schema-2 MPI4 write/read | every globally numbered tile restores transactionally |
 
 The positive test-only initialization hook calls the production
 `BOM_INIT_STATE`, then checks every local tile, halo point, endpoint, and
@@ -46,8 +51,9 @@ transactional recovery.
 checks an independent exact-time oracle, and proves both EXF global immutability
 and accepted-state rollback for every P2-N03 EXF failure row.
 
-This increment intentionally does not claim P2.1 completion. Nonzero
-`bomMode='BOM'` remains rejected until the inertial RHS is connected. EXF
-wind and explicit Stokes use exact-time endpoint providers; schema-2 field
-pickup remains later P2.1 work. No spatial-derivative
-or slow-manifold RHS test belongs in this gate.
+P2.1 is complete at the recorded exact functional head. Nonzero
+`bomMode='BOM'` particles remain intentionally rejected until the P2.3/P2.4
+RHS and stage integration are connected. Schema 2 stores an exact parameter
+and provider fingerprint plus both endpoint fields; schema 1 remains unchanged
+for LEEW. Spatial derivatives and the slow-manifold RHS remain outside this
+gate and begin with P2.2.
