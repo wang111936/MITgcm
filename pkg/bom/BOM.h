@@ -227,8 +227,8 @@ C     bomNPartExpected is the immutable successful initial owner budget.
      &       bomVEast, bomVNorth, bomWindEast, bomWindNorth,
      &       bomDriftEast, bomDriftNorth
 
-C--   Phase-2 accepted final-position diagnostic vector.  Schema-2
-C     trajectory and pickup persistence remain the P2.5 integration task.
+C--   Phase-2 accepted final-position diagnostic vector.  P2.5 persists all
+C     components in versioned BOM trajectory and pickup schema-2 records.
       _RL bomRhsDiag(
      &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       COMMON /BOM_STATE_DIAG_R/ bomRhsDiag

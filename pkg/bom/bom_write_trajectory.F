@@ -8,9 +8,11 @@ C !INTERFACE:
      I                 sampleTime, scheduledTime, myIter, myThid )
 
 C !DESCRIPTION:
-C     Write one P1.5 tiled MDS trajectory frame.  A complete 64-bit ID is
-C     never converted to floating point; its unsigned 32-bit words are
-C     independently exact in the fixed float64 record.
+C     Write one mode-selected tiled MDS trajectory frame.  LEEW retains the
+C     exact schema-1 record.  BOM schema 2 appends the accepted 27-component
+C     slow-manifold diagnostic plus its equation and current-policy codes.
+C     A complete 64-bit ID is never converted to floating point; its unsigned
+C     32-bit words are independently exact in every float64 record.
 
 C !USES:
       IMPLICIT NONE
@@ -30,14 +32,44 @@ C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_FNAM) fileName
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       CHARACTER*10 suffix
-      _RL record(bomOutputFields)
+      _RL record(bomOutputFields2)
       _RL nextTime
       _RS dummyRS(1)
-      INTEGER bi, bj, ip, k, ioUnit, iRecord
+      INTEGER bi, bj, ip, k, ioUnit, iRecord, iDiag
       INTEGER iGlobal, jGlobal
+      INTEGER activeSchema, activeFields
+      INTEGER modeCode, equationCode, currentCode
+      INTEGER windCode, stokesCode, integratorCode
       INTEGER*8 idRadix, idHi8, idLo8
+      LOGICAL codesValid
 
       idRadix = 4294967296_8
+      activeSchema = bomOutputSchema
+      activeFields = bomOutputFields
+      modeCode = 1
+      equationCode = 0
+      currentCode = 0
+      windCode = 0
+      stokesCode = 0
+      integratorCode = 0
+      codesValid = .TRUE.
+      IF ( bomMode.EQ.'BOM' ) THEN
+        activeSchema = bomOutputSchema2
+        activeFields = bomOutputFields2
+        CALL BOM_PICKUP2_CODES(
+     O       modeCode, equationCode, currentCode,
+     O       windCode, stokesCode, integratorCode,
+     O       codesValid )
+      ENDIF
+      IF ( .NOT.codesValid ) THEN
+        WRITE(msgBuf,'(A,I12,A,A,A,A)')
+     &       'BOM_WRITE_TRAJECTORY: invalid schema-2 codes iter=',
+     &       myIter, ' equation=', bomEquationMode,
+     &       ' current=', bomCurrentPolicy
+        CALL PRINT_ERROR( msgBuf, myThid )
+        CALL ALL_PROC_DIE( 0 )
+        STOP 'ABNORMAL END: S/R BOM_WRITE_TRAJECTORY'
+      ENDIF
       nextTime = bomNextOutputTime + bomOutputFreq
       IF ( rwSuffixType.EQ.0 ) THEN
         WRITE(suffix,'(I10.10)') myIter
@@ -49,13 +81,13 @@ C !LOCAL VARIABLES:
       _BEGIN_MASTER(myThid)
       DO bj=1,nSy
        DO bi=1,nSx
-        DO k=1,bomOutputFields
+        DO k=1,activeFields
           record(k) = 0. _d 0
         ENDDO
         iGlobal = myXGlobalLo + (bi-1)*sNx
         jGlobal = myYGlobalLo + (bj-1)*sNy
-        record(1) = bomOutputSchema
-        record(2) = bomOutputFields
+        record(1) = activeSchema
+        record(2) = activeFields
         record(3) = bomNPartTile(bi,bj)
         record(4) = bomNPartExpected
         record(5) = 1. _d 0
@@ -72,17 +104,28 @@ C !LOCAL VARIABLES:
         record(16) = myProcId
         record(17) = bi
         record(18) = bj
+        IF ( activeSchema.EQ.bomOutputSchema2 ) THEN
+          record(19) = modeCode
+          record(20) = equationCode
+          record(21) = currentCode
+          record(22) = windCode
+          record(23) = stokesCode
+          record(24) = integratorCode
+          record(25) = BOM_RHS_NDIAG
+          record(26) = 22
+          record(27) = bomOutputFields2
+        ENDIF
 
         ioUnit = -1
         iRecord = -1
         IF ( bomNPartTile(bi,bj).EQ.0 ) iRecord = 1
         CALL MDS_WRITEVEC_LOC(
      I       fileName, precFloat64, ioUnit,
-     I       'RL', bomOutputFields, record, dummyRS,
+     I       'RL', activeFields, record, dummyRS,
      I       bi, bj, iRecord, myIter, myThid )
 
         DO ip=1,bomNPartTile(bi,bj)
-          DO k=1,bomOutputFields
+          DO k=1,activeFields
             record(k) = 0. _d 0
           ENDDO
           idHi8 = bomId(ip,bi,bj)/idRadix
@@ -108,11 +151,17 @@ C !LOCAL VARIABLES:
           record(19) = bi
           record(20) = bj
           record(21) = 1. _d 0
+          IF ( activeSchema.EQ.bomOutputSchema2 ) THEN
+            DO iDiag=1,BOM_RHS_NDIAG
+              record(21+iDiag) =
+     &             bomRhsDiag(iDiag,ip,bi,bj)
+            ENDDO
+          ENDIF
           iRecord = ip + 1
           IF ( ip.NE.bomNPartTile(bi,bj) ) iRecord = -iRecord
           CALL MDS_WRITEVEC_LOC(
      I         fileName, precFloat64, ioUnit,
-     I         'RL', bomOutputFields, record, dummyRS,
+     I         'RL', activeFields, record, dummyRS,
      I         bi, bj, iRecord, myIter, myThid )
         ENDDO
         CLOSE(ioUnit)

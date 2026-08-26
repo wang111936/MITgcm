@@ -179,6 +179,7 @@ C !USES:
       signature(51) = vwindRepCycle
       signature(52) = exf_inscal_vwind
 #endif
+      signature(53) = DFLOAT(bomPickupFields2)
 
       offset = bomPickup2SigBase
       CALL BOM_PACK_PICKUP_CHARS(
