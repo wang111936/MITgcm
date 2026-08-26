@@ -10,7 +10,7 @@ C !INTERFACE:
      I                 myThid )
 
 C !DESCRIPTION:
-C     Complete the P1.4 owner transaction after one nominal substep.
+C     Complete the owner transaction after one nominal substep.
 C     Cross-rank records use exact two-word IDs and a minimal real packet.
 C     No owner array is replaced until global plan, capacity, packet, and
 C     target-owner refresh checks have all succeeded.
@@ -33,7 +33,7 @@ CEOP
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
-      INTEGER bi, bj, ip, jp, slot, rankIndex, packetIndex
+      INTEGER bi, bj, ip, jp, slot, rankIndex, packetIndex, iDiag
       INTEGER localErrCount, globalErrCount
       INTEGER localMoveCount, globalMoveCount
       INTEGER localRemoteCount, globalRemoteCount
@@ -74,14 +74,18 @@ C !LOCAL VARIABLES:
       _RL workWindNorth(bomMaxPartTile,nSx,nSy)
       _RL workDriftEast(bomMaxPartTile,nSx,nSy)
       _RL workDriftNorth(bomMaxPartTile,nSx,nSy)
+      _RL workRhsDiag(
+     &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       LOGICAL workRefresh(bomMaxPartTile,nSx,nSy)
       INTEGER*8 idRadix, idHi8, idLo8, recvId, keyId
       INTEGER keyStatus
       _RL keyX, keyY, keyRelease, keyAge, keyI, keyJ
       _RL keyVEast, keyVNorth, keyWindEast, keyWindNorth
       _RL keyDriftEast, keyDriftNorth
+      _RL keyRhsDiag(BOM_RHS_NDIAG)
       LOGICAL keyRefresh, locateValid, rhsOwner, rhsValid
       _RL rhsX, rhsY, wetWeight, stageCFL
+      INTEGER rhsFailStage
 
 C--   Non-zero Phase-1 state rejects threading; explicit SAVE makes the
 C     bounded packet storage lifetime independent of compiler stack limits.
@@ -410,6 +414,9 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
           workWindNorth(ip,bi,bj) = 0. _d 0
           workDriftEast(ip,bi,bj) = 0. _d 0
           workDriftNorth(ip,bi,bj) = 0. _d 0
+          DO iDiag=1,BOM_RHS_NDIAG
+            workRhsDiag(iDiag,ip,bi,bj) = 0. _d 0
+          ENDDO
           workRefresh(ip,bi,bj) = .FALSE.
         ENDDO
        ENDDO
@@ -442,6 +449,10 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
      &           bomDriftEast(ip,bi,bj)
             workDriftNorth(rankIndex,jp,slot) =
      &           bomDriftNorth(ip,bi,bj)
+            DO iDiag=1,BOM_RHS_NDIAG
+              workRhsDiag(iDiag,rankIndex,jp,slot) =
+     &             bomRhsDiag(iDiag,ip,bi,bj)
+            ENDDO
             workRefresh(rankIndex,jp,slot) =
      &           jp.NE.bi .OR. slot.NE.bj .OR.
      &           planX(ip,bi,bj).NE.bomX(ip,bi,bj) .OR.
@@ -486,6 +497,9 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
           keyWindNorth = workWindNorth(ip,bi,bj)
           keyDriftEast = workDriftEast(ip,bi,bj)
           keyDriftNorth = workDriftNorth(ip,bi,bj)
+          DO iDiag=1,BOM_RHS_NDIAG
+            keyRhsDiag(iDiag) = workRhsDiag(iDiag,ip,bi,bj)
+          ENDDO
           keyRefresh = workRefresh(ip,bi,bj)
           jp = ip - 1
           DO WHILE ( jp.GE.1 .AND. workId(jp,bi,bj).GT.keyId )
@@ -503,6 +517,10 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
             workWindNorth(jp+1,bi,bj) = workWindNorth(jp,bi,bj)
             workDriftEast(jp+1,bi,bj) = workDriftEast(jp,bi,bj)
             workDriftNorth(jp+1,bi,bj) = workDriftNorth(jp,bi,bj)
+            DO iDiag=1,BOM_RHS_NDIAG
+              workRhsDiag(iDiag,jp+1,bi,bj) =
+     &             workRhsDiag(iDiag,jp,bi,bj)
+            ENDDO
             workRefresh(jp+1,bi,bj) = workRefresh(jp,bi,bj)
             jp = jp - 1
           ENDDO
@@ -520,6 +538,9 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
           workWindNorth(jp+1,bi,bj) = keyWindNorth
           workDriftEast(jp+1,bi,bj) = keyDriftEast
           workDriftNorth(jp+1,bi,bj) = keyDriftNorth
+          DO iDiag=1,BOM_RHS_NDIAG
+            workRhsDiag(iDiag,jp+1,bi,bj) = keyRhsDiag(iDiag)
+          ENDDO
           workRefresh(jp+1,bi,bj) = keyRefresh
         ENDDO
         DO ip=2,workCount(bi,bj)
@@ -534,16 +555,42 @@ C--   Refresh only moved records; retained records remain bitwise intact.
        DO bi=1,nSx
         DO ip=1,workCount(bi,bj)
           IF ( workRefresh(ip,bi,bj) ) THEN
-            CALL BOM_RHS_LEEWAY(
-     I           workX(ip,bi,bj), workY(ip,bi,bj), 0. _d 0,
-     I           bi, bj,
-     O           rhsX, rhsY, workI(ip,bi,bj), workJ(ip,bi,bj),
-     O           workVEast(ip,bi,bj), workVNorth(ip,bi,bj),
-     O           workWindEast(ip,bi,bj), workWindNorth(ip,bi,bj),
-     O           workDriftEast(ip,bi,bj), workDriftNorth(ip,bi,bj),
-     O           wetWeight, stageCFL,
-     O           rhsOwner, rhsValid, rhsFailCode,
-     I           myThid )
+            IF ( bomMode.EQ.'BOM' ) THEN
+              CALL BOM_RHS_SLOW_MANIFOLD(
+     I             workX(ip,bi,bj), workY(ip,bi,bj),
+     I             exchangeTime, 0. _d 0, bi, bj,
+     I             BOM_STAGE_FINAL,
+     O             rhsX, rhsY, workI(ip,bi,bj), workJ(ip,bi,bj),
+     O             workRhsDiag(1,ip,bi,bj),
+     O             wetWeight, stageCFL,
+     O             rhsOwner, rhsValid, rhsFailCode, rhsFailStage,
+     I             myThid )
+              IF ( rhsValid ) THEN
+                workVEast(ip,bi,bj) =
+     &               workRhsDiag(BOM_RHS_VBASE_E,ip,bi,bj)
+                workVNorth(ip,bi,bj) =
+     &               workRhsDiag(BOM_RHS_VBASE_N,ip,bi,bj)
+                workWindEast(ip,bi,bj) =
+     &               workRhsDiag(BOM_RHS_VW_E,ip,bi,bj)
+                workWindNorth(ip,bi,bj) =
+     &               workRhsDiag(BOM_RHS_VW_N,ip,bi,bj)
+                workDriftEast(ip,bi,bj) =
+     &               workRhsDiag(BOM_RHS_DRIFT_E,ip,bi,bj)
+                workDriftNorth(ip,bi,bj) =
+     &               workRhsDiag(BOM_RHS_DRIFT_N,ip,bi,bj)
+              ENDIF
+            ELSE
+              CALL BOM_RHS_LEEWAY(
+     I             workX(ip,bi,bj), workY(ip,bi,bj), 0. _d 0,
+     I             bi, bj,
+     O             rhsX, rhsY, workI(ip,bi,bj), workJ(ip,bi,bj),
+     O             workVEast(ip,bi,bj), workVNorth(ip,bi,bj),
+     O             workWindEast(ip,bi,bj), workWindNorth(ip,bi,bj),
+     O             workDriftEast(ip,bi,bj), workDriftNorth(ip,bi,bj),
+     O             wetWeight, stageCFL,
+     O             rhsOwner, rhsValid, rhsFailCode,
+     I             myThid )
+            ENDIF
             IF ( .NOT.rhsValid .OR. .NOT.rhsOwner ) THEN
               IF ( localErrCount.LT.8 ) THEN
                 WRITE(msgBuf,1004)
@@ -591,6 +638,10 @@ C--   The only authoritative topology write in this routine.
           bomWindNorth(ip,bi,bj) = workWindNorth(ip,bi,bj)
           bomDriftEast(ip,bi,bj) = workDriftEast(ip,bi,bj)
           bomDriftNorth(ip,bi,bj) = workDriftNorth(ip,bi,bj)
+          DO iDiag=1,BOM_RHS_NDIAG
+            bomRhsDiag(iDiag,ip,bi,bj) =
+     &           workRhsDiag(iDiag,ip,bi,bj)
+          ENDDO
         ENDDO
        ENDDO
       ENDDO

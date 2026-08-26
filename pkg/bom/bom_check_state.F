@@ -32,7 +32,7 @@ C     !INPUT PARAMETERS:
 
 C     !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
-      INTEGER bi, bj, ip, jp
+      INTEGER bi, bj, ip, jp, iDiag
       INTEGER nTile, nSafe
       INTEGER localErrCount, globalErrCount
       INTEGER localOwnerCount, globalOwnerCount
@@ -165,6 +165,10 @@ CEOP
      &           IEEE_IS_FINITE(bomWindNorth(ip,bi,bj)) .AND.
      &           IEEE_IS_FINITE(bomDriftEast(ip,bi,bj)) .AND.
      &           IEEE_IS_FINITE(bomDriftNorth(ip,bi,bj))
+            DO iDiag=1,BOM_RHS_NDIAG
+              fieldsFinite = fieldsFinite .AND.
+     &             IEEE_IS_FINITE(bomRhsDiag(iDiag,ip,bi,bj))
+            ENDDO
             IF ( .NOT.fieldsFinite .OR.
      &           bomAge(ip,bi,bj).LT.0. _d 0 .OR.
      &           bomReleaseTime(ip,bi,bj).LT.0. _d 0 ) THEN

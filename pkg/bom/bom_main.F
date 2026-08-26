@@ -7,9 +7,9 @@ C     !INTERFACE:
       SUBROUTINE BOM_MAIN( myTime, myIter, myThid )
 
 C     !DESCRIPTION:
-C     Advance the compact Phase-1.4 owner state over one ocean step with
-C     equal substeps, exact release splitting, halo-aware RK trials, and
-C     an owner tile/rank migration transaction after every substep.
+C     Advance the compact owner state over one ocean step with equal
+C     substeps, exact release splitting, mode-specific halo-aware RK trials,
+C     and an owner tile/rank migration transaction after every substep.
 
 C     !USES:
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -32,16 +32,17 @@ CEOP
 #ifdef ALLOW_BOM
 C     !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
-      INTEGER bi, bj, ip, iSub, nSub
+      INTEGER bi, bj, ip, iSub, nSub, iDiag
       INTEGER errCount, globalErrCount
       INTEGER statusCandidate
       INTEGER failStage, failCode, releaseFailCode
       INTEGER rhsFailCode
-      _RL stepStart, dtSub, tSub0, tSub1, dtActive
+      _RL stepStart, dtSub, tSub0, tSub1, dtActive, stageTime0
       _RL x0, y0, xCandidate, yCandidate, ageCandidate
       _RL ix, jy, oceanEast, oceanNorth
       _RL windEast, windNorth, driftEast, driftNorth
       _RL wetWeight, stageCFL, rhsX, rhsY
+      _RL rhsDiagCandidate(BOM_RHS_NDIAG)
       LOGICAL setupValid, boundsValid, releaseValid
       LOGICAL doAdvance, doRefresh, trialValid
       LOGICAL rhsOwner, rhsValid
@@ -145,6 +146,9 @@ C--         Deterministic rollback diagnostics before any trial.
             failStage = BOM_STAGE_NONE
             failCode = BOM_FAIL_NONE
             trialValid = .FALSE.
+            DO iDiag=1,BOM_RHS_NDIAG
+              rhsDiagCandidate(iDiag) = 0. _d 0
+            ENDDO
 
             CALL BOM_RELEASE_STEP(
      I           bomStatus(ip,bi,bj),
@@ -159,41 +163,88 @@ C--         Deterministic rollback diagnostics before any trial.
 C--           A still-WAITING record is a successful no-op.
               trialValid = .TRUE.
             ELSEIF ( doAdvance ) THEN
-              IF ( bomIntegrator.EQ.'RK2' ) THEN
-                CALL BOM_RK2_MIGRATE(
-     I               x0, y0, dtActive, bi, bj,
-     O               xCandidate, yCandidate, ix, jy,
-     O               oceanEast, oceanNorth,
-     O               windEast, windNorth,
-     O               driftEast, driftNorth,
-     O               wetWeight, stageCFL,
-     O               failStage, failCode, trialValid,
-     I               myThid )
-              ELSEIF ( bomIntegrator.EQ.'RK4' ) THEN
-                CALL BOM_RK4_MIGRATE(
-     I               x0, y0, dtActive, bi, bj,
-     O               xCandidate, yCandidate, ix, jy,
-     O               oceanEast, oceanNorth,
-     O               windEast, windNorth,
-     O               driftEast, driftNorth,
-     O               wetWeight, stageCFL,
-     O               failStage, failCode, trialValid,
-     I               myThid )
+              stageTime0 = tSub1-dtActive
+              IF ( bomMode.EQ.'BOM' ) THEN
+                IF ( bomIntegrator.EQ.'RK2' ) THEN
+                  CALL BOM_RK2_SLOW_MIGRATE(
+     I                 x0, y0, stageTime0, dtActive, bi, bj,
+     O                 xCandidate, yCandidate, ix, jy,
+     O                 rhsDiagCandidate, wetWeight, stageCFL,
+     O                 failStage, failCode, trialValid,
+     I                 myThid )
+                ELSEIF ( bomIntegrator.EQ.'RK4' ) THEN
+                  CALL BOM_RK4_SLOW_MIGRATE(
+     I                 x0, y0, stageTime0, dtActive, bi, bj,
+     O                 xCandidate, yCandidate, ix, jy,
+     O                 rhsDiagCandidate, wetWeight, stageCFL,
+     O                 failStage, failCode, trialValid,
+     I                 myThid )
+                ELSE
+                  failCode = BOM_FAIL_STATE
+                ENDIF
+                IF ( trialValid ) THEN
+                  oceanEast = rhsDiagCandidate(BOM_RHS_VBASE_E)
+                  oceanNorth = rhsDiagCandidate(BOM_RHS_VBASE_N)
+                  windEast = rhsDiagCandidate(BOM_RHS_VW_E)
+                  windNorth = rhsDiagCandidate(BOM_RHS_VW_N)
+                  driftEast = rhsDiagCandidate(BOM_RHS_DRIFT_E)
+                  driftNorth = rhsDiagCandidate(BOM_RHS_DRIFT_N)
+                ENDIF
               ELSE
-                failCode = BOM_FAIL_STATE
+                IF ( bomIntegrator.EQ.'RK2' ) THEN
+                  CALL BOM_RK2_MIGRATE(
+     I                 x0, y0, dtActive, bi, bj,
+     O                 xCandidate, yCandidate, ix, jy,
+     O                 oceanEast, oceanNorth,
+     O                 windEast, windNorth,
+     O                 driftEast, driftNorth,
+     O                 wetWeight, stageCFL,
+     O                 failStage, failCode, trialValid,
+     I                 myThid )
+                ELSEIF ( bomIntegrator.EQ.'RK4' ) THEN
+                  CALL BOM_RK4_MIGRATE(
+     I                 x0, y0, dtActive, bi, bj,
+     O                 xCandidate, yCandidate, ix, jy,
+     O                 oceanEast, oceanNorth,
+     O                 windEast, windNorth,
+     O                 driftEast, driftNorth,
+     O                 wetWeight, stageCFL,
+     O                 failStage, failCode, trialValid,
+     I                 myThid )
+                ELSE
+                  failCode = BOM_FAIL_STATE
+                ENDIF
               ENDIF
             ELSE
 C--           Release at tSub1: refresh FINAL diagnostics at zero time.
               failStage = BOM_STAGE_FINAL
-              CALL BOM_RHS_LEEWAY(
-     I             x0, y0, 0. _d 0, bi, bj,
-     O             rhsX, rhsY, ix, jy,
-     O             oceanEast, oceanNorth,
-     O             windEast, windNorth,
-     O             driftEast, driftNorth,
-     O             wetWeight, stageCFL,
-     O             rhsOwner, rhsValid, rhsFailCode,
-     I             myThid )
+              IF ( bomMode.EQ.'BOM' ) THEN
+                CALL BOM_RHS_SLOW_MANIFOLD(
+     I               x0, y0, tSub1, 0. _d 0,
+     I               bi, bj, BOM_STAGE_FINAL,
+     O               rhsX, rhsY, ix, jy, rhsDiagCandidate,
+     O               wetWeight, stageCFL,
+     O               rhsOwner, rhsValid, rhsFailCode, failStage,
+     I               myThid )
+                IF ( rhsValid ) THEN
+                  oceanEast = rhsDiagCandidate(BOM_RHS_VBASE_E)
+                  oceanNorth = rhsDiagCandidate(BOM_RHS_VBASE_N)
+                  windEast = rhsDiagCandidate(BOM_RHS_VW_E)
+                  windNorth = rhsDiagCandidate(BOM_RHS_VW_N)
+                  driftEast = rhsDiagCandidate(BOM_RHS_DRIFT_E)
+                  driftNorth = rhsDiagCandidate(BOM_RHS_DRIFT_N)
+                ENDIF
+              ELSE
+                CALL BOM_RHS_LEEWAY(
+     I               x0, y0, 0. _d 0, bi, bj,
+     O               rhsX, rhsY, ix, jy,
+     O               oceanEast, oceanNorth,
+     O               windEast, windNorth,
+     O               driftEast, driftNorth,
+     O               wetWeight, stageCFL,
+     O               rhsOwner, rhsValid, rhsFailCode,
+     I               myThid )
+              ENDIF
               IF ( .NOT.rhsValid ) THEN
                 failCode = rhsFailCode
               ELSEIF ( .NOT.rhsOwner ) THEN
@@ -220,6 +271,12 @@ C--             Publish all authoritative candidates exactly once.
                 bomWindNorth(ip,bi,bj) = windNorth
                 bomDriftEast(ip,bi,bj) = driftEast
                 bomDriftNorth(ip,bi,bj) = driftNorth
+                IF ( bomMode.EQ.'BOM' ) THEN
+                  DO iDiag=1,BOM_RHS_NDIAG
+                    bomRhsDiag(iDiag,ip,bi,bj) =
+     &                   rhsDiagCandidate(iDiag)
+                  ENDDO
+                ENDIF
               ENDIF
             ELSE
               IF ( errCount.LT.8 ) THEN

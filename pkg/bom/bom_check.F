@@ -487,14 +487,6 @@ C-      Retain the Phase-0 gate signature while that baseline is frozen.
         errCount = errCount + 1
       ENDIF
 
-      IF ( bomMaxParticles.GT.0 .AND. bomMode.EQ.'BOM' ) THEN
-        WRITE(msgBuf,'(2A)')
-     &       'BOM_CHECK: non-zero BOM particle RHS is ',
-     &       'not connected during P2.1 endpoint development'
-        CALL PRINT_ERROR( msgBuf, myThid )
-        errCount = errCount + 1
-      ENDIF
-
       IF ( .NOT.coeffFinite ) THEN
         WRITE(msgBuf,'(A,1PE24.16)')
      &       'BOM_CHECK: non-finite bomLeewayWindCoeff=',

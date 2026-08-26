@@ -8,7 +8,7 @@ C !INTERFACE:
       SUBROUTINE BOM_INIT_STATE( myThid )
 
 C !DESCRIPTION:
-C     Reset owner slots and Phase-1.3 surface fields deterministically.
+C     Reset owner slots and environmental fields deterministically.
 C     Valid records later occupy 1:bomNPartTile on each tile.
 
 C !USES:
@@ -24,7 +24,7 @@ CEOP
 
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
-      INTEGER bi, bj, i, j, ip, iEnd, iSource, iComponent
+      INTEGER bi, bj, i, j, ip, iEnd, iSource, iComponent, iDiag
 
       _BEGIN_MASTER(myThid)
       bomFieldsReady = .FALSE.
@@ -141,6 +141,9 @@ C !LOCAL VARIABLES:
           bomWindNorth(ip,bi,bj)   = 0. _d 0
           bomDriftEast(ip,bi,bj)   = 0. _d 0
           bomDriftNorth(ip,bi,bj)  = 0. _d 0
+          DO iDiag=1,BOM_RHS_NDIAG
+            bomRhsDiag(iDiag,ip,bi,bj) = 0. _d 0
+          ENDDO
         ENDDO
        ENDDO
       ENDDO
