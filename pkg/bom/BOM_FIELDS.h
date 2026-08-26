@@ -56,6 +56,63 @@ C--   Stable component identifiers for copied COUPLER Stokes publication.
       LOGICAL bomEnvReady
       COMMON /BOM_ENV_STATE_L/ bomEnvReady
 
+C--   Accepted endpoint gradients of geographic C-point components.
+C     The first direction in each name is the physical derivative
+C     direction; the second is the differentiated vector component.
+      _RL bomGradEastEast(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomGradNorthEast(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomGradEastNorth(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomGradNorthNorth(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      COMMON /BOM_GRAD_FIELD_R/
+     &       bomGradEastEast, bomGradNorthEast,
+     &       bomGradEastNorth, bomGradNorthNorth
+
+      LOGICAL bomGradValid(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      COMMON /BOM_GRAD_FIELD_L/ bomGradValid
+
+      LOGICAL bomGradReady
+      COMMON /BOM_GRAD_STATE_L/ bomGradReady
+
+C--   Derivative transaction workspace.  Four gradient arrays and one
+C     numeric validity exchange are published only after global success.
+      _RL bomGradEastEastScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomGradNorthEastScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomGradEastNorthScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomGradNorthNorthScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomGradValidWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      _RL bomGradExchangeWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_GRAD_SCRATCH_R/
+     &       bomGradEastEastScratch, bomGradNorthEastScratch,
+     &       bomGradEastNorthScratch, bomGradNorthNorthScratch,
+     &       bomGradValidWork
+      COMMON /BOM_GRAD_EXCHANGE_R/ bomGradExchangeWork
+
+      LOGICAL bomGradValidScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)
+      COMMON /BOM_GRAD_SCRATCH_L/ bomGradValidScratch
+
 C--   Internal transaction workspace.  These arrays are never accepted
 C     state and are not part of the pickup interface.
       _RL bomEnvEastScratch(

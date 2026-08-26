@@ -96,6 +96,7 @@ C !LOCAL VARIABLES:
       _RL eastValue, northValue
       LOGICAL isNear, compareValid, wetPoint, fieldInvalid
       LOGICAL windProviderValid, stokesProviderValid
+      LOGICAL derivativeValid
 
       failCode = BOM_FAIL_NONE
       failStage = BOM_STAGE_NONE
@@ -397,9 +398,20 @@ C--   Validate every source and endpoint before accepted-state writes.
         RETURN
       ENDIF
 
+C--   Derive every endpoint in scratch before either state is published.
+      CALL BOM_TRY_BUILD_DERIVATIVES(
+     I     .TRUE.,
+     O     failCode, derivativeValid,
+     I     myThid )
+      IF ( .NOT.derivativeValid ) THEN
+        failStage = BOM_STAGE_DERIVATIVE
+        RETURN
+      ENDIF
+
 C--   No failure remains: withdraw readiness, copy, then publish metadata.
       _BEGIN_MASTER(myThid)
       bomEnvReady = .FALSE.
+      bomGradReady = .FALSE.
       _END_MASTER(myThid)
       _BARRIER
       DO bj=myByLo(myThid),myByHi(myThid)
@@ -414,6 +426,16 @@ C--   No failure remains: withdraw readiness, copy, then publish metadata.
      &           bomEnvNorthScratch(i,j,iEnd,iSource,bi,bj)
             bomEnvValid(i,j,iEnd,iSource,bi,bj) =
      &           bomEnvValidScratch(i,j,iEnd,iSource,bi,bj)
+            bomGradEastEast(i,j,iEnd,iSource,bi,bj) =
+     &           bomGradEastEastScratch(i,j,iEnd,iSource,bi,bj)
+            bomGradNorthEast(i,j,iEnd,iSource,bi,bj) =
+     &           bomGradNorthEastScratch(i,j,iEnd,iSource,bi,bj)
+            bomGradEastNorth(i,j,iEnd,iSource,bi,bj) =
+     &           bomGradEastNorthScratch(i,j,iEnd,iSource,bi,bj)
+            bomGradNorthNorth(i,j,iEnd,iSource,bi,bj) =
+     &           bomGradNorthNorthScratch(i,j,iEnd,iSource,bi,bj)
+            bomGradValid(i,j,iEnd,iSource,bi,bj) =
+     &           bomGradValidScratch(i,j,iEnd,iSource,bi,bj)
            ENDDO
           ENDDO
          ENDDO
@@ -427,6 +449,7 @@ C--   No failure remains: withdraw readiness, copy, then publish metadata.
         bomEnvIter(iEnd) = bomEnvIterScratch(iEnd)
       ENDDO
       bomEnvReady = .TRUE.
+      bomGradReady = .TRUE.
       _END_MASTER(myThid)
       _BARRIER
       failCode = BOM_FAIL_NONE

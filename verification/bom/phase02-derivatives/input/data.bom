@@ -1,0 +1,19 @@
+ &BOM_PARM01
+ bomMode='BOM',
+ bomEquationMode='PAPER2024',
+ bomIntegrator='RK4',
+ bomDeltaTTarget=300.,
+ bomMaxParticles=0,
+ bomInitialFile=' ',
+ &
+ &BOM_PARM02
+ bomCurrentPolicy='EULERIAN',
+ bomAlpha=0.,
+ bomTauDays=0.0103,
+ bomR=0.823,
+ bomSigma=0.,
+ bomLeewayWindCoeff=0.,
+ bomWindSource='NONE',
+ bomStokesSource='NONE',
+ bomAdvCFL=0.5,
+ &

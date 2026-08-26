@@ -36,6 +36,7 @@ C !LOCAL VARIABLES:
       bomNextOutputTime = 0. _d 0
       bomOutputScheduleReady = .FALSE.
       bomEnvReady = .FALSE.
+      bomGradReady = .FALSE.
       DO iEnd=1,BOM_ENV_NEND
         bomEnvTime(iEnd) = 0. _d 0
         bomEnvIter(iEnd) = 0
@@ -62,6 +63,7 @@ C !LOCAL VARIABLES:
           bomEnvVWork(i,j,1,bi,bj) = 0. _d 0
           bomEnvEastWork(i,j,1,bi,bj) = 0. _d 0
           bomEnvNorthWork(i,j,1,bi,bj) = 0. _d 0
+          bomGradExchangeWork(i,j,1,bi,bj) = 0. _d 0
           bomExfWindUWork(i,j,1,bi,bj) = 0. _d 0
           bomExfWindVWork(i,j,1,bi,bj) = 0. _d 0
           bomExfWindEastWork(i,j,1,bi,bj) = 0. _d 0
@@ -86,6 +88,27 @@ C !LOCAL VARIABLES:
             bomEnvNorth(i,j,iEnd,iSource,bi,bj) = 0. _d 0
             bomEnvValid(i,j,iEnd,iSource,bi,bj) = .FALSE.
             bomEnvEastScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradEastEast(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradNorthEast(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradEastNorth(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradNorthNorth(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradValid(i,j,iEnd,iSource,bi,bj) = .FALSE.
+            bomGradEastEastScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradNorthEastScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradEastNorthScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradNorthNorthScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomGradValidScratch(i,j,iEnd,iSource,bi,bj) =
+     &           .FALSE.
+            bomGradValidWork(i,j,iEnd,iSource,bi,bj) =
      &           0. _d 0
             bomEnvNorthScratch(i,j,iEnd,iSource,bi,bj) =
      &           0. _d 0
