@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/p2.2-derivatives` |
-| 当前阶段 PR | P2.1 Draft PR #20 保持开放；P2.2 本地头 `f2c86ddf7` 尚未推送 |
+| 当前阶段 PR | P2.1 Draft PR #20 保持开放；P2.2 精确功能头 `5d4b91831` 已关闭，远端仅按完整工作包批量同步 |
 | 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
-| 当前工作包 | P2.2 Cartesian derivative 首增量完成：9/9；pickup 回归 10/10 |
-| 下一工作包 | P2.2 spherical `tauSphere`、协变算子、涡度与 D04/D05/N05 |
+| 当前工作包 | P2.2 完成：导数/度量 16/16，含 P2.1 与前序总计 317/317 |
+| 下一工作包 | P2.3 stateless `PAPER2024`/`JULIA` RHS 与 P2-H01--H06/P2-N06 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -23,9 +23,9 @@
 1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
 2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
 3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 核对当前分支为 `MITGCM-BOM/p2.2-derivatives`，从本地精确功能头 `f2c86ddf7` 继续；
-5. 实现未旋转 spherical-polar `tauSphere`、`fCori`、协变 material derivative 和 vorticity，并建立 P2-D04/D05/spherical N05；
-6. 不加入 P2.3 RHS 或粒子 RK stage 接线；累计形成完整 P2.2 增量并通过门禁后再集中推送 GitHub。
+4. 核对当前分支为 `MITGCM-BOM/p2.2-derivatives`，精确功能头 `5d4b91831` 的 P2.2 关闭证据为 317/317；
+5. 从 P2.3 stateless RHS 开始，先建立 `PAPER2024`/`JULIA` 分量接口与 P2-H01--H06/P2-N06，不重复 P2.2 球面工作；
+6. P2.3 本增量不加入粒子 RK stage/P2.4，不创建 v0.3 tag；GitHub 继续采用阶段性批量推送。
 
 开始前执行：
 
@@ -42,7 +42,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 完成；P2.2 Cartesian 首增量 `f2c86ddf7` 9/9，球面部分进行中 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1/P2.2 完成；P2.2 精确头 `5d4b91831` 聚合 317/317；P2.3 下一 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -210,6 +210,32 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 证据根为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-coupler-6247ee6ba-attempt01`；
 - P2.1 仍需 E06 stage-time interpolation 与 schema-2 field pickup，因此不关闭、不合并 PR #20、不打 v0.3 标签；
 - 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
+
+### P2.2 C-point 导数、球面度量与协变算子完成
+
+- Cartesian 功能提交 `f2c86ddf73d2f0b8dc470ad6abcac68a48accaef`
+  建立非均匀二阶梯度、stage-time derivative interpolation 与事务状态；
+- 完整功能提交 `5d4b918318682bee99b871684f781fa0ceefa482` 加入
+  spherical `tauSphere`、MITgcm `fCori`、metric validity 和 finite-checked
+  covariant material derivative/vorticity；
+- D05 直接验证 PAPER total-field 与 JULIA base-only vorticity candidates；
+  模式特定 RHS 调度仍留给 P2.3，未提前宣称完成；
+- `p22-derivative-5d4b91831-attempt01` 为 16/16，endpoint/provider 为
+  34/34，schema-2 pickup 为 10/10，Phase-1/Phase-0 前序为 257/257；
+- 关闭聚合共 18 组、317/317 PASS；证据根为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p22-closure/`
+  `p22-closure-5d4b91831-attempt02`；
+- row audit SHA-256 为
+  `8074e632d887e2e23bdb6233c2c1f8896ef098522b3dbc10a72a3b42e96ca163`；
+  aggregate manifest SHA-256 为
+  `1d4d4409a47e729d713066245f2942179ee04995452c931d87c46782ffdc2a40`；
+- 前序生命周期 attempt01 仅因启动器未传 P1.4 已集成开关而在静态审计
+  前停止；冻结集成配置 attempt02 为 13/13，无生产修改；
+- 关闭证据 attempt01 仅因锁定 Julia 可执行文件不在普通 PATH 而停止；
+  使用正式 Phase-0 门禁同一绝对路径的 attempt02 完成自验证；
+- P2.2 标记完成，无开放实现 finding；P2.3 成为唯一下一工作包；
+- 远端同步按完整工作包批量进行；Draft PR #20 仍属于 P2.1，未合并，
+  也未创建 `MITGCM-BOM-v0.3`。
 
 ## 4. 未决问题与风险
 
@@ -637,10 +663,28 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   为 34/34 PASS；它不是 `f2c86ddf7` 精确头证据，只登记为开发回归；
 - P2-D02 已澄清：二次场验证三点公式精确性，三次 manufactured field
   用于观测非零二阶误差；
-- P2.2 仍进行中；下一任务是 spherical `tauSphere`/`fCori`、协变 material
-  derivative、vorticity 及 P2-D04/D05/spherical N05；不加入 RHS/RK；
-- 按用户要求减少 GitHub 推送：本分支尚未推送，待形成较完整且测试通过的
-  P2.2 更新后集中推送；Draft PR #20 保持 P2.1 未合并记录，未创建 tag。
+- 本节保留为 Cartesian 首增量历史；完整 P2.2 关闭见下一会话记录；
+- spherical D04/D05/N05 已在 `5d4b91831` 完成，不再是开放任务；
+- 本分支继续按用户要求积累完整 P2.2 后集中推送；
+- Draft PR #20 保持 P2.1 未合并记录，未创建 tag。
+
+### 2026-08-26：P2.2 球面协变完成与工作包关闭
+
+- 功能提交 `5d4b918318682bee99b871684f781fa0ceefa482` 完成 Cartesian/
+  spherical C-point metric transaction、MITgcm `fCori` 与有限保护协变算子；
+- P2-D04 验证多纬度物理梯度和 `tauSphere`；P2-D05 验证独立 PAPER-total/
+  JULIA-base vorticity candidates；完整 N05 覆盖半径、近极、非有限
+  `fCori`、坏 stencil/metric、overflow 与 rollback；
+- 精确 derivative 16/16、endpoint 34/34、pickup 10/10、前序 257/257，
+  总计 317/317 PASS；
+- 聚合证据为 `p22-closure/p22-closure-5d4b91831-attempt02`，row audit 与
+  manifest SHA-256 分别为
+  `8074e632d887e2e23bdb6233c2c1f8896ef098522b3dbc10a72a3b42e96ca163`
+  和 `1d4d4409a47e729d713066245f2942179ee04995452c931d87c46782ffdc2a40`；
+- P2.2 关闭；P2.3 是唯一下一工作包，先实现 stateless 双模式 RHS 和
+  P2-H01--H06/P2-N06，不进入 RK stage/P2.4；
+- 本轮在完整阶段记录形成后最多进行一次批量推送，不在小增量间反复同步；
+  不创建 `MITGCM-BOM-v0.3` 标签。
 
 ## 6. 每次会话结束时必须更新
 

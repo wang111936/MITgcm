@@ -53,7 +53,12 @@ external environmental datasets remain outside the repository.
   runtime parameters, stable source/endpoint/failure/stage codes,
   deterministic state, ocean/NONE/NONE transactional endpoints, rollback,
   BOM-owned exact-time EXF wind, immutable EXF globals, production lifecycle,
-  serial/MPI4, policy failures, and `LEEW` zero-impact;
+  accepted-bracket interpolation, schema-2 field pickup/restart,
+  serial/MPI4, policy failures, and `LEEW` compatibility;
+- `phase02-derivatives/`: P2.2 nonuniform C-point SI gradients, stage-time
+  derivative interpolation, Cartesian/spherical metric validity, MITgcm
+  `fCori`, finite-checked covariant/vorticity operators, transactional
+  rollback, and serial/MPI4 bitwise decomposition gates;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 
