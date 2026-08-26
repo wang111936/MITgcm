@@ -480,7 +480,7 @@ run_negative tile-capacity "${CASE_DIR}/input/data.bom.capacity" \
 run_negative global-limit "${CASE_DIR}/input/data.bom.limit" \
   limit 'invalid particle count='
 run_negative premature-stokes "${CASE_DIR}/input/data.bom.stokes" \
-  valid 'Phase-1 Stokes source must be NONE'
+  valid 'Stokes source must be NONE'
 run_negative bad-mode "${CASE_DIR}/input/data.bom.bad-mode" \
   none 'unsupported bomMode:'
 run_negative bad-integrator "${CASE_DIR}/input/data.bom.bad-integrator" \
