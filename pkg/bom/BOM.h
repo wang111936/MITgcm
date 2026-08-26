@@ -139,6 +139,66 @@ C     accepted-position refresh, not an additional integration stage.
       PARAMETER ( BOM_STAGE_FIELD_NEW  = 7 )
       PARAMETER ( BOM_STAGE_DERIVATIVE = 8 )
 
+C--   Stable stateless Phase-2 RHS diagnostic-vector indices.  Every entry
+C     is an SI physical component; native coordinate-rate conversion remains
+C     in the particle-stage wrapper introduced in P2.4.
+      INTEGER BOM_RHS_VBASE_E
+      INTEGER BOM_RHS_VBASE_N
+      INTEGER BOM_RHS_VS_E
+      INTEGER BOM_RHS_VS_N
+      INTEGER BOM_RHS_VW_E
+      INTEGER BOM_RHS_VW_N
+      INTEGER BOM_RHS_V_E
+      INTEGER BOM_RHS_V_N
+      INTEGER BOM_RHS_U_E
+      INTEGER BOM_RHS_U_N
+      INTEGER BOM_RHS_DV_E
+      INTEGER BOM_RHS_DV_N
+      INTEGER BOM_RHS_DU_E
+      INTEGER BOM_RHS_DU_N
+      INTEGER BOM_RHS_OMEGA
+      INTEGER BOM_RHS_FCORI
+      INTEGER BOM_RHS_TAUSPHERE
+      INTEGER BOM_RHS_CV
+      INTEGER BOM_RHS_CU
+      INTEGER BOM_RHS_ROT_VE
+      INTEGER BOM_RHS_ROT_VN
+      INTEGER BOM_RHS_ROT_UE
+      INTEGER BOM_RHS_ROT_UN
+      INTEGER BOM_RHS_INERT_E
+      INTEGER BOM_RHS_INERT_N
+      INTEGER BOM_RHS_DRIFT_E
+      INTEGER BOM_RHS_DRIFT_N
+      INTEGER BOM_RHS_NDIAG
+      PARAMETER ( BOM_RHS_VBASE_E  =  1 )
+      PARAMETER ( BOM_RHS_VBASE_N  =  2 )
+      PARAMETER ( BOM_RHS_VS_E     =  3 )
+      PARAMETER ( BOM_RHS_VS_N     =  4 )
+      PARAMETER ( BOM_RHS_VW_E     =  5 )
+      PARAMETER ( BOM_RHS_VW_N     =  6 )
+      PARAMETER ( BOM_RHS_V_E      =  7 )
+      PARAMETER ( BOM_RHS_V_N      =  8 )
+      PARAMETER ( BOM_RHS_U_E      =  9 )
+      PARAMETER ( BOM_RHS_U_N      = 10 )
+      PARAMETER ( BOM_RHS_DV_E     = 11 )
+      PARAMETER ( BOM_RHS_DV_N     = 12 )
+      PARAMETER ( BOM_RHS_DU_E     = 13 )
+      PARAMETER ( BOM_RHS_DU_N     = 14 )
+      PARAMETER ( BOM_RHS_OMEGA    = 15 )
+      PARAMETER ( BOM_RHS_FCORI    = 16 )
+      PARAMETER ( BOM_RHS_TAUSPHERE= 17 )
+      PARAMETER ( BOM_RHS_CV       = 18 )
+      PARAMETER ( BOM_RHS_CU       = 19 )
+      PARAMETER ( BOM_RHS_ROT_VE   = 20 )
+      PARAMETER ( BOM_RHS_ROT_VN   = 21 )
+      PARAMETER ( BOM_RHS_ROT_UE   = 22 )
+      PARAMETER ( BOM_RHS_ROT_UN   = 23 )
+      PARAMETER ( BOM_RHS_INERT_E  = 24 )
+      PARAMETER ( BOM_RHS_INERT_N  = 25 )
+      PARAMETER ( BOM_RHS_DRIFT_E  = 26 )
+      PARAMETER ( BOM_RHS_DRIFT_N  = 27 )
+      PARAMETER ( BOM_RHS_NDIAG    = 27 )
+
 C--   Valid owner records occupy slots 1:bomNPartTile on each tile.
 C     bomNPartExpected is the immutable successful initial owner budget.
       INTEGER bomNPartTile(nSx,nSy)
