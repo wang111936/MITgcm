@@ -8,8 +8,8 @@
 | 基线 tag object | `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1` |
 | 基线提交 | `1067c21d230e9c9619e89245b97c01e9474c7ed7` |
 | 准入日期 | 2026-08-25 |
-| 状态 | **进行中（P2.1 已在精确功能头完成；301/301 收口门禁 PASS）** |
-| 当前工作包 | P2.2 导数网格为唯一下一工作包 |
+| 状态 | **进行中（P2.2 Cartesian 首增量已在 `f2c86ddf7` 通过精确门禁）** |
+| 当前工作包 | P2.2 球面度量、协变算子和涡度 |
 | 准入记录 | PR #17/#18 已合并；当前集成基线 `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` |
 | P2.0 记录 | PR #19；设计提交 `628a6bb4621429bf6f58e9e46a13216c21de7815` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
@@ -59,7 +59,7 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 |---|---|---|---|
 | P2.0 设计冻结 | 需求、接口、方程、时间层、Stokes 去重、golden/test plan | 18 需求、18 决定、编号/链接/范围与 PR patch | 完成（PR #19） |
 | P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 完成（精确头 `41d0dbc20`；301/301） |
-| P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 下一步 |
+| P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 进行中（Cartesian 首增量 `f2c86ddf7`；D01--D03/Cartesian N05 PASS） |
 | P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 未开始 |
 | P2.4 积分与 golden | RK stage 时间插值、固定 Julia 对照 | B05、B16、收敛与 rollback | 未开始 |
 | P2.5 集成收口 | 全回归、MPI/restart、独立退出审计 | Phase 2 总门禁与 v0.3 决策 | 未开始 |
@@ -92,18 +92,18 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 
 ## 7. 唯一下一任务
 
-从 P2.1 精确功能头 `41d0dbc20` 创建
-`MITGCM-BOM/p2.2-derivatives`，首个 P2.2 增量只实现：
+从 P2.2 Cartesian 精确功能头 `f2c86ddf7` 继续同一工作包，下一增量只实现：
 
-- 冻结 derivative COMMON 存储、validity 和 OLD/NEW 发布边界；
-- 实现 Cartesian C-point 非均匀二阶 centered/允许的一侧差分；
-- 只使用全湿 stencil，禁止跨陆地取值或无效零填充；
-- 从 accepted OLD/NEW 构造时间 secant，并保持输入端点只读；
-- 先建立 P2-D01--D03 与不足 stencil 的 P2-N05 serial/MPI 门禁。
+- 未旋转 spherical-polar 的 `tauSphere=tan(latitude)/rSphere`，并验证
+  `rSphere`、纬度、`cos(latitude)`、`tan(latitude)` 和 `fCori`；
+- 在 stage-time 梯度插值后计算物质导数和
+  `vort=dEast(wNorth)-dNorth(wEast)+tauSphere*wEast`；
+- 建立 P2-D04、P2-D05 与剩余 spherical P2-N05 的 serial/MPI 门禁；
+- 保持 Cartesian `tauSphere=0` 和当前 D01--D03/N05 结果无回归。
 
-本首增量不加入 spherical covariant terms、P2.3 RHS、粒子 stage 调度或
-RK 接线。球面 `tauSphere`、covariant derivative 与 vorticity 在同一 P2.2
-工作包的下一增量完成后，才允许宣称 P2.2 关闭。
+本增量不加入 P2.3 `PAPER2024`/`JULIA` RHS、粒子 stage 调度或 RK 接线。
+P2-D01--D05、完整 P2-N05 和 accepted predecessor 回归全部通过前，不能
+宣称 P2.2 关闭。
 
 ## 8. P2.0 完成记录
 
@@ -195,3 +195,31 @@ RK 接线。球面 `tauSphere`、covariant derivative 与 vorticity 在同一 P2
   `423c679704876f68a4962f56c43bfe02f66a38f6088ef4914228170d61774d9c`；
 - P2.1 状态为完成；P2.2 成为唯一下一工作包。Draft PR #20 仍未合并，
   未创建 `MITGCM-BOM-v0.3`。
+
+## 14. P2.2 Cartesian derivative 首增量记录
+
+- 精确功能提交：`f2c86ddf73d2f0b8dc470ad6abcac68a48accaef`；
+- 在 accepted OLD/NEW east/north C 点场上构造四个空间梯度，使用非均匀
+  三点二阶 centered 或允许的一侧公式，所有分量共享全湿、可用且有限的
+  stencil；不可用点保持 invalid，禁止跨陆地取值或无效零填充；
+- derivative scratch 与环境 endpoint 在同一发布路径提交，失败时撤回环境
+  和梯度 readiness，accepted arrays/masks 保持不变；schema-2 仍只保存主
+  endpoint，读取后从恢复端点确定性重建导数；
+- `BOM_INTERP_ENV_DERIVATIVES` 复用权威 bracket 校验，并在 exact endpoint、
+  fresh bracket 和区间内部提供相同的 snap/linear 语义；非线性协变项尚未
+  在此例程中计算；
+- 精确导数门禁 ID：`p22-derivative-f2c86ddf7-attempt01`，串行/MPI4 构建、
+  P2-D01、P2-D02、Cartesian P2-N05 和 P2-D03 共 9/9 PASS；
+- 证据目录：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/`
+  `p22-derivatives/p22-derivative-f2c86ddf7-attempt01`；summary SHA-256 为
+  `a8ba156e5394634fb699b07ef7c83c6677696c11ae21a76ad7880d5ecd8afc8c`，
+  `SHA256SUMS` 文件 SHA-256 为
+  `b4500dfb6d2e8858bb68347c072ec0b3776131c1312d9077e2364c47469efe65`；
+- 同一精确头的 schema-2 pickup 回归 `p22-pickup-f2c86ddf7-attempt01`
+  为 10/10 PASS；summary SHA-256 为
+  `90f92e9ef047433f47f53d993a2a4392258668df3551fc74c17e3ad5db29e132`；
+- P2-D02 明确校正为：二次场验证 roundoff exactness，三次 manufactured
+  field 才用于产生非零截断误差并判定二阶收敛；这不扩展生产范围；
+- P2.2 尚未关闭；下一增量为 spherical `tauSphere`、`fCori`、协变 material
+  derivative、vorticity 和 P2-D04/D05/spherical N05；
+- 本地分支尚未推送，Draft PR #20 仍属于 P2.1，未创建 v0.3 tag。

@@ -61,7 +61,7 @@ Negative gates:
 | ID | Scenario | Requirements | Pass criterion |
 |---|---|---|---|
 | P2-D01 | Cartesian uniform/nonuniform grid, constant and affine vector fields | P2-R08, P2-R13 | constant derivative exact zero; affine derivatives meet scaled roundoff threshold |
-| P2-D02 | Cartesian quadratic fields with grid spacing halved | P2-R08 | centered and permitted one-sided gradients show order in `[1.8,2.2]` |
+| P2-D02 | Cartesian quadratic exactness plus cubic manufactured fields with grid spacing halved | P2-R08 | quadratic derivatives agree to roundoff; centered and permitted one-sided cubic errors show order in `[1.8,2.2]` |
 | P2-D03 | all-wet MPI halo/tile boundary affine fields, 1/2/4 ranks | P2-R08 | sorted C-point gradients and validity masks bitwise equal across decompositions |
 | P2-D04 | spherical zonal/meridional analytic fields at multiple latitudes | P2-R09, P2-R13 | physical gradients, `tauSphere` and covariant terms match analytic SI values |
 | P2-D05 | vorticity and `fCori` at C points, with/without explicit Stokes | P2-R09, P2-R10, P2-R11 | PAPER total and JULIA base-only vorticity match their separate oracles |
@@ -73,8 +73,11 @@ For affine derivatives the component threshold is
 abs(error) <= 512*epsilon(_RL)*max(1 s^-1, abs(expected), fieldScale/metricScale)
 ```
 
-with dimensional terms evaluated consistently in the test driver. Quadratic
-tests decide convergence order rather than using this roundoff threshold.
+with dimensional terms evaluated consistently in the test driver. A three-point
+Lagrange derivative is exact for a quadratic polynomial, so P2-D02 uses the
+quadratic field for exactness and a cubic manufactured field to obtain the
+nonzero truncation error needed for a meaningful second-order estimate. This is
+a scientific clarification of the frozen gate, not a production-scope change.
 
 ## 5. RHS component gates
 

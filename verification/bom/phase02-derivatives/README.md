@@ -14,3 +14,7 @@ Run with:
 ```bash
 verification/bom/phase02-derivatives/run_derivative_gate.sh
 ```
+
+The first exact-head result is recorded in `TEST_RESULTS.md`. This case remains
+the Cartesian portion of P2.2; spherical metric, covariant and vorticity gates
+are deliberately added in the next increment before the work package can close.
