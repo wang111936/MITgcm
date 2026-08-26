@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 2 slow-manifold verification
 
-Status: **P2.2 CLOSED; P2.3 IS THE UNIQUE NEXT WORK PACKAGE**
+Status: **P2.3 CLOSED; P2.4 IS THE UNIQUE NEXT WORK PACKAGE**
 
 This directory is the source-controlled design and verification index for
 Phase 2. P2.0 remains the normative frozen contract. P2.1 has runtime
@@ -9,6 +9,9 @@ publication, BOM-owned exact-time EXF wind and FILES Stokes, compiled copied
 COUPLER Stokes publication, accepted-bracket stage-time interpolation, and
 schema-2 field pickup. P2.2 adds accepted C-point SI gradients, spherical
 metrics, finite-checked covariant terms, and vorticity operator candidates.
+P2.3 adds separate stateless PAPER combined-total and JULIA weighted
+per-source RHS paths, stable 27-component diagnostics, explicit/precombined
+Stokes policy, and final-drift CFL/rollback checks.
 
 ## P2.0 documents
 
@@ -46,7 +49,7 @@ authority for grid metrics, lifecycle ordering, MPI, and I/O.
 |---|---|---|
 | P2.1 (closed) | old/new endpoint storage, source providers, time interpolation, schema-2 field pickup | P2-E01--E06, P2-N01--N04 and all Phase-1 regressions |
 | P2.2 (closed) | C-point SI gradients, covariant terms, vorticity, metric validity | P2-D01--D05 and P2-N05 |
-| P2.3 (next) | stateless `PAPER2024`/`JULIA` component RHS and diagnostics | P2-H01--H06 and P2-N06 |
+| P2.3 (closed) | stateless `PAPER2024`/`JULIA` component RHS and diagnostics | P2-H01--H06 and P2-N06 |
 | P2.4 | stage-time RK integration, B04/B05, fixed Julia B16 files and checksums | P2-I01--I06 and P2-N07 |
 | P2.5 | schema-2 output/restart integration, 1/2/4-rank, FLT coexistence, full regression | P2-P01--P04, P2-M01, P2-K01 and P2-G01 |
 
@@ -68,21 +71,22 @@ Executable work starts in P2.1. All generated content remains outside Git:
 Drivers must reject reuse of a test ID. Compact Markdown results and
 manifests may be committed only after execution on a clean exact source head.
 
-## Accepted P2.2 boundary and unique next task
+## Accepted P2.3 boundary and unique next task
 
-P2.2 functional head `5d4b91831` passes P2-D01--D05 and complete P2-N05
-16/16, the accepted endpoint gate 34/34, schema-2 pickup 10/10, and all
-Phase-1/Phase-0 predecessors 257/257. The independently hashed aggregate is
-`p22-closure/p22-closure-5d4b91831-attempt02`, totaling 317/317. This closes
-C-point derivative construction, Cartesian/spherical metric validity, and the
-stateless covariant/vorticity operator boundary.
+P2.3 functional head `fb004faf7` passes P2-H01--H06 and complete P2-N06
+18/18, P2.2 derivatives 16/16, accepted P2.1 endpoint/provider 34/34,
+schema-2 pickup 10/10, and all Phase-1/Phase-0 predecessors 257/257. The
+independently hashed aggregate is
+`p23-closure/p23-closure-fb004faf7-attempt01`, totaling 335/335. This closes
+the separate stateless equation paths, 27-component diagnostics, Stokes
+de-duplication consumer, SI/sign matrix, finite/overflow handling, final
+drift CFL, and no-particle-commit boundary.
 
-The unique next implementation task is P2.3. It must consume field values,
-time derivatives, spatial derivatives, `tauSphere`, and MITgcm `fCori` at one
-stage position/time; then implement separate stateless `PAPER2024` and `JULIA`
-component paths. PAPER forms nonlinear material derivatives and vorticity
-from combined total fields. JULIA preserves weighted per-source derivatives
-and base-current vorticity. P2-H01--H06/P2-N06 must directly verify signs,
-units, Stokes policy diagnostics, finite/overflow handling, and no particle
-commit. RK stage wiring, B04/B05/B16 trajectories, merge, and v0.3 remain
-outside this next increment.
+The unique next implementation task is P2.4. It must interpolate accepted
+field values and derivatives at every RK stage position/time, call the P2.3
+stateless dispatcher, and retain all-or-nothing particle updates. P2-I01--I06
+and P2-N07 must cover B04 solid rotation, B05 time-varying uniform flow,
+method and endpoint-refinement convergence, and fixed checksummed B16 Julia
+RHS/trajectories. P2.4 must not change the frozen P2.3 equations or Stokes
+policy. Final output/pickup integration, 1/2/4-rank closure, FLT coexistence,
+merge, release, and v0.3 remain later scope.

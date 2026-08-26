@@ -59,6 +59,10 @@ external environmental datasets remain outside the repository.
   derivative interpolation, Cartesian/spherical metric validity, MITgcm
   `fCori`, finite-checked covariant/vorticity operators, transactional
   rollback, and serial/MPI4 bitwise decomposition gates;
+- `phase02-rhs-components/`: P2.3 separate stateless `PAPER2024` and `JULIA`
+  slow-manifold component operators, 27 diagnostic candidates, explicit/
+  precombined Stokes policy, SI/sign/finite/CFL checks, rollback, and
+  serial/MPI4 bitwise decomposition gates;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 

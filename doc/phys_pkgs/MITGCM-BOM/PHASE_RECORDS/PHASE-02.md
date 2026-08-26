@@ -8,8 +8,8 @@
 | 基线 tag object | `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1` |
 | 基线提交 | `1067c21d230e9c9619e89245b97c01e9474c7ed7` |
 | 准入日期 | 2026-08-25 |
-| 状态 | **进行中（P2.2 已在精确功能头 `5d4b91831` 关闭）** |
-| 当前工作包 | P2.3 stateless `PAPER2024`/`JULIA` 慢流形 RHS |
+| 状态 | **进行中（P2.3 已在精确功能头 `fb004faf7` 关闭）** |
+| 当前工作包 | P2.4 RK stage-time 集成与 B04/B05/B16 golden |
 | 准入记录 | PR #17/#18 已合并；当前集成基线 `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` |
 | P2.0 记录 | PR #19；设计提交 `628a6bb4621429bf6f58e9e46a13216c21de7815` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
@@ -60,7 +60,7 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 | P2.0 设计冻结 | 需求、接口、方程、时间层、Stokes 去重、golden/test plan | 18 需求、18 决定、编号/链接/范围与 PR patch | 完成（PR #19） |
 | P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 完成（精确头 `41d0dbc20`；301/301） |
 | P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 完成（精确头 `5d4b91831`；317/317） |
-| P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 下一工作包（未开始） |
+| P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 完成（精确头 `fb004faf7`；335/335） |
 | P2.4 积分与 golden | RK stage 时间插值、固定 Julia 对照 | B05、B16、收敛与 rollback | 未开始 |
 | P2.5 集成收口 | 全回归、MPI/restart、独立退出审计 | Phase 2 总门禁与 v0.3 决策 | 未开始 |
 
@@ -84,30 +84,29 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 - [x] P2.0 设计、需求、接口和测试契约已冻结并通过 PR #19 补丁复审；
 - [x] P2.1 exact endpoints、时间插值、schema-2 field pickup 与全部前序回归通过；
 - [x] P2.2 C-point 导数、球面度量、协变/涡度算子与全部前序回归通过；
+- [x] P2.3 双模式 stateless RHS、Stokes 去重、SI/符号与 N06 rollback 通过；
 - [ ] P2.0—P2.5 全部完成并顺序集成；
 - [ ] B04、B05、B16 与 RK 收敛门禁通过；
-- [ ] `PAPER2024`/`JULIA` 分量、Stokes 去重和单位/符号有直接证据；
+- [x] `PAPER2024`/`JULIA` 分量、Stokes 去重和单位/符号有直接证据；
 - [ ] 1/2/4-rank、连续/restart 与全部 Phase 1/Phase 0 回归通过；
 - [ ] Julia golden 从 provisional 升级或保留限制有新的明确裁决；
 - [ ] 创建 `MITGCM-BOM-v0.3` 前完成独立退出审计。
 
 ## 7. 唯一下一任务
 
-从已关闭的 P2.2 精确功能头 `5d4b91831` 开始 P2.3，下一增量只实现：
+从已关闭的 P2.3 精确功能头 `fb004faf7` 开始 P2.4，下一增量只实现：
 
-- stateless `BOM_RHS_PAPER2024`：先在同一 stage time/position 合成 total
-  ocean 与 carrying flow，再形成非线性 covariant material derivative 和
-  total vorticity；
-- stateless `BOM_RHS_JULIA`：保持锁定源码的 per-source material derivative
-  加权和 base-current-only vorticity，不把两种模式合并为一个近似路径；
-- 共享的 SI 参数、`tauSphere`、MITgcm `fCori`、分量符号、有限/溢出保护、
-  稳定 failure/stage context 和只写候选诊断；
-- P2-H01--H06/P2-N06 的解析、区分场、显式/预合成 Stokes、Cartesian/
-  spherical、serial/MPI 与 rollback 门禁。
+- 在 RK2/RK4 的每个 stage position/time 调用已验收的 field/derivative
+  interpolation 和 P2.3 dispatcher，保留稳定 failure/stage context；
+- B04 solid-body rotation 的分量、轨迹和收敛；
+- B05 time-varying uniform flow 的 exact displacement、stage-time sampling
+  与 endpoint refinement order；
+- 固定、带校验和的 B16 Julia RHS/trajectory generator 与比较器；
+- P2-I01--I06/P2-N07 的串行/MPI、method order、golden 与 rollback 门禁。
 
-P2.3 不接入粒子 RK stage 或 `BOM_MAIN` 提交，不实现 B04/B05/B16
-trajectory，不修改 schema-2 pickup，不合并 PR 或创建 v0.3 tag。非线性
-项必须在 stage-time field/derivative 插值之后形成。
+P2.4 不修改 P2.3 已冻结的 PAPER/JULIA 方程、诊断索引或 Stokes policy，
+不提前完成 P2.5 output/pickup/FLT/1-2-4-rank 最终集成，不合并既有 PR，
+不创建 v0.3 tag。
 
 ## 8. P2.0 完成记录
 
@@ -255,3 +254,28 @@ trajectory，不修改 schema-2 pickup，不合并 PR 或创建 v0.3 tag。非�
   source head 与空 Git 状态均通过自验证；
 - P2.2 状态为完成；唯一下一工作包为 P2.3。P2.2 分支按用户要求以
   完整工作包为远端批量同步单位，未创建 v0.3 tag。
+
+## 16. P2.3 双模式 RHS 与工作包关闭
+
+- 精确功能提交：`fb004faf735e638c9248beabc49422b05aa09eb7`；
+- `BOM_RHS_PAPER2024` 形成 combined-total material derivative、total
+  vorticity 和论文分量；`BOM_RHS_JULIA` 保持 locked per-source derivative
+  加权与 base-current vorticity；统一 dispatcher 只在全部成功后发布；
+- 27 个稳定诊断索引覆盖合成速度、物质导数、涡度、旋转、惯性响应、
+  final drift 与 native coordinate rate；final drift 决定 stage CFL；
+- EULERIAN explicit Stokes 与合法 PRECOMBINED 等价，duplicate 在读取坏
+  source 前按 policy 拒绝；缺席 Stokes 必须 finite exact zero；
+- 精确门禁 `p23-rhs-fb004faf7-attempt01` 为 18/18，serial/MPI4 八条
+  records 位级一致，N06 的 17 项错误/溢出注入均无粒子或诊断提交；
+- 同一精确头上 P2.2 16/16、P2.1 endpoint/pickup 34/34 与 10/10、
+  Phase-1/Phase-0 257/257；19 组总计 335/335 PASS；
+- 聚合证据：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/`
+  `p23-closure/p23-closure-fb004faf7-attempt01`；
+- `row-audit.tsv` SHA-256：
+  `290b3626e8343ae389f2227425ddf4b3591b4fa2f3e8ed54a08090c7b418c13e`；
+- `manifest.sha256` SHA-256：
+  `9feacb71d499c8327b9d2b6ba5c61d6e53ffa7c521dd4e7aba93bc4b32a8fb42`；
+- 19 份 summary、13 份原生 manifest、40 份聚合文件与 55 项原生文件
+  校验均通过；精确 source head 与 Git status 为空；
+- P2.3 状态为完成；唯一下一工作包为 P2.4。未接入 RK/Main、未改
+  pickup、未实现 B04/B05/B16，未创建 v0.3 tag。
