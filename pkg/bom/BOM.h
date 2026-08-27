@@ -4,7 +4,7 @@ C     !INTERFACE:
 C     #include "BOM.h"
 
 C     !DESCRIPTION:
-C     Runtime controls, compact P1.4 owner state, and surface grid fields.
+C     Runtime controls, compact owner state, and environmental grid fields.
 CEOP
 
       CHARACTER*8  bomMode
@@ -226,6 +226,12 @@ C     bomNPartExpected is the immutable successful initial owner budget.
      &       bomX, bomY, bomReleaseTime, bomAge, bomI, bomJ,
      &       bomVEast, bomVNorth, bomWindEast, bomWindNorth,
      &       bomDriftEast, bomDriftNorth
+
+C--   Phase-2 accepted final-position diagnostic vector.  Schema-2
+C     trajectory and pickup persistence remain the P2.5 integration task.
+      _RL bomRhsDiag(
+     &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_STATE_DIAG_R/ bomRhsDiag
 
 C--   Static regular-grid mapping and surface-field publication state.
       _RL bomMapXLo

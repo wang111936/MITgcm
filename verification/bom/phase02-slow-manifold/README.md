@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 2 slow-manifold verification
 
-Status: **P2.3 CLOSED; P2.4 IS THE UNIQUE NEXT WORK PACKAGE**
+Status: **P2.4 CLOSED; P2.5 IS THE UNIQUE NEXT WORK PACKAGE**
 
 This directory is the source-controlled design and verification index for
 Phase 2. P2.0 remains the normative frozen contract. P2.1 has runtime
@@ -12,6 +12,10 @@ metrics, finite-checked covariant terms, and vorticity operator candidates.
 P2.3 adds separate stateless PAPER combined-total and JULIA weighted
 per-source RHS paths, stable 27-component diagnostics, explicit/precombined
 Stokes policy, and final-drift CFL/rollback checks.
+P2.4 adds exact stage-position/time sampling, transactional production RK2
+and RK4, live 27-component diagnostic state, B04/B05 analytical convergence,
+and locked B16 Julia RHS/fixed-trajectory evidence. Adaptive Tsit5 output is
+retained separately as non-gating context.
 
 ## P2.0 documents
 
@@ -50,7 +54,7 @@ authority for grid metrics, lifecycle ordering, MPI, and I/O.
 | P2.1 (closed) | old/new endpoint storage, source providers, time interpolation, schema-2 field pickup | P2-E01--E06, P2-N01--N04 and all Phase-1 regressions |
 | P2.2 (closed) | C-point SI gradients, covariant terms, vorticity, metric validity | P2-D01--D05 and P2-N05 |
 | P2.3 (closed) | stateless `PAPER2024`/`JULIA` component RHS and diagnostics | P2-H01--H06 and P2-N06 |
-| P2.4 | stage-time RK integration, B04/B05, fixed Julia B16 files and checksums | P2-I01--I06 and P2-N07 |
+| P2.4 (closed) | stage-time RK integration, B04/B05, fixed Julia B16 files and checksums | P2-I01--I06 and P2-N07 |
 | P2.5 | schema-2 output/restart integration, 1/2/4-rank, FLT coexistence, full regression | P2-P01--P04, P2-M01, P2-K01 and P2-G01 |
 
 A later work package may refine internal implementation details, but it may
@@ -71,22 +75,19 @@ Executable work starts in P2.1. All generated content remains outside Git:
 Drivers must reject reuse of a test ID. Compact Markdown results and
 manifests may be committed only after execution on a clean exact source head.
 
-## Accepted P2.3 boundary and unique next task
+## Accepted P2.4 boundary and unique next task
 
-P2.3 functional head `fb004faf7` passes P2-H01--H06 and complete P2-N06
-18/18, P2.2 derivatives 16/16, accepted P2.1 endpoint/provider 34/34,
-schema-2 pickup 10/10, and all Phase-1/Phase-0 predecessors 257/257. The
-independently hashed aggregate is
-`p23-closure/p23-closure-fb004faf7-attempt01`, totaling 335/335. This closes
-the separate stateless equation paths, 27-component diagnostics, Stokes
-de-duplication consumer, SI/sign matrix, finite/overflow handling, final
-drift CFL, and no-particle-commit boundary.
+P2.4 functional head `4b2d09d40` passes stage/RK B04/B05 11/11, B16/N07
+12/12, P2.3 RHS 18/18, P2.2 derivatives 16/16, accepted P2.1
+endpoint/provider and pickup 44/44, and all Phase-1/Phase-0 predecessors
+257/257. The independently hashed aggregate is
+`p24-closure/p24-closure-4b2d09d40-attempt01`, totaling 358/358. This closes
+exact stage-position/time sampling, RK2/RK4 all-or-nothing updates, B04/B05
+convergence, fixed checksummed B16 JULIA RHS/trajectories, and complete N07.
+It does not change the frozen P2.3 equations or Stokes policy.
 
-The unique next implementation task is P2.4. It must interpolate accepted
-field values and derivatives at every RK stage position/time, call the P2.3
-stateless dispatcher, and retain all-or-nothing particle updates. P2-I01--I06
-and P2-N07 must cover B04 solid rotation, B05 time-varying uniform flow,
-method and endpoint-refinement convergence, and fixed checksummed B16 Julia
-RHS/trajectories. P2.4 must not change the frozen P2.3 equations or Stokes
-policy. Final output/pickup integration, 1/2/4-rank closure, FLT coexistence,
-merge, release, and v0.3 remain later scope.
+The unique next implementation task is P2.5. It must integrate the new live
+diagnostic state into the frozen schema-2 output/pickup contract, prove
+same-decomposition restart and 1/2/4-rank total-system consistency, preserve
+FLT isolation, and execute P2-P01--P04, P2-M01, P2-K01 and final P2-G01.
+Merge, release and `MITGCM-BOM-v0.3` remain outside the closed P2.4 scope.

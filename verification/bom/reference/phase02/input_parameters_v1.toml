@@ -1,0 +1,28 @@
+schema = "MITGCM-BOM-B16-v1"
+coordinate_system = "cartesian_m"
+all_wet = true
+x_min_m = 0.0
+x_max_m = 400000.0
+y_min_m = 0.0
+y_max_m = 300000.0
+t_start_s = 0.0
+t_end_s = 86400.0
+fixed_dt_s = 900.0
+
+[bom]
+equation_mode = "JULIA"
+current_policy = "EULERIAN"
+alpha = 0.00337
+tau_days = 0.0103
+r = 0.823
+sigma = 1.2
+f_per_day = 2.18213
+tau_sphere_m_inv = 0.0
+
+[locks]
+julia_version = "1.10.12"
+julia_archive_sha256 = "b0c50dfe349d76ffc8580d24e0c0be623988a6d91ed57ad8b73c0137fd27bc0d"
+sargassum_bomb_commit = "156557359185e4413ce82829f3ed26a4eb8c6283"
+sargassum_physics_sha256 = "1acef9ed3c8d13646c95799565387a4add76e839827cea1c0e745ced73f1885d"
+project_sha256 = "12cfb1288a21b19216662a719d430bf41b5587dfd8b00e973f8b3c9c25f1f99d"
+manifest_sha256 = "86aeeb80ac54752316307a7eed2329c5d06dad2d680e52ef3b98e3c514b5e695"

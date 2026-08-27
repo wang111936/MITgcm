@@ -63,6 +63,13 @@ external environmental datasets remain outside the repository.
   slow-manifold component operators, 27 diagnostic candidates, explicit/
   precombined Stokes policy, SI/sign/finite/CFL checks, rollback, and
   serial/MPI4 bitwise decomposition gates;
+- `phase02-stage-rk/`: P2.4 exact stage-position/time environment sampling,
+  transactional production RK2/RK4, B04/B05 analytical convergence,
+  rollback, and serial/MPI4 gates;
+- `phase02-b16/`: P2.4 fail-closed locked Julia preflight, 27-component RHS
+  comparison, fixed-step RK2/RK4 trajectory comparison, and N07 mutations;
+- `reference/phase02/`: checksummed B16 inputs, fixed-step golden files, and
+  a separately marked non-gating adaptive Tsit5 context trajectory;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 
