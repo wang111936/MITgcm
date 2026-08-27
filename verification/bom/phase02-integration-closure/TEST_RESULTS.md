@@ -35,3 +35,35 @@ and the Phase-2 integration boundary for the supported same-decomposition
 restart contract. Changed-decomposition restart remains rejected by design.
 
 No tag or merge is authorized by this result file.
+
+## Post-merge Phase 2 release gate
+
+PR #20--#24 were subsequently reviewed and merged in dependency order. The
+merged production head is `f71e76e89864ab3c6f32de3770efca39f5f819e5` and is
+tree-identical to the reviewed P2.5 branch head
+`560577dfac0ca52195102e7e0ae6f25bc1cde4ea`.
+
+The independent exit audit added the two integrated P2.4 closure README paths
+to this gate's exact allowlist, producing audit head
+`db41805cda3a10fe9b96889c87069c6347788cbc`. No production source, driver,
+input or reference changed. The fresh exact-head release run is therefore the
+authoritative post-merge P2-G01 result: **390/390 PASS**.
+
+- test ID: `p2-integrated-g01-db41805cd-attempt02`;
+- evidence root:
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p25-closure/`
+  `p2-integrated-g01-db41805cd-attempt02`;
+- independent audit: PASS for one allowlisted audit file and 390 rows;
+- `row-audit.tsv` SHA-256:
+  `d29712970d8de8db828c0611384de38f7680047c001494b3917cce4fc04e677a`;
+- `manifest.sha256` SHA-256:
+  `ce29af66b0a3b925cce2bc8c70a1a937aff94a621d3f6bc10b314e26b5a5b85c`;
+- captured Git status: empty.
+
+Attempt01 is retained but is non-authoritative: a global artifact-root override
+was inherited by nested drivers and moved their summaries away from the
+aggregator's frozen lookup paths. Attempt02 removed that configuration error.
+
+The ordered merge record and release conclusion are in
+`../phase02-slow-manifold/PHASE2_INTEGRATION_RESULTS.md` and
+`../phase02-slow-manifold/PHASE2_EXIT_AUDIT.md`.

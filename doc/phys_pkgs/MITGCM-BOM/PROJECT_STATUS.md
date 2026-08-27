@@ -4,28 +4,28 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-26 |
+| 最后更新 | 2026-08-27 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p2.3-rhs-components` |
-| 当前阶段 PR | P2.1 Draft PR #20、P2.2 Draft PR #21 保持开放；P2.3 完整工作包形成后只批量同步一次 |
-| 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
-| 当前工作包 | P2.3 完成：双模式 RHS 18/18，含 P2.2/P2.1 与前序总计 335/335 |
-| 下一工作包 | P2.4 RK stage 接线与 B04/B05/B16、P2-I01--I06/P2-N07 |
+| 当前任务分支 | `MITGCM-BOM/development`（退出审计合并后恢复点） |
+| 当前阶段 PR | PR #20--#24 已顺序 merge；Phase 2 退出审计 PR 是 v0.3 发布边界 |
+| 当前阶段 | Phase 2：慢流形惯性物理（完成） |
+| 当前工作包 | 最终集成门禁 390/390 PASS；独立退出审计 PASS |
+| 下一工作包 | Phase 3 P3.0 设计/接口/测试冻结 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
-2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
-3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 核对当前分支为 `MITGCM-BOM/p2.3-rhs-components`，精确功能头 `fb004faf7` 的 P2.3 关闭证据为 335/335；
-5. 从 P2.4 开始，把 stage-time field/derivative interpolation 与 P2.3 dispatcher 接入 RK2/RK4，并建立 B04/B05/B16 轨迹及 P2-I01--I06/P2-N07；
-6. P2.4 不修改已冻结的双模式方程或 Stokes policy，不提前进入 P2.5，不创建 v0.3 tag；GitHub 继续采用完整工作包批量推送。
+1. 核对 `MITGCM-BOM-v0.3` 已发布并 peel 到 Phase 2 退出审计 merge commit；
+2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md)、[最终集成结果](../../../verification/bom/phase02-slow-manifold/PHASE2_INTEGRATION_RESULTS.md) 和 [退出审计](../../../verification/bom/phase02-slow-manifold/PHASE2_EXIT_AUDIT.md)；
+3. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为进入 Phase 3 的本地基线；
+4. 核对 Phase 2 生产集成头 `f71e76e8` 与最终 audit head `db41805c` 的 390/390 证据及空 Git 状态；
+5. 创建独立 Phase 3 阶段记录，首先执行 P3.0 设计/接口/测试冻结；
+6. P3.0 只冻结 K-neighbor、cell-linked-list、ghost exchange、spring/raft 与 B07--B09/B17/performance 契约，不提前加入生产 Fortran。
 
 开始前执行：
 
@@ -42,8 +42,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1--P2.3 完成；P2.3 精确头 `fb004faf7` 聚合 335/335；P2.4 下一 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
-| Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
+| Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 3 弹簧与邻居 | 未开始 | v0.4 | Phase 2 门禁通过；下一步 P3.0 冻结 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
@@ -258,19 +258,45 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - P2.3 未接入 `BOM_MAIN`/RK、未改 pickup、未实现 B04/B05/B16；P2.4
   成为唯一下一工作包。无开放实现 finding，未创建 v0.3 tag。
 
+### P2.4 stage-aware RK 与 locked Julia golden
+
+- 功能提交 `4b2d09d40b96cd4408a64e1ee0d4716b7a6255ad` 完成每 stage
+  exact-time field/derivative sampling、双模式 RHS 与事务 RK2/RK4；
+- B04/B05 stage/RK 11/11，B16/N07 12/12，同头完整聚合 358/358 PASS；
+- B16 固定步 RHS/RK2/RK4 成为 checksummed gating oracle；adaptive Tsit5
+  保留为可重复但 non-gating 的上下文；
+- P2.4 关闭提交 `618ccbe329b5e54287965bf3ffabb2b40932acb5`，PR #23 以
+  merge commit `bb641b9d1c29efac9935e056cddd1e6b903005fe` 集成。
+
+### P2.5 集成收口与 Phase 2 最终门禁
+
+- 功能提交 `d37dccae7d7c219deeafbea5bee65b880a48efd0` 完成 live schema-2
+  output/pickup、同分解 restart、1/2/4-rank 与 FLT/BOM coexistence；
+- changed-decomposition restart 保持显式拒绝，不在 Phase 2 静默放宽；
+- PR #20--#24 顺序 merge commit 集成，最终生产头为
+  `f71e76e89864ab3c6f32de3770efca39f5f819e5`；
+- 退出审计头 `db41805cda3a10fe9b96889c87069c6347788cbc` 只增加两个已集成
+  P2.4 README 的 allowlist 路径，生产树与最终 development 一致；
+- 权威 `p2-integrated-g01-db41805cd-attempt02` 为 390/390 PASS；row audit
+  与 manifest SHA-256 分别为
+  `d29712970d8de8db828c0611384de38f7680047c001494b3917cce4fc04e677a`
+  和 `ce29af66b0a3b925cce2bc8c70a1a937aff94a621d3f6bc10b314e26b5a5b85c`；
+- P2-R01--P2-R18 全部关闭，独立退出审计 PASS、无开放 finding；目标
+  服务器 HPC 仍归 Phase 5，不阻塞 P3.0。
+
 ## 4. 未决问题与风险
 
 | ID | 风险 | 当前处理 | 阻塞阶段 |
 |---|---|---|---|
-| R-001 | 上游 Julia 提交没有根级 Manifest | 使用固定自定义注册表重建并保存 Manifest；golden 测试继续验证 | Phase 2 |
-| R-002 | 论文方程与旧 Julia 行为可能不完全一致 | 保留 `PAPER2024` 与 `JULIA` 两种明确模式 | Phase 2 |
+| R-001 | 上游 Julia 提交没有根级 Manifest | 固定重建环境与校验和；B16 fixed-step golden 已通过，保留上游限制记录 | 已裁决，不阻塞 |
+| R-002 | 论文方程与旧 Julia 行为可能不完全一致 | `PAPER2024` 与 `JULIA` 分离实现并通过逐分量/轨迹门禁 | 已关闭 |
 | R-003 | 分布式弹簧邻居复杂度高 | 先建立小规模 gather oracle，再实现 cell-linked list | Phase 3 |
 | R-004 | 目标服务器工具链尚未确定 | 本地 GNU/MPI 为基线，服务器 optfile 在 Phase 5 单独建立 | Phase 5 |
 | R-005 | 一般网格迁移不能直接继承 FLT | Phase 6 后置并建立专门拓扑测试 | Phase 6 |
 | R-006 | GitHub 仓库当前关闭 Issues | 暂用阶段分支、提交和本状态账本记录；启用 Issues 后补建阶段 Issue | 不阻塞源码开发 |
 | R-007 | 固定 Julia 提交的自带测试调用不存在的函数；默认场失败时只警告 | 不修改参考源码；保存失败证据，另建 BOM 解析场和 smoke/golden 测试 | Phase 0/2 |
 | R-008 | MITgcm 的 Fortran `STOP` 可能返回 0，截断文件也可能由运行时直接终止 | 驱动禁止只看退出码，同时识别正常结束、MITgcm 异常和 Fortran runtime error | Phase 0/CI |
-| R-009 | Phase 1 海洋步内冻结环境场，对真实时变驱动不具高阶时间精度 | 输出明确标记 `STEP_END_FROZEN`；Phase 2 以 old/new 快照和 B05 升级 | Phase 2 |
+| R-009 | Phase 1 海洋步内冻结环境场，对真实时变驱动不具高阶时间精度 | Phase 2 old/new stage-time interpolation 与 B05 endpoint-refinement 已通过 | 已关闭 |
 | R-010 | Phase 1 pickup 只支持相同 MPI/tile 分解 | 写入并核对分解签名；变分解重启明确拒绝，后续单独设计 | Phase 5 |
 | R-011 | P1.1 为小型验证文件采用每 rank 全量读取 | 以 `bomInitGlobalLimit` 硬限制；P1.5 前复核可扩展分片读取，禁止直接用于百万粒子 | Phase 1.5 |
 | R-012 | P1.1 locator 只覆盖规则原生坐标初值分发 | 已由 P1.2 映射核心与兼容包装关闭；完整映射、P1.1 和 Phase 0 门禁已通过 | 已关闭 |
@@ -724,6 +750,36 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   B04/B05/B16 和 P2-I01--I06/P2-N07；不提前进入 P2.5；
 - 用户要求减少 GitHub 推送，本工作包只在代码、测试、证据和文档全部
   完成后批量同步一次；不合并既有 PR，不创建 v0.3 tag。
+
+### 2026-08-27：P2.4/P2.5 关闭与 PR #20--#24 顺序集成
+
+- P2.4 精确功能头 `4b2d09d40` 通过 stage/RK 11/11、B16/N07 12/12
+  及前序总计 358/358；关闭提交为 `618ccbe329`；
+- P2.5 精确功能头 `d37dccae7` 通过 integration 20/20、BOM coexistence
+  12/12 与前序总计 390/390；关闭提交为 `560577dfac`；
+- PR #20--#24 按依赖顺序全部转 Ready，并使用 merge commit 合并到
+  `MITGCM-BOM/development`；合并提交为 `4771bdb9`、`6c9d94e5`、
+  `8730fe90`、`bb641b9d`、`f71e76e8`；
+- 最终 development tree 与 P2.5 关闭头 tree 完全一致；合并前/后未创建
+  `MITGCM-BOM-v0.3`，满足“集成测试前不创建标签”的发布边界。
+
+### 2026-08-27：Phase 2 最终 390 门禁与退出审计
+
+- 从合并生产头建立 `MITGCM-BOM/phase-02-exit-audit`；提交
+  `db41805cda3a10fe9b96889c87069c6347788cbc` 只把两个 P2.4 README
+  加入 P2.5 独立审计 allowlist，不修改生产源码或测试驱动；
+- attempt01 因全局 artifact-root override 被嵌套驱动继承，summary 写入
+  非冻结位置而停止，保留为非权威配置诊断；
+- 修正后的 `p2-integrated-g01-db41805cd-attempt02` 在干净精确头上通过
+  23 组 390/390；captured Git status 为空，manifest 自校验 PASS；
+- 证据根为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p25-closure/`
+  `p2-integrated-g01-db41805cd-attempt02`；row audit 与 manifest SHA-256
+  分别为 `d29712970d8de8db828c0611384de38f7680047c001494b3917cce4fc04e677a`
+  和 `ce29af66b0a3b925cce2bc8c70a1a937aff94a621d3f6bc10b314e26b5a5b85c`；
+- P2-R01--P2-R18、全部退出条件和 Julia golden 裁决均关闭；独立退出
+  审计为 PASS、无开放 finding；
+- 下一动作是合并退出审计 PR，在其 merge commit 上创建并推送 annotated
+  tag `MITGCM-BOM-v0.3`；之后从 P3.0 设计/接口/测试冻结开始 Phase 3。
 
 ## 6. 每次会话结束时必须更新
 
