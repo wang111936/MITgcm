@@ -12,11 +12,15 @@ CEOP
       CHARACTER*8  bomIntegrator
       CHARACTER*8  bomWindSource
       CHARACTER*8  bomStokesSource
+      CHARACTER*12 bomCurrentPolicy
       CHARACTER*(MAX_LEN_FNAM) bomInitialFile
+      CHARACTER*(MAX_LEN_FNAM) bomUStokesFile
+      CHARACTER*(MAX_LEN_FNAM) bomVStokesFile
       COMMON /BOM_PARM_C/
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomWindSource, bomStokesSource,
-     &       bomInitialFile
+     &       bomCurrentPolicy, bomInitialFile,
+     &       bomUStokesFile, bomVStokesFile
 
       _RL bomDeltaTTarget
       _RL bomOutputFreq
@@ -24,18 +28,32 @@ CEOP
       _RL bomLeewayWindCoeff
       _RL bomWetWeightMin
       _RL bomAdvCFL
+      _RL bomAlpha
+      _RL bomTauDays
+      _RL bomTau
+      _RL bomR
+      _RL bomSigma
+      _RL bomStokesStartTime
+      _RL bomStokesPeriod
+      _RL bomStokesRepCycle
+      _RL bomStokesInScale
       COMMON /BOM_PARM_R/
      &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
-     &       bomLeewayWindCoeff, bomWetWeightMin, bomAdvCFL
+     &       bomLeewayWindCoeff, bomWetWeightMin, bomAdvCFL,
+     &       bomAlpha, bomTauDays, bomTau, bomR, bomSigma,
+     &       bomStokesStartTime, bomStokesPeriod,
+     &       bomStokesRepCycle, bomStokesInScale
 
       INTEGER bomSeed
       INTEGER bomMaxParticles
       INTEGER bomMaxHop
       INTEGER bomInitGlobalLimit
       INTEGER bomInitialIter
+      INTEGER bomStokesFilePrec
       COMMON /BOM_PARM_I/
      &       bomSeed, bomMaxParticles, bomMaxHop,
-     &       bomInitGlobalLimit, bomInitialIter
+     &       bomInitGlobalLimit, bomInitialIter,
+     &       bomStokesFilePrec
 
       LOGICAL bomCheckEverySubstep
       COMMON /BOM_PARM_L/ bomCheckEverySubstep
@@ -76,6 +94,13 @@ C     failure in one trial is retained; numeric codes must not be reused.
       INTEGER BOM_FAIL_CFL
       INTEGER BOM_FAIL_STATE
       INTEGER BOM_FAIL_RELEASE
+      INTEGER BOM_FAIL_FIELD_TIME
+      INTEGER BOM_FAIL_FIELD_SOURCE
+      INTEGER BOM_FAIL_METRIC
+      INTEGER BOM_FAIL_GRADIENT
+      INTEGER BOM_FAIL_EQUATION
+      INTEGER BOM_FAIL_STOKES_DUPLICATE
+      INTEGER BOM_FAIL_PICKUP_SCHEMA
       PARAMETER ( BOM_FAIL_NONE      = 0 )
       PARAMETER ( BOM_FAIL_MAP       = 1 )
       PARAMETER ( BOM_FAIL_OWNER     = 2 )
@@ -85,6 +110,13 @@ C     failure in one trial is retained; numeric codes must not be reused.
       PARAMETER ( BOM_FAIL_CFL       = 6 )
       PARAMETER ( BOM_FAIL_STATE     = 7 )
       PARAMETER ( BOM_FAIL_RELEASE   = 8 )
+      PARAMETER ( BOM_FAIL_FIELD_TIME       = 9 )
+      PARAMETER ( BOM_FAIL_FIELD_SOURCE     = 10 )
+      PARAMETER ( BOM_FAIL_METRIC           = 11 )
+      PARAMETER ( BOM_FAIL_GRADIENT         = 12 )
+      PARAMETER ( BOM_FAIL_EQUATION         = 13 )
+      PARAMETER ( BOM_FAIL_STOKES_DUPLICATE = 14 )
+      PARAMETER ( BOM_FAIL_PICKUP_SCHEMA    = 15 )
 
 C--   Stable Runge--Kutta diagnostic stage values.  FINAL is the
 C     accepted-position refresh, not an additional integration stage.
@@ -94,12 +126,18 @@ C     accepted-position refresh, not an additional integration stage.
       INTEGER BOM_STAGE_K3
       INTEGER BOM_STAGE_K4
       INTEGER BOM_STAGE_FINAL
+      INTEGER BOM_STAGE_FIELD_OLD
+      INTEGER BOM_STAGE_FIELD_NEW
+      INTEGER BOM_STAGE_DERIVATIVE
       PARAMETER ( BOM_STAGE_NONE  = 0 )
       PARAMETER ( BOM_STAGE_K1    = 1 )
       PARAMETER ( BOM_STAGE_K2    = 2 )
       PARAMETER ( BOM_STAGE_K3    = 3 )
       PARAMETER ( BOM_STAGE_K4    = 4 )
       PARAMETER ( BOM_STAGE_FINAL = 5 )
+      PARAMETER ( BOM_STAGE_FIELD_OLD  = 6 )
+      PARAMETER ( BOM_STAGE_FIELD_NEW  = 7 )
+      PARAMETER ( BOM_STAGE_DERIVATIVE = 8 )
 
 C--   Valid owner records occupy slots 1:bomNPartTile on each tile.
 C     bomNPartExpected is the immutable successful initial owner budget.
@@ -171,5 +209,7 @@ C--   Single-level C-grid work arrays and geographic C-point fields.
      &       bomGridUWork, bomGridVWork,
      &       bomGridVEast, bomGridVNorth,
      &       bomGridWindEast, bomGridWindNorth
+
+#include "BOM_FIELDS.h"
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|

@@ -29,6 +29,10 @@ C !LOCAL VARIABLES:
 
       CALL BOM_INIT_STATE( myThid )
       IF ( nIter0.EQ.bomInitialIter ) THEN
+        IF ( bomMode.EQ.'BOM' ) THEN
+          CALL BOM_BUILD_ENDPOINTS(
+     I         startTime, nIter0, .TRUE., myThid )
+        ENDIF
         IF ( bomMaxParticles.GT.0 ) THEN
           CALL BOM_READ_INITIAL( myThid )
         ENDIF

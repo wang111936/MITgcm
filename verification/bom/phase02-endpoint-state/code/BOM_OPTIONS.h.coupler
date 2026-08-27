@@ -11,15 +11,12 @@ C #include "BOM_OPTIONS.h"
 C !DESCRIPTION:
 C *==================================================================*
 C | CPP options for the MITGCM-BOM package.
-C | Phase 0 contains a compile-only, zero-particle package skeleton.
+C | Test build with the copied COUPLER Stokes publication API.
 C *==================================================================*
 CEOP
 
 #ifdef ALLOW_BOM
-C     Define ALLOW_BOM_STOKES_COUPLER in CPP_OPTIONS.h only when an
-C     external producer calls BOM_SET_COUPLER_STOKES for both geographic
-C     C-point components before every requested endpoint transaction.
-
+#define ALLOW_BOM_STOKES_COUPLER
 C     EXCH2 support remains disabled until dedicated topology tests exist.
 #undef ALLOW_BOM_EXCH2
 #endif /* ALLOW_BOM */

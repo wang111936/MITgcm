@@ -49,6 +49,11 @@ external environmental datasets remain outside the repository.
 - `phase02-slow-manifold/`: P2.0 source audit, exact endpoint/Stokes/equation
   interface freeze, requirements traceability, and B04/B05/B16 plus
   negative/MPI/restart/full-regression test plan;
+- `phase02-endpoint-state/`: P2.1 focused increments for frozen
+  runtime parameters, stable source/endpoint/failure/stage codes,
+  deterministic state, ocean/NONE/NONE transactional endpoints, rollback,
+  BOM-owned exact-time EXF wind, immutable EXF globals, production lifecycle,
+  serial/MPI4, policy failures, and `LEEW` zero-impact;
 - later phase directories: analytical, golden-trajectory, restart, MPI
   decomposition, and performance tests as their implementations are added.
 

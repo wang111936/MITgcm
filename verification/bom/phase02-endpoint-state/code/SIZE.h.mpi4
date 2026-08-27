@@ -1,0 +1,26 @@
+CBOP
+C    !ROUTINE: SIZE.h
+C    !INTERFACE:
+C    include SIZE.h
+C    !DESCRIPTION:
+C     One local tile per rank for P2.1 MPI endpoint-state checks.
+CEOP
+      INTEGER sNx, sNy, OLx, OLy
+      INTEGER nSx, nSy, nPx, nPy
+      INTEGER Nx, Ny, Nr
+      PARAMETER (
+     &           sNx =   4,
+     &           sNy =   3,
+     &           OLx =   2,
+     &           OLy =   2,
+     &           nSx =   1,
+     &           nSy =   1,
+     &           nPx =   2,
+     &           nPy =   2,
+     &           Nx  = sNx*nSx*nPx,
+     &           Ny  = sNy*nSy*nPy,
+     &           Nr  =   2)
+
+      INTEGER MAX_OLX, MAX_OLY
+      PARAMETER ( MAX_OLX = OLx,
+     &            MAX_OLY = OLy )

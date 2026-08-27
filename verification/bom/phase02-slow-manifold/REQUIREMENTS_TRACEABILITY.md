@@ -1,22 +1,24 @@
 # Phase 2 slow-manifold requirements traceability
 
-Status: **P2.0 FROZEN; IMPLEMENTATION NOT STARTED**
+Status: **P2.0 FROZEN; P2.1 CLOSED; P2.2 NEXT**
 
 A requirement is complete only after its production implementation and the
-listed executable evidence are both recorded. P2.0 freezes the mapping; it
-does not mark any production requirement complete.
+listed executable evidence are both recorded. P2.0 freezes the mapping.
+P2-R03--P2-R05, the field-value portion of P2-R07, and the P2.1 field-state
+portion of P2-R16/P2-R18 have exact-commit evidence at `41d0dbc20`.
+Derivative, RHS, RK-stage and full integration consumers remain later work.
 
 ## 1. Requirement matrix
 
 | ID | Requirement | Planned production owner | Acceptance | Package | Status |
 |---|---|---|---|---|---|
-| P2-R01 | Preserve accepted LEEW, owner, output, pickup and FLT coexistence behavior | dispatch plus unchanged Phase-1 paths | P2-Z01, P2-K01, P2-G01 | P2.1--P2.5 | planned |
-| P2-R02 | Validate BOM mode, equation mode and SI slow-manifold parameters without aliasing leeway coefficient | `BOM_READPARMS`, `BOM_CHECK` | P2-C01, P2-N01, P2-H05 | P2.1/P2.3 | planned |
-| P2-R03 | Publish an exact, transactional two-endpoint environment bracket with stable labels and source codes | `BOM_FIELDS.h`, `BOM_BUILD_ENDPOINTS` | P2-E01, P2-E02, P2-N02 | P2.1 | planned |
-| P2-R04 | Evaluate EXF wind at exact model endpoints without mutating or relabeling EXF globals | `BOM_GET_EXF_WIND` | P2-E03, P2-N03 | P2.1 | planned |
-| P2-R05 | Support NONE/FILES/COUPLER Stokes ownership with exact endpoint and availability semantics | `BOM_GET_STOKES` and provider hook | P2-E04, P2-E05, P2-N03 | P2.1 | planned |
-| P2-R06 | Prevent explicit/embedded Stokes double counting and publish an auditable policy | `BOM_CHECK`, field metadata | P2-E05, P2-H04, P2-N04 | P2.1/P2.3 | planned |
-| P2-R07 | Interpolate every field and derivative at exact RK stage time with no extrapolation | `BOM_INTERP_ENV_TIME` | P2-E06, P2-I04, P2-N02 | P2.1/P2.4 | planned |
+| P2-R01 | Preserve accepted LEEW, owner, output, pickup and FLT coexistence behavior | dispatch plus unchanged Phase-1 paths | P2-Z01, P2-K01, P2-G01 | P2.1--P2.5 | in progress |
+| P2-R02 | Validate BOM mode, equation mode and SI slow-manifold parameters without aliasing leeway coefficient | `BOM_READPARMS`, `BOM_CHECK` | P2-C01, P2-N01, P2-H05 | P2.1/P2.3 | in progress |
+| P2-R03 | Publish an exact, transactional two-endpoint environment bracket with stable labels and source codes | `BOM_FIELDS.h`, `BOM_BUILD_ENDPOINTS` | P2-E01, P2-E02, P2-N02 | P2.1 | verified: `b81bb0129` |
+| P2-R04 | Evaluate EXF wind at exact model endpoints without mutating or relabeling EXF globals | `BOM_GET_EXF_WIND` | P2-E03, P2-N03 | P2.1 | verified: `43a79d1b1` |
+| P2-R05 | Support NONE/FILES/COUPLER Stokes ownership with exact endpoint and availability semantics | `BOM_GET_STOKES` and provider hook | P2-E04, P2-E05, P2-N03 | P2.1 | verified through COUPLER: `6247ee6ba` |
+| P2-R06 | Prevent explicit/embedded Stokes double counting and publish an auditable policy | `BOM_CHECK`, field metadata | P2-E05, P2-H04, P2-N04 | P2.1/P2.3 | endpoint policy matrix verified `6247ee6ba`; H04 diagnostic remains |
+| P2-R07 | Interpolate every field and derivative at exact RK stage time with no extrapolation | `BOM_INTERP_ENV_TIME` | P2-E06, P2-I04, P2-N02 | P2.1/P2.4 | field values verified `83913ce59`; derivative/I04 remain |
 | P2-R08 | Compute second-order nonuniform C-point SI derivatives without crossing land | `BOM_BUILD_DERIVATIVES` | P2-D01, P2-D02, P2-D03, P2-N05 | P2.2 | planned |
 | P2-R09 | Apply Cartesian/spherical covariant metrics once and use MITgcm `fCori` | metric/derivative helpers | P2-D04, P2-D05, P2-H05, P2-N05 | P2.2/P2.3 | planned |
 | P2-R10 | Implement the paper combined-field material derivative, total vorticity and component signs | `BOM_RHS_PAPER2024` | P2-H01, P2-H03, P2-H05, P2-I01 | P2.3/P2.4 | planned |
@@ -25,9 +27,9 @@ does not mark any production requirement complete.
 | P2-R13 | Pass B04 solid-body-rotation analytical component and trajectory gates | derivative/RHS/RK integration | P2-I01, P2-I02 | P2.4 | planned |
 | P2-R14 | Pass B05 time-varying-uniform exact and endpoint-refinement order gates | endpoint/RHS/RK integration | P2-I03, P2-I04 | P2.4 | planned |
 | P2-R15 | Generate and pass locked, checksummed B16 Julia RHS and fixed-step trajectories | Julia generator and MITgcm comparison | P2-I05, P2-I06, P2-N07 | P2.4 | planned |
-| P2-R16 | Restore schema-2 mode, fingerprint and two-endpoint state transactionally; constrain schema-1 migration | pickup read/write | P2-P01, P2-P02, P2-P04 | P2.1/P2.5 | planned |
+| P2-R16 | Restore schema-2 mode, fingerprint and two-endpoint state transactionally; constrain schema-1 migration | pickup read/write | P2-P01, P2-P02, P2-P04 | P2.1/P2.5 | field/schema preflight verified `41d0dbc20`; full particle/P2-P03 remain P2.5 |
 | P2-R17 | Preserve 1/2/4-rank decomposition consistency, same-decomposition restart and FLT isolation | migration, pickup, lifecycle | P2-M01, P2-P03, P2-K01 | P2.5 | planned |
-| P2-R18 | Append stable failure/stage codes, direct diagnostics and complete predecessor regression | all Phase-2 paths | all negative gates, P2-P04, P2-G01 | P2.1--P2.5 | planned |
+| P2-R18 | Append stable failure/stage codes, direct diagnostics and complete predecessor regression | all Phase-2 paths | all negative gates, P2-P04, P2-G01 | P2.1--P2.5 | P2.1 codes/preflight and 257 predecessors verified; later packages remain |
 
 ## 2. Reverse traceability by planned interface
 
@@ -36,7 +38,9 @@ does not mark any production requirement complete.
 | `BOM_FIELDS.h` endpoint/source codes and state | P2-R03, P2-R16, P2-R18 | P2-E01/E02, P2-P01 |
 | `BOM_BUILD_ENDPOINTS` | P2-R03--R07 | P2-E01--E06, P2-N02--N04 |
 | `BOM_GET_EXF_WIND` | P2-R04 | P2-E03, P2-N03 |
-| FILES/COUPLER Stokes providers | P2-R05, P2-R06 | P2-E04/E05, P2-N03/N04 |
+| `BOM_GET_STOKES` FILES provider | P2-R05, P2-R06 | P2-E04, P2-N03 |
+| COUPLER Stokes provider | P2-R05, P2-R06 | P2-E05, P2-N03/N04 |
+| `BOM_INTERP_ENV_TIME` | P2-R07 | P2-E06, P2-N02; P2-I04 later |
 | `BOM_BUILD_DERIVATIVES` | P2-R08, P2-R09 | P2-D01--D05, P2-N05 |
 | covariant operator helper | P2-R09--R11 | P2-D04/D05, P2-H01/H02/H05 |
 | `BOM_RHS_PAPER2024` | P2-R10, P2-R12 | P2-H01/H03/H05/H06 |
@@ -66,6 +70,11 @@ does not mark any production requirement complete.
 | P2.3 | P2-R10--R12 and de-dup diagnostics | accepted P2.2 derivatives |
 | P2.4 | P2-R13--R15 | accepted P2.3 stateless RHS |
 | P2.5 | P2-R01, P2-R16--R18 and remaining integration evidence | accepted P2.1--P2.4 |
+
+P2.1 closure evidence is
+`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-closure/`
+`p21-closure-41d0dbc20-attempt02` with 301/301 PASS. This closes the work
+package boundary without claiming the P2.5 full-particle integration rows.
 
 A work package must not mark a later requirement complete by using a test-only
 stub in place of the planned production owner. Component tests may inject

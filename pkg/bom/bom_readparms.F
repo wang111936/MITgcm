@@ -37,6 +37,12 @@ C !LOCAL VARIABLES:
       NAMELIST /BOM_PARM02/
      &       bomLeewayWindCoeff, bomWindSource,
      &       bomStokesSource, bomWetWeightMin, bomAdvCFL,
+     &       bomCurrentPolicy, bomAlpha, bomTauDays,
+     &       bomR, bomSigma,
+     &       bomUStokesFile, bomVStokesFile,
+     &       bomStokesStartTime, bomStokesPeriod,
+     &       bomStokesRepCycle, bomStokesInScale,
+     &       bomStokesFilePrec,
      &       bomMaxHop, bomInitGlobalLimit,
      &       bomCheckEverySubstep
 
@@ -64,6 +70,19 @@ C--   Safe Phase-1.5 defaults retain an inactive state and inactive output.
       bomLeewayWindCoeff = 0. _d 0
       bomWindSource       = 'NONE'
       bomStokesSource     = 'NONE'
+      bomCurrentPolicy    = 'UNSET'
+      bomAlpha            = 0. _d 0
+      bomTauDays          = 0. _d 0
+      bomTau              = 0. _d 0
+      bomR                = 1. _d 0
+      bomSigma            = 0. _d 0
+      bomUStokesFile      = ' '
+      bomVStokesFile      = ' '
+      bomStokesStartTime  = 0. _d 0
+      bomStokesPeriod     = 0. _d 0
+      bomStokesRepCycle   = 0. _d 0
+      bomStokesInScale    = 1. _d 0
+      bomStokesFilePrec   = 64
       bomWetWeightMin     = 0.5 _d 0
       bomAdvCFL           = 0.5 _d 0
       bomMaxHop            = 8

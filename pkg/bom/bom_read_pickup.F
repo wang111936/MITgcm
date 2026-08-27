@@ -7,9 +7,9 @@ C !INTERFACE:
       SUBROUTINE BOM_READ_PICKUP( myThid )
 
 C !DESCRIPTION:
-C     Restore a same-decomposition schema-1 P1.5 pickup transactionally.
-C     The global signature and all local files are validated before any
-C     authoritative BOM owner state is committed.
+C     Restore a same-decomposition pickup transactionally.  LEEW accepts
+C     schema 1; BOM requires schema 2 plus the complete endpoint sidecar.
+C     Every component is validated before authoritative state is committed.
 
 C !USES:
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -38,12 +38,14 @@ C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       CHARACTER*(MAX_LEN_MBUF) metaSimulation, metaTitle
       CHARACTER*8 metaFieldList(1)
-      _RL signature(bomPickupSigFields)
+      _RL signature(
+     &     bomPickup2SigBase+2*MAX_LEN_FNAM+256)
       _RL record(bomPickupFields)
       _RL scratchReal(12,bomMaxPartTile,nSx,nSy)
       _RL metaTimList(1), metaMissingValue
       _RL xMap, mappedI, mappedJ
       _RL storedTime, storedFreq, storedNext
+      _RL envTime0, envTime1
       _RS dummyRS(1)
       INTEGER scratchCount(nSx,nSy)
       INTEGER scratchStatus(bomMaxPartTile,nSx,nSy)
@@ -54,19 +56,24 @@ C !LOCAL VARIABLES:
       INTEGER idHiGlobal(bomMaxInitRecords)
       INTEGER idLoGlobal(bomMaxInitRecords)
       INTEGER metaDimList(3,3)
-      INTEGER bi, bj, ip, jp, k, ioUnit
+      INTEGER bi, bj, ip, jp, k, ioUnit, iRecord
       INTEGER iGlobal, jGlobal, iTile, jTile
       INTEGER prefixLen, localDirLen
       INTEGER localErrCount, globalErrCount, idError
       INTEGER localOwnerCount, globalOwnerCount, localIdCount
       INTEGER globalIdCount, mpiErrCount, mpiRC
       INTEGER storedExpected, storedIter, statusValue
+      INTEGER activeSchema, sigFields, envFields
+      INTEGER sigRecordFields, sigRecords, sigIndex
+      INTEGER envIter0, envIter1
+      INTEGER i, j, iEnd, iSource
       INTEGER metaFilePrec, metaNDims, metaNFlds, metaNTimRec
       INTEGER metaNRecords, metaFileIter
       INTEGER*8 particleId, previousId, idRadix, idHi8, idLo8
       INTEGER*8 tileBytes(nSx,nSy), recordBytes, expectedBytes
       LOGICAL dataExists, metaExists, useCurrentDir
       LOGICAL recordFinite, isOwner, hasStencil
+      LOGICAL signatureValid
 
       _BEGIN_MASTER(myThid)
 
@@ -77,11 +84,27 @@ C !LOCAL VARIABLES:
       localIdCount = 0
       globalIdCount = 0
       mpiErrCount = 0
+      activeSchema = bomPickupSchema
+      sigFields = bomPickupSigFields
+      sigRecordFields = sigFields
+      envFields = 0
+      IF ( bomMode.EQ.'BOM' ) THEN
+        activeSchema = bomPickupSchema2
+        CALL BOM_GET_PICKUP2_SIZES(
+     O       sigFields, envFields )
+        sigRecordFields = bomPickupChunkFields
+      ENDIF
+      sigRecords = (sigFields+sigRecordFields-1)/sigRecordFields
+      signatureValid = .TRUE.
       storedExpected = -1
       storedIter = -1
       storedTime = 0. _d 0
       storedFreq = 0. _d 0
       storedNext = 0. _d 0
+      envTime0 = 0. _d 0
+      envTime1 = 0. _d 0
+      envIter0 = 0
+      envIter1 = 0
       idRadix = 4294967296_8
       recordBytes = INT(bomPickupFields,8)*8_8
 
@@ -130,7 +153,8 @@ C--   Signature presence and physical length are checked collectively.
       INQUIRE(FILE=dataName,EXIST=dataExists,SIZE=expectedBytes)
       INQUIRE(FILE=metaName,EXIST=metaExists)
       IF ( .NOT.dataExists .OR. .NOT.metaExists .OR.
-     &     expectedBytes.NE.INT(bomPickupSigFields,8)*8_8 ) THEN
+     &     expectedBytes.NE.INT(sigRecords,8)
+     &                         *INT(sigRecordFields,8)*8_8 ) THEN
         localErrCount = localErrCount + 1
       ENDIF
       globalErrCount = localErrCount
@@ -143,8 +167,9 @@ C--   Signature presence and physical length are checked collectively.
 #endif
       IF ( globalErrCount.GT.0 ) THEN
         IF ( myProcId.EQ.0 ) THEN
-          WRITE(msgBuf,'(A,A,A,L3,A,L3,A,I20)')
+          WRITE(msgBuf,'(A,A,A,I4,A,L3,A,L3,A,I20)')
      &         'BOM_READ_PICKUP: signature preflight suffix=', suffix,
+     &         ' code=', BOM_FAIL_PICKUP_SCHEMA,
      &         ' data=', dataExists, ' meta=', metaExists,
      &         ' bytes=', expectedBytes
           CALL PRINT_ERROR( msgBuf, myThid )
@@ -166,29 +191,36 @@ C--   Read and validate the global signature before touching tiled files.
      O     metaMissingValue, metaNRecords, metaFileIter,
      I     useCurrentDir, myThid )
       ioUnit = -1
-      CALL MDS_READVEC_LOC(
-     I     sigName, precFloat64, ioUnit,
-     I     'RL', bomPickupSigFields, signature, dummyRS,
-     I     0, 0, 1, myThid )
+      DO iRecord=1,sigRecords
+        CALL MDS_READVEC_LOC(
+     I       sigName, precFloat64, ioUnit,
+     I       'RL', sigRecordFields, record, dummyRS,
+     I       0, 0, iRecord, myThid )
+        DO k=1,sigRecordFields
+          sigIndex = (iRecord-1)*sigRecordFields+k
+          IF ( sigIndex.LE.sigFields )
+     &         signature(sigIndex) = record(k)
+        ENDDO
+      ENDDO
       CLOSE(ioUnit)
 
       recordFinite = .TRUE.
-      DO k=1,bomPickupSigFields
+      DO k=1,sigFields
         IF ( .NOT.IEEE_IS_FINITE(signature(k)) )
      &       recordFinite = .FALSE.
       ENDDO
       IF ( .NOT.recordFinite ) localErrCount = localErrCount + 1
       IF ( metaFilePrec.NE.precFloat64 .OR. metaNDims.NE.3 .OR.
-     &     metaNRecords.NE.1 .OR. metaFileIter.NE.nIter0 .OR.
+     &     metaNRecords.NE.sigRecords .OR. metaFileIter.NE.nIter0 .OR.
      &     metaDimList(1,1).NE.1 .OR.
      &     metaDimList(2,1).NE.1 .OR.
      &     metaDimList(3,1).NE.1 .OR.
      &     metaDimList(1,2).NE.1 .OR.
      &     metaDimList(2,2).NE.1 .OR.
      &     metaDimList(3,2).NE.1 .OR.
-     &     metaDimList(1,3).NE.bomPickupSigFields .OR.
+     &     metaDimList(1,3).NE.sigRecordFields .OR.
      &     metaDimList(2,3).NE.1 .OR.
-     &     metaDimList(3,3).NE.bomPickupSigFields ) THEN
+     &     metaDimList(3,3).NE.sigRecordFields ) THEN
         localErrCount = localErrCount + 1
       ENDIF
 
@@ -200,25 +232,38 @@ C--   Read and validate the global signature before touching tiled files.
         storedTime = signature(14)
         storedFreq = signature(15)
         storedNext = signature(16)
-        IF ( signature(1).NE.DFLOAT(bomPickupSchema) .OR.
-     &       signature(2).NE.DFLOAT(bomPickupSigFields) .OR.
-     &       signature(3).NE.DFLOAT(nPx) .OR.
-     &       signature(4).NE.DFLOAT(nPy) .OR.
-     &       signature(5).NE.DFLOAT(sNx) .OR.
-     &       signature(6).NE.DFLOAT(sNy) .OR.
-     &       signature(7).NE.DFLOAT(nSx) .OR.
-     &       signature(8).NE.DFLOAT(nSy) .OR.
-     &       signature(9).NE.DFLOAT(Nx) .OR.
-     &       signature(10).NE.DFLOAT(Ny) .OR.
-     &       signature(11).NE.DFLOAT(bomMaxPartTile) .OR.
-     &       storedExpected.LT.0 .OR.
-     &       storedExpected.GT.bomMaxParticles .OR.
-     &       storedExpected.GT.bomInitGlobalLimit .OR.
-     &       storedExpected.GT.bomMaxInitRecords .OR.
-     &       storedIter.NE.nIter0 .OR.
-     &       storedTime.NE.startTime .OR.
-     &       storedFreq.NE.bomOutputFreq ) THEN
-          localErrCount = localErrCount + 1
+        IF ( activeSchema.EQ.bomPickupSchema ) THEN
+          IF ( signature(1).NE.DFLOAT(bomPickupSchema) .OR.
+     &         signature(2).NE.DFLOAT(bomPickupSigFields) .OR.
+     &         signature(3).NE.DFLOAT(nPx) .OR.
+     &         signature(4).NE.DFLOAT(nPy) .OR.
+     &         signature(5).NE.DFLOAT(sNx) .OR.
+     &         signature(6).NE.DFLOAT(sNy) .OR.
+     &         signature(7).NE.DFLOAT(nSx) .OR.
+     &         signature(8).NE.DFLOAT(nSy) .OR.
+     &         signature(9).NE.DFLOAT(Nx) .OR.
+     &         signature(10).NE.DFLOAT(Ny) .OR.
+     &         signature(11).NE.DFLOAT(bomMaxPartTile) .OR.
+     &         storedExpected.LT.0 .OR.
+     &         storedExpected.GT.bomMaxParticles .OR.
+     &         storedExpected.GT.bomInitGlobalLimit .OR.
+     &         storedExpected.GT.bomMaxInitRecords .OR.
+     &         storedIter.NE.nIter0 .OR.
+     &         storedTime.NE.startTime .OR.
+     &         storedFreq.NE.bomOutputFreq )
+     &         localErrCount = localErrCount + 1
+        ELSE
+          CALL BOM_VALIDATE_PICKUP2_SIGNATURE(
+     I         signature, sigFields,
+     O         storedExpected, storedNext,
+     O         envTime0, envTime1, envIter0, envIter1,
+     O         envFields, signatureValid,
+     I         startTime, nIter0, myThid )
+          IF ( .NOT.signatureValid )
+     &         localErrCount = localErrCount + 1
+          storedIter = nIter0
+          storedTime = startTime
+          storedFreq = bomOutputFreq
         ENDIF
         IF ( storedFreq.EQ.0. _d 0 ) THEN
           IF ( storedNext.NE.0. _d 0 )
@@ -239,8 +284,9 @@ C--   Read and validate the global signature before touching tiled files.
 #endif
       IF ( globalErrCount.GT.0 ) THEN
         IF ( myProcId.EQ.0 ) THEN
-          WRITE(msgBuf,'(A,A,A,8(1X,1PE12.4))')
+          WRITE(msgBuf,'(A,A,A,I4,A,8(1X,1PE12.4))')
      &         'BOM_READ_PICKUP: signature mismatch suffix=', suffix,
+     &         ' code=', BOM_FAIL_PICKUP_SCHEMA,
      &         ' stored schema/fields/nPx/nPy/sNx/sNy/nSx/nSy=',
      &         signature(1), signature(2), signature(3), signature(4),
      &         signature(5), signature(6), signature(7), signature(8)
@@ -257,6 +303,36 @@ C--   Read and validate the global signature before touching tiled files.
         ENDIF
         CALL ALL_PROC_DIE( 0 )
         STOP 'ABNORMAL END: S/R BOM_READ_PICKUP'
+      ENDIF
+
+C--   BOM restores the complete endpoint sidecar into scratch first.
+      IF ( activeSchema.EQ.bomPickupSchema2 ) THEN
+        localErrCount = 0
+        CALL BOM_READ_PICKUP_ENV(
+     I       fileName, storedTime, storedIter,
+     I       envTime0, envTime1, envIter0, envIter1,
+     I       envFields,
+     O       localErrCount,
+     I       myThid )
+        globalErrCount = localErrCount
+#ifdef ALLOW_USE_MPI
+        IF ( usingMPI ) THEN
+          CALL MPI_Allreduce(localErrCount,globalErrCount,1,MPI_INTEGER,
+     &         MPI_SUM,MPI_COMM_MODEL,mpiRC)
+          IF ( mpiRC.NE.0 ) globalErrCount = globalErrCount + 1
+        ENDIF
+#endif
+        IF ( globalErrCount.GT.0 ) THEN
+          IF ( myProcId.EQ.0 ) THEN
+            WRITE(msgBuf,'(A,A,A,I4,A,I12)')
+     &           'BOM_READ_PICKUP: endpoint sidecar suffix=', suffix,
+     &           ' code=', BOM_FAIL_PICKUP_SCHEMA,
+     &           ' errors=', globalErrCount
+            CALL PRINT_ERROR( msgBuf, myThid )
+          ENDIF
+          CALL ALL_PROC_DIE( 0 )
+          STOP 'ABNORMAL END: S/R BOM_READ_PICKUP'
+        ENDIF
       ENDIF
 
 C--   Preflight every local tiled data/meta file before reading any tile.
@@ -366,7 +442,7 @@ C--   Parse every tile into non-authoritative scratch storage.
         iGlobal = myXGlobalLo + (bi-1)*sNx
         jGlobal = myYGlobalLo + (bj-1)*sNy
         IF ( .NOT.recordFinite .OR.
-     &       record(1).NE.DFLOAT(bomPickupSchema) .OR.
+     &       record(1).NE.DFLOAT(activeSchema) .OR.
      &       record(2).NE.DFLOAT(bomPickupFields) .OR.
      &       record(4).NE.DFLOAT(storedExpected) .OR.
      &       record(5).NE.1. _d 0 .OR.
@@ -632,6 +708,28 @@ C--   Gather and sort exact integer ID words before committing COMMON state.
       ENDIF
 
 C--   One commit publishes the fully validated scratch transaction.
+      IF ( activeSchema.EQ.bomPickupSchema2 )
+     &     bomEnvReady = .FALSE.
+      IF ( activeSchema.EQ.bomPickupSchema2 ) THEN
+        DO bj=1,nSy
+         DO bi=1,nSx
+          DO j=1-OLy,sNy+OLy
+           DO i=1-OLx,sNx+OLx
+            DO iSource=1,BOM_ENV_NSOURCE
+             DO iEnd=1,BOM_ENV_NEND
+              bomEnvEast(i,j,iEnd,iSource,bi,bj) =
+     &             bomEnvEastScratch(i,j,iEnd,iSource,bi,bj)
+              bomEnvNorth(i,j,iEnd,iSource,bi,bj) =
+     &             bomEnvNorthScratch(i,j,iEnd,iSource,bi,bj)
+              bomEnvValid(i,j,iEnd,iSource,bi,bj) =
+     &             bomEnvValidScratch(i,j,iEnd,iSource,bi,bj)
+             ENDDO
+            ENDDO
+           ENDDO
+          ENDDO
+         ENDDO
+        ENDDO
+      ENDIF
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = scratchCount(bi,bj)
@@ -673,6 +771,13 @@ C--   One commit publishes the fully validated scratch transaction.
       bomNPartExpected = storedExpected
       bomNextOutputTime = storedNext
       bomOutputScheduleReady = .TRUE.
+      IF ( activeSchema.EQ.bomPickupSchema2 ) THEN
+        bomEnvTime(BOM_ENV_OLD) = envTime0
+        bomEnvTime(BOM_ENV_NEW) = envTime1
+        bomEnvIter(BOM_ENV_OLD) = envIter0
+        bomEnvIter(BOM_ENV_NEW) = envIter1
+        bomEnvReady = .TRUE.
+      ENDIF
       IF ( myProcId.EQ.0 ) THEN
         WRITE(msgBuf,'(A,A,A,I12,A,3(1X,1PE24.16))')
      &       'BOM_READ_PICKUP: complete suffix=', suffix,

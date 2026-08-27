@@ -24,7 +24,7 @@ CEOP
 
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
-      INTEGER bi, bj, i, j, ip
+      INTEGER bi, bj, i, j, ip, iEnd, iSource, iComponent
 
       _BEGIN_MASTER(myThid)
       bomFieldsReady = .FALSE.
@@ -35,6 +35,18 @@ C !LOCAL VARIABLES:
       bomNPartExpected = 0
       bomNextOutputTime = 0. _d 0
       bomOutputScheduleReady = .FALSE.
+      bomEnvReady = .FALSE.
+      DO iEnd=1,BOM_ENV_NEND
+        bomEnvTime(iEnd) = 0. _d 0
+        bomEnvIter(iEnd) = 0
+        bomEnvTimeScratch(iEnd) = 0. _d 0
+        bomEnvIterScratch(iEnd) = 0
+      ENDDO
+      DO iComponent=1,BOM_COUPLER_NCOMP
+        bomCouplerStokesTime(iComponent) = 0. _d 0
+        bomCouplerStokesIter(iComponent) = 0
+        bomCouplerStokesReady(iComponent) = .FALSE.
+      ENDDO
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = 0
@@ -46,6 +58,41 @@ C !LOCAL VARIABLES:
           bomGridVNorth(i,j,1,bi,bj) = 0. _d 0
           bomGridWindEast(i,j,1,bi,bj) = 0. _d 0
           bomGridWindNorth(i,j,1,bi,bj) = 0. _d 0
+          bomEnvUWork(i,j,1,bi,bj) = 0. _d 0
+          bomEnvVWork(i,j,1,bi,bj) = 0. _d 0
+          bomEnvEastWork(i,j,1,bi,bj) = 0. _d 0
+          bomEnvNorthWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindUWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindVWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindEastWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindNorthWork(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindU0(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindU1(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindV0(i,j,1,bi,bj) = 0. _d 0
+          bomExfWindV1(i,j,1,bi,bj) = 0. _d 0
+          bomStokesUWork(i,j,1,bi,bj) = 0. _d 0
+          bomStokesVWork(i,j,1,bi,bj) = 0. _d 0
+          bomStokesEastWork(i,j,1,bi,bj) = 0. _d 0
+          bomStokesNorthWork(i,j,1,bi,bj) = 0. _d 0
+          bomStokesU0(i,j,1,bi,bj) = 0. _d 0
+          bomStokesU1(i,j,1,bi,bj) = 0. _d 0
+          bomStokesV0(i,j,1,bi,bj) = 0. _d 0
+          bomStokesV1(i,j,1,bi,bj) = 0. _d 0
+          bomCouplerStokesEast(i,j,1,bi,bj) = 0. _d 0
+          bomCouplerStokesNorth(i,j,1,bi,bj) = 0. _d 0
+          DO iSource=1,BOM_ENV_NSOURCE
+           DO iEnd=1,BOM_ENV_NEND
+            bomEnvEast(i,j,iEnd,iSource,bi,bj) = 0. _d 0
+            bomEnvNorth(i,j,iEnd,iSource,bi,bj) = 0. _d 0
+            bomEnvValid(i,j,iEnd,iSource,bi,bj) = .FALSE.
+            bomEnvEastScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomEnvNorthScratch(i,j,iEnd,iSource,bi,bj) =
+     &           0. _d 0
+            bomEnvValidScratch(i,j,iEnd,iSource,bi,bj) =
+     &           .FALSE.
+           ENDDO
+          ENDDO
          ENDDO
         ENDDO
         DO ip=1,bomMaxPartTile

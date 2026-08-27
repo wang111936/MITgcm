@@ -4,16 +4,16 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-25 |
+| 最后更新 | 2026-08-26 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/development` |
-| 当前阶段 PR | 无；最近完成 `wang111936/MITgcm#19`（P2.0 设计冻结） |
+| 当前任务分支 | `MITGCM-BOM/p2.1-environment-endpoints` |
+| 当前阶段 PR | Draft PR #20；P2.1 精确功能头 `41d0dbc20404df1759a7a5d1b274bc85d5c415fd` |
 | 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
-| 当前工作包 | P2.0 接口、需求与测试冻结完成 |
-| 下一工作包 | P2.1 transactional old/new 环境场与 exact-time providers |
+| 当前工作包 | P2.1 完成：endpoint 34/34、pickup 10/10、前序 257/257 |
+| 下一工作包 | P2.2 Cartesian derivatives 与 P2-D01--D03/P2-N05 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -23,8 +23,8 @@
 1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
 2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
 3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 下一开发任务是 P2.1，只加入 transactional old/new 场状态、精确端点 providers、时间插值、Stokes policy 和 schema-2 场状态；
-5. 本增量禁止提前加入空间导数、慢流形 RHS 或 RK stage 接线，验收范围为 P2-C01/C02、P2-Z01、P2-E01—E06 和 P2-N01—N04。
+4. 从精确功能头 `41d0dbc20` 创建 `MITGCM-BOM/p2.2-derivatives`；
+5. 首先实现 Cartesian nonuniform C-point derivative/validity/time-secant，并建立 P2-D01--D03/P2-N05；不加入 RHS 或 RK stage 接线。
 
 开始前执行：
 
@@ -41,7 +41,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.0 已完成；下一步 P2.1 old/new 场与 providers | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1 精确头 301/301 完成；下一步 P2.2 导数网格 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -178,6 +178,37 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 审计修复提交 `2f346d98cf978922cae53bff67fc32088cbb8941` 将 `BOM_MAIN` 接入非移动映射/插值诊断与调用层集体终止，并补齐映射初始化和极端周期输入的有限性防护；
 - 修复后插值/生命周期 15/15、映射 19/19、字段 7/7、P1.1 42/42、Phase 0 4/4 与嵌套 P0.4 9/9 均 PASS；
 - P1.2 最终审计为 PASS，P1-R05—P1-R07 全部关闭；详见 `verification/bom/phase01-bom-lite/P1.2_SCOPE_AUDIT.md`。
+
+### P2.1 参数与 accepted endpoint 状态首增量
+
+- 功能提交 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af` 加入冻结参数、稳定代码和双端点 accepted storage；
+- 权威 `p21-endpoint-920e22fbd-attempt01` 在干净精确提交上通过 13/13 summary 行；
+- GNU 串行与 MPI4 构建、BOM 串行/MPI4 初始化、LEEW 零影响及 7 项负向门禁均 PASS；
+- summary SHA-256 为 `29453e3305d6d6a43bb8b055995417109644e3a53dbf5a5f93b38e1969440293`；
+- 本结果不关闭 P2.1：exact-time providers、事务发布、插值与 field pickup 仍待实现；
+- 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
+
+### P2.1 transactional ocean/NONE/NONE 端点增量
+
+- 功能提交 `b81bb01293dbc4279db544174efe9558382115a3` 增加独立 scratch、fresh/normal transaction 和 production hooks；
+- ocean 复制表层 C-grid 后旋转/共置并交换标量 halo；NONE wind/Stokes 发布湿点有效的精确零；
+- continuity 和 source failure 直接测试证明 accepted metadata、fields、validity 全部不变；
+- 权威 `p21-transaction-b81bb0129-attempt01` 在精确提交上 15/15 PASS；
+- summary SHA-256 为 `7f6bd0426866908bd83a79ae29cf9c11a96940ff795a1e6fe8ceedf76ddd8ee5`；
+- 本结果不关闭 P2.1：EXF、FILES/COUPLER、时间插值和 field pickup 仍待实现；
+- 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
+
+### P2.1 exact-time EXF/FILES/COUPLER provider 增量
+
+- EXF `43a79d1b1`、FILES `16ab457e3` 和 compiled COUPLER `6247ee6ba` 顺序实现 BOM-owned exact endpoints；
+- COUPLER setter 分量复制 geographic C-point fields，分别验证完整性、mask、time 和 iteration，生产者内存永不 alias；
+- source failure 在串行/MPI4 直接证明 accepted bracket bitwise 不变，clean retry 正常提交；
+- P2-E05/N03/N04 覆盖 COUPLER sigma 合法行、PRECOMBINED/NONE 合法行、duplicate、missing/partial/stale/future/mixed/non-finite/dry-value；
+- 权威 `p21-coupler-6247ee6ba-attempt01` 在精确提交上 32/32 PASS；
+- summary SHA-256 为 `87375f0d0003f240854e4c5738982c007b7b84e422d9d00c195933a2d7314dec`；
+- 证据根为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p21-endpoint-state/p21-coupler-6247ee6ba-attempt01`；
+- P2.1 仍需 E06 stage-time interpolation 与 schema-2 field pickup，因此不关闭、不合并 PR #20、不打 v0.3 标签；
+- 详细证据见 `verification/bom/phase02-endpoint-state/TEST_RESULTS.md`。
 
 ## 4. 未决问题与风险
 
@@ -535,6 +566,61 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 核心冻结为 5 个 Markdown、1086 行，状态收口另更新 4 个 Markdown；没有生产 Fortran、脚本、算例输入或生成证据变化，因此未运行编译/数值矩阵；
 - P2.0 无开放 finding，Phase 2 状态改为进行中；未创建 `MITGCM-BOM-v0.3`；
 - 唯一下一任务为 P2.1 transactional old/new 环境场与 exact-time providers，不混入 P2.2 导数或 P2.3 RHS。
+
+### 2026-08-25：P2.1 参数与 accepted endpoint 状态首增量
+
+- 从 PR #19 合并提交建立 `MITGCM-BOM/p2.1-environment-endpoints`，未读取或修改其他开发工程；
+- 分支已推送并创建 Draft PR #20，目标为 `MITGCM-BOM/development`；当前不授权 Ready 或合并；
+- 实现全部冻结运行参数、`bomTauDays` 防溢出秒转换、current/Stokes policy matrix 和 FILES 元数据预检；
+- 新增 `BOM_FIELDS.h` accepted old/new/source/time/iteration/valid/ready 状态，并保持 Phase-1 `bomGrid*` 状态不变；
+- 稳定 failure code 9—15、stage code 6—8 及 source/endpoint code 已由直接断言固定；
+- 功能提交为 `920e22fbdcdf7ceb59f2bd795cad86d116ac21af`；权威门禁 13/13 PASS；
+- 当前明确保留非零 `BOM` 拒绝，P2.1 尚未关闭，不创建 `MITGCM-BOM-v0.3`；
+- 唯一下一任务为 transactional fresh/normal endpoint publisher 与 ocean/NONE/NONE providers。
+
+### 2026-08-26：P2.1 transactional ocean/NONE/NONE endpoints
+
+- 新增独立 transaction scratch 和生产 `BOM_BUILD_ENDPOINTS`/`BOM_TRY_BUILD_ENDPOINTS`；
+- fresh 发布相同 `(startTime,nIter0)`，normal 验证连续性并将 accepted NEW 精确复制到 OLD；
+- ocean provider 完成表层复制、C 点共置、east/north 旋转、mask、halo 和有限性校验；
+- `wind=NONE`、`Stokes=NONE` 发布精确零且湿点 valid，失败不修改 accepted state；
+- 功能提交 `b81bb01293dbc4279db544174efe9558382115a3` 的权威门禁为 15/15 PASS；
+- 中断开发尝试 `p21-transaction-dev-gate02` 和通过的 pre-commit gate03 均保留在仓库外且未覆盖；
+- Draft PR #20 仍未 Ready、未合并；P2.1 未关闭，未创建 `MITGCM-BOM-v0.3`；
+- 唯一下一任务为 BOM-owned exact-time EXF wind provider 与 P2-E03/P2-N03 focused gate。
+
+### 2026-08-26：P2.1 exact-time EXF/FILES/COUPLER endpoints
+
+- 先后完成 BOM-owned EXF wind、FILES Stokes 和 compiled COUPLER Stokes provider；
+- COUPLER API 使用 `ALLOW_BOM_STOKES_COUPLER` 显式编译边界及 per-component copied publication；
+- fresh/normal/retry 与所有 source failure 都经生产 `BOM_TRY_BUILD_ENDPOINTS` 验证；
+- 功能提交 `6247ee6ba0fd1e796047bff944558c8e80c3511f` 的权威门禁为 32/32 PASS；
+- 权威证据 ID 为 `p21-coupler-6247ee6ba-attempt01`，summary SHA-256 为 `87375f0d0003f240854e4c5738982c007b7b84e422d9d00c195933a2d7314dec`；
+- Draft PR #20 仍未 Ready、未合并，未创建 `MITGCM-BOM-v0.3`，无开放阻塞；
+- 唯一下一任务为 `BOM_INTERP_ENV_TIME` 和 P2-E06/P2-N02 focused serial/MPI4 gate；
+- schema-2 pickup、空间导数、RHS 和 RK stage 接线保持后置。
+
+### 2026-08-26：P2.1 时间插值、schema-2 pickup 与工作包收口
+
+- `83913ce594158f3c5e52907f56e5f69881ad9791` 完成 exact endpoint/interior
+  `BOM_INTERP_ENV_TIME`，P2-E06/P2-N02 聚合门禁 34/34 PASS；
+- `df67380a803a7c675ee8c4456f693ecbbd88a022` 完成 schema-2 exact
+  fingerprint、OLD/NEW endpoint sidecar、scratch preflight 和一次提交；
+- MPI 开发测试暴露全局 signature 非 owner rank 关闭未打开 unit，修复为仅
+  对正 file unit 关闭；最终串行/MPI4 pickup 门禁 10/10 PASS；
+- P1.4 的两个验证专用 `BOM_SIZE.h` 已同步 schema-2 常量，精确头 36/36；
+  P1.1 LEEW/FILES 仍在初始化前拒绝，并使用稳定语义片段匹配；
+- 最终精确功能头为 `41d0dbc20404df1759a7a5d1b274bc85d5c415fd`；
+- 同一头上 P1-G01 15 组 257/257、endpoint 34/34、pickup 10/10，
+  聚合 301/301 PASS，11 份原生 manifest、全部 summary、source head 和
+  空 Git 状态均完成自验证；
+- 聚合证据根：`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/`
+  `p21-closure/p21-closure-41d0dbc20-attempt02`；row audit 与 manifest
+  SHA-256 分别为 `7b15d0540f5d1228760e93e879ce8e8b9b45d47a0307865ebd4d55a1fa442559`
+  和 `423c679704876f68a4962f56c43bfe02f66a38f6088ef4914228170d61774d9c`；
+- P2.1 标记完成，Draft PR #20 尚未 Ready/合并，未创建 v0.3；
+- 唯一下一任务为创建本地 `MITGCM-BOM/p2.2-derivatives` 并实现 Cartesian
+  C-point derivative/time-secant 与 P2-D01--D03/P2-N05 首增量。
 
 ## 6. 每次会话结束时必须更新
 

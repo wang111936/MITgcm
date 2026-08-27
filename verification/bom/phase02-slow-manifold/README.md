@@ -1,10 +1,13 @@
 # MITGCM-BOM Phase 2 slow-manifold verification
 
-Status: **P2.0 INTERFACE AND TEST CONTRACT FROZEN; NO PRODUCTION PHASE-2 CODE**
+Status: **P2.1 IN PROGRESS; ENDPOINT PROVIDERS AND TIME INTERPOLATION VERIFIED**
 
 This directory is the source-controlled design and verification index for
-Phase 2. P2.0 is a Markdown-only increment. It does not modify `pkg/bom`,
-MITgcm lifecycle hooks, test drivers, namelists, or generated evidence.
+Phase 2. P2.0 remains the normative frozen contract. P2.1 now has runtime
+preflight, accepted/scratch endpoint storage, ocean/NONE/NONE transaction
+publication, BOM-owned exact-time EXF wind and FILES Stokes, compiled copied
+COUPLER Stokes publication, and accepted-bracket stage-time interpolation.
+Schema-2 field pickup remains.
 
 ## P2.0 documents
 
@@ -40,7 +43,7 @@ authority for grid metrics, lifecycle ordering, MPI, and I/O.
 
 | Work package | Allowed production scope | Mandatory gate before the next package |
 |---|---|---|
-| P2.1 | old/new endpoint storage, source providers, time interpolation, schema-2 field pickup | P2-E01--E06, P2-N01--N04 and all Phase-1 regressions |
+| P2.1 (in progress) | old/new endpoint storage, source providers, time interpolation, schema-2 field pickup | P2-E01--E06, P2-N01--N04 and all Phase-1 regressions |
 | P2.2 | C-point SI gradients, covariant terms, vorticity, metric validity | P2-D01--D05 and P2-N05 |
 | P2.3 | stateless `PAPER2024`/`JULIA` component RHS and diagnostics | P2-H01--H06 and P2-N06 |
 | P2.4 | stage-time RK integration, B04/B05, fixed Julia B16 files and checksums | P2-I01--I06 and P2-N07 |
@@ -56,16 +59,28 @@ recording a new `P2-Dxxx` decision.
 Executable work starts in P2.1. All generated content remains outside Git:
 
 ```text
-/home/wyl/build/mitgcm-bom/phase02-slow-manifold/<test-id>/
-/home/wyl/runs/mitgcm-bom/phase02-slow-manifold/<test-id>/
+/home/wyl/build/mitgcm-bom/phase02-endpoint-state/<test-id>/
+/home/wyl/runs/mitgcm-bom/phase02-endpoint-state/<test-id>/
 /home/wyl/projects/mitgcm-bom-test-artifacts/phase02/<work-package>/<test-id>/
 ```
 
 Drivers must reject reuse of a test ID. Compact Markdown results and
 manifests may be committed only after execution on a clean exact source head.
 
-## Unique next task
+## Current P2.1 increment and unique next task
 
-After P2.0 review and merge, the only production task is P2.1: add the
-transactional two-endpoint environment-field state and source-provider
-interfaces, without adding gradients or an inertial RHS in the same PR.
+The completed P2.1 increments implement frozen parameters/codes,
+deterministic accepted and scratch storage, fresh duplicated endpoints,
+normal OLD/NEW advancement, ocean/NONE/NONE, EXF, FILES and compiled COUPLER
+providers, source/de-duplication policy, rollback, and stateless accepted-field
+time interpolation. The focused gate under `../phase02-endpoint-state/` passes
+34/34 on exact functional commit `83913ce59`.
+
+The unique next implementation task is schema-2 field pickup. It must retain
+all Phase-1 particle/output state and add exact mode, source, parameter and
+decomposition fingerprints; both accepted endpoint labels, fields, masks,
+readiness and provider identity; then validate scratch data and commit once.
+It must preserve the schema-1 `LEEW` path and reject schema-1 `BOM`, unknown
+schemas, changed policy/source/fingerprint or changed decomposition before
+particle commit. This increment does not add gradients, a slow-manifold RHS,
+particle stage wiring, merge, or a v0.3 tag.
