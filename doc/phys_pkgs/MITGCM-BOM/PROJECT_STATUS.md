@@ -12,7 +12,7 @@
 | 当前任务分支 | `MITGCM-BOM/p3.0-interface-freeze` |
 | 当前阶段 PR | Draft PR #26：远端范围复审 PASS，保持未合并且未获合并授权 |
 | 当前阶段 | Phase 3：非线性弹簧和分布式邻居（进行中） |
-| 当前工作包 | P3.0 完成：本地审计 12/12，PR #26 为 9 个 Markdown、ahead 2/behind 0 |
+| 当前工作包 | P3.0 完成：本地审计 12/12，PR #26 为 9 个 Markdown、behind 0 |
 | 下一工作包 | 获得明确授权并集成 PR #26 后，进入 P3.1 参数/代码、geometry、KNN oracle 和 spring laws |
 | 当前阻塞 | 无 |
 
@@ -805,8 +805,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   差异为空，没有生产源码、脚本、输入、锁定数据或生成证据变化；
 - P3.0 标记完成、无开放 design/scope finding；分支已批量推送并创建
   Draft PR #26；
-- PR #26 远端复审确认 `draft=true`、`mergeable=true`、base/head SHA
-  正确、2 个提交、9 个 Markdown、ahead 2/behind 0；
+- PR #26 远端复审确认 `draft=true`、`mergeable=true`、base/head 正确、
+  9 个 Markdown 且 behind 0；
 - 未经用户明确授权不合并 PR #26，不创建 `MITGCM-BOM-v0.4`；
 - P3.1--P3.5 的实现和运行测试均未开始；下一生产任务严格限于 P3.1。
 

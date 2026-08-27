@@ -135,5 +135,5 @@ spring laws。
 - P3.0 无开放 design/scope finding；P3.1--P3.5 的实现与运行门禁仍全部
   未开始，不能由本次文档审计代替。
 - GitHub Draft PR #26 以 `MITGCM-BOM/development` 为 base；远端复审为
-  `draft=true`、`mergeable=true`、9 个 Markdown、ahead 2/behind 0；
+  `draft=true`、`mergeable=true`、9 个 Markdown、behind 0；
   未经用户明确授权保持未合并。
