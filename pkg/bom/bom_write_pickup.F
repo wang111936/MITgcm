@@ -37,13 +37,14 @@ C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       _RL signature(
      &     bomPickup2SigBase+2*MAX_LEN_FNAM+256)
-      _RL record(bomPickupFields)
+      _RL record(bomPickupFields2)
       _RL timeScale, timeTol
       _RS dummyRS(1)
       INTEGER bi, bj, ip, k, ioUnit, iRecord, suffixLen
       INTEGER iGlobal, jGlobal
       INTEGER localErrCount, globalErrCount
-      INTEGER envLocalErr, activeSchema, sigFields, envFields
+      INTEGER envLocalErr, activeSchema, activeFields
+      INTEGER sigFields, envFields, iDiag
       INTEGER sigRecordFields, sigRecords, sigIndex, writeRecord
       INTEGER localOwnerCount, globalOwnerCount
       INTEGER*8 idRadix, idHi8, idLo8
@@ -53,12 +54,14 @@ C !LOCAL VARIABLES:
       localErrCount = 0
       localOwnerCount = 0
       activeSchema = bomPickupSchema
+      activeFields = bomPickupFields
       sigFields = bomPickupSigFields
       sigRecordFields = sigFields
       envFields = 0
       schemaValid = .TRUE.
       IF ( bomMode.EQ.'BOM' ) THEN
         activeSchema = bomPickupSchema2
+        activeFields = bomPickupFields2
         CALL BOM_GET_PICKUP2_SIZES(
      O       sigFields, envFields )
         sigRecordFields = bomPickupChunkFields
@@ -189,13 +192,13 @@ C--   The full state budget is meaningful only for a nonempty owner set.
 
       DO bj=1,nSy
        DO bi=1,nSx
-        DO k=1,bomPickupFields
+        DO k=1,activeFields
           record(k) = 0. _d 0
         ENDDO
         iGlobal = myXGlobalLo + (bi-1)*sNx
         jGlobal = myYGlobalLo + (bj-1)*sNy
         record(1) = activeSchema
-        record(2) = bomPickupFields
+        record(2) = activeFields
         record(3) = bomNPartTile(bi,bj)
         record(4) = bomNPartExpected
         record(5) = 1. _d 0
@@ -217,17 +220,19 @@ C--   The full state budget is meaningful only for a nonempty owner set.
         record(21) = bi
         record(22) = bj
         record(23) = bomMaxPartTile
+        IF ( activeSchema.EQ.bomPickupSchema2 )
+     &       record(24) = BOM_RHS_NDIAG
 
         ioUnit = -1
         iRecord = -1
         IF ( bomNPartTile(bi,bj).EQ.0 ) iRecord = 1
         CALL MDS_WRITEVEC_LOC(
      I       fileName, precFloat64, ioUnit,
-     I       'RL', bomPickupFields, record, dummyRS,
+     I       'RL', activeFields, record, dummyRS,
      I       bi, bj, iRecord, myIter, myThid )
 
         DO ip=1,bomNPartTile(bi,bj)
-          DO k=1,bomPickupFields
+          DO k=1,activeFields
             record(k) = 0. _d 0
           ENDDO
           idHi8 = bomId(ip,bi,bj)/idRadix
@@ -250,11 +255,17 @@ C--   The full state budget is meaningful only for a nonempty owner set.
           record(16) = myProcId
           record(17) = bi
           record(18) = bj
+          IF ( activeSchema.EQ.bomPickupSchema2 ) THEN
+            DO iDiag=1,BOM_RHS_NDIAG
+              record(18+iDiag) =
+     &             bomRhsDiag(iDiag,ip,bi,bj)
+            ENDDO
+          ENDIF
           iRecord = ip + 1
           IF ( ip.NE.bomNPartTile(bi,bj) ) iRecord = -iRecord
           CALL MDS_WRITEVEC_LOC(
      I         fileName, precFloat64, ioUnit,
-     I         'RL', bomPickupFields, record, dummyRS,
+     I         'RL', activeFields, record, dummyRS,
      I         bi, bj, iRecord, myIter, myThid )
         ENDDO
         CLOSE(ioUnit)

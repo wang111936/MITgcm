@@ -40,8 +40,10 @@ C !LOCAL VARIABLES:
       CHARACTER*8 metaFieldList(1)
       _RL signature(
      &     bomPickup2SigBase+2*MAX_LEN_FNAM+256)
-      _RL record(bomPickupFields)
+      _RL record(bomPickupFields2)
       _RL scratchReal(12,bomMaxPartTile,nSx,nSy)
+      _RL scratchDiag(
+     &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       _RL metaTimList(1), metaMissingValue
       _RL xMap, mappedI, mappedJ
       _RL storedTime, storedFreq, storedNext
@@ -63,17 +65,17 @@ C !LOCAL VARIABLES:
       INTEGER localOwnerCount, globalOwnerCount, localIdCount
       INTEGER globalIdCount, mpiErrCount, mpiRC
       INTEGER storedExpected, storedIter, statusValue
-      INTEGER activeSchema, sigFields, envFields
+      INTEGER activeSchema, activeFields, sigFields, envFields
       INTEGER sigRecordFields, sigRecords, sigIndex
       INTEGER envIter0, envIter1
-      INTEGER i, j, iEnd, iSource
+      INTEGER i, j, iEnd, iSource, iDiag
       INTEGER metaFilePrec, metaNDims, metaNFlds, metaNTimRec
       INTEGER metaNRecords, metaFileIter
       INTEGER*8 particleId, previousId, idRadix, idHi8, idLo8
       INTEGER*8 tileBytes(nSx,nSy), recordBytes, expectedBytes
       LOGICAL dataExists, metaExists, useCurrentDir
       LOGICAL recordFinite, isOwner, hasStencil
-      LOGICAL signatureValid
+      LOGICAL signatureValid, diagConsistent, reservedValid
 
       _BEGIN_MASTER(myThid)
 
@@ -85,11 +87,13 @@ C !LOCAL VARIABLES:
       globalIdCount = 0
       mpiErrCount = 0
       activeSchema = bomPickupSchema
+      activeFields = bomPickupFields
       sigFields = bomPickupSigFields
       sigRecordFields = sigFields
       envFields = 0
       IF ( bomMode.EQ.'BOM' ) THEN
         activeSchema = bomPickupSchema2
+        activeFields = bomPickupFields2
         CALL BOM_GET_PICKUP2_SIZES(
      O       sigFields, envFields )
         sigRecordFields = bomPickupChunkFields
@@ -106,7 +110,7 @@ C !LOCAL VARIABLES:
       envIter0 = 0
       envIter1 = 0
       idRadix = 4294967296_8
-      recordBytes = INT(bomPickupFields,8)*8_8
+      recordBytes = INT(activeFields,8)*8_8
 
       DO jp=1,nPx*nPy
         idCounts(jp) = 0
@@ -127,6 +131,9 @@ C !LOCAL VARIABLES:
           scratchStatus(ip,bi,bj) = BOM_UNUSED
           DO k=1,12
             scratchReal(k,ip,bi,bj) = 0. _d 0
+          ENDDO
+          DO iDiag=1,BOM_RHS_NDIAG
+            scratchDiag(iDiag,ip,bi,bj) = 0. _d 0
           ENDDO
         ENDDO
        ENDDO
@@ -415,11 +422,11 @@ C--   Parse every tile into non-authoritative scratch storage.
         ioUnit = -1
         CALL MDS_READVEC_LOC(
      I       fileName, precFloat64, ioUnit,
-     I       'RL', bomPickupFields, record, dummyRS,
+     I       'RL', activeFields, record, dummyRS,
      I       bi, bj, 1, myThid )
 
         recordFinite = .TRUE.
-        DO k=1,bomPickupFields
+        DO k=1,activeFields
           IF ( .NOT.IEEE_IS_FINITE(record(k)) )
      &         recordFinite = .FALSE.
         ENDDO
@@ -443,7 +450,7 @@ C--   Parse every tile into non-authoritative scratch storage.
         jGlobal = myYGlobalLo + (bj-1)*sNy
         IF ( .NOT.recordFinite .OR.
      &       record(1).NE.DFLOAT(activeSchema) .OR.
-     &       record(2).NE.DFLOAT(bomPickupFields) .OR.
+     &       record(2).NE.DFLOAT(activeFields) .OR.
      &       record(4).NE.DFLOAT(storedExpected) .OR.
      &       record(5).NE.1. _d 0 .OR.
      &       record(6).NE.1. _d 0 .OR.
@@ -464,7 +471,9 @@ C--   Parse every tile into non-authoritative scratch storage.
      &       record(21).NE.DFLOAT(bi) .OR.
      &       record(22).NE.DFLOAT(bj) .OR.
      &       record(23).NE.DFLOAT(bomMaxPartTile) .OR.
-     &       record(24).NE.0. _d 0 ) THEN
+     &       record(24).NE.
+     &       DFLOAT((activeSchema-bomPickupSchema)*
+     &              BOM_RHS_NDIAG) ) THEN
           WRITE(msgBuf,'(A,A,A,I6,A,2I5,A,I8)')
      &         'BOM_READ_PICKUP: invalid tile header prefix=',
      &         fileName(1:prefixLen),
@@ -484,9 +493,9 @@ C--   Parse every tile into non-authoritative scratch storage.
      &       metaDimList(1,2).NE.nSy*nPy .OR.
      &       metaDimList(2,2).NE.jTile .OR.
      &       metaDimList(3,2).NE.jTile .OR.
-     &       metaDimList(1,3).NE.bomPickupFields .OR.
+     &       metaDimList(1,3).NE.activeFields .OR.
      &       metaDimList(2,3).NE.1 .OR.
-     &       metaDimList(3,3).NE.bomPickupFields ) THEN
+     &       metaDimList(3,3).NE.activeFields ) THEN
           WRITE(msgBuf,'(A,I6,A,2I5,A,2I12,A,2I20)')
      &         'BOM_READ_PICKUP: meta/length rank=', myProcId,
      &         ' tile=', bi, bj,
@@ -501,10 +510,10 @@ C--   Parse every tile into non-authoritative scratch storage.
         DO ip=1,scratchCount(bi,bj)
           CALL MDS_READVEC_LOC(
      I         fileName, precFloat64, ioUnit,
-     I         'RL', bomPickupFields, record, dummyRS,
+     I         'RL', activeFields, record, dummyRS,
      I         bi, bj, ip+1, myThid )
           recordFinite = .TRUE.
-          DO k=1,bomPickupFields
+          DO k=1,activeFields
             IF ( .NOT.IEEE_IS_FINITE(record(k)) )
      &           recordFinite = .FALSE.
           ENDDO
@@ -537,6 +546,28 @@ C--   Parse every tile into non-authoritative scratch storage.
      O           xMap, mappedI, mappedJ, isOwner, hasStencil,
      I           myThid )
           ENDIF
+          diagConsistent = .TRUE.
+          reservedValid = .TRUE.
+          IF ( activeSchema.EQ.bomPickupSchema ) THEN
+            DO k=19,bomPickupFields
+              IF ( record(k).NE.0. _d 0 ) reservedValid = .FALSE.
+            ENDDO
+          ENDIF
+          IF ( activeSchema.EQ.bomPickupSchema2 ) THEN
+            IF ( record(10).NE.record(
+     &           18+BOM_RHS_VBASE_E) .OR.
+     &           record(11).NE.record(
+     &           18+BOM_RHS_VBASE_N) .OR.
+     &           record(12).NE.record(
+     &           18+BOM_RHS_VW_E) .OR.
+     &           record(13).NE.record(
+     &           18+BOM_RHS_VW_N) .OR.
+     &           record(14).NE.record(
+     &           18+BOM_RHS_DRIFT_E) .OR.
+     &           record(15).NE.record(
+     &           18+BOM_RHS_DRIFT_N) )
+     &           diagConsistent = .FALSE.
+          ENDIF
           IF ( .NOT.recordFinite .OR. idError.NE.0 .OR.
      &         particleId.LE.previousId .OR.
      &         ( statusValue.NE.BOM_ALIVE .AND.
@@ -554,12 +585,7 @@ C--   Parse every tile into non-authoritative scratch storage.
      &         record(16).NE.DFLOAT(myProcId) .OR.
      &         record(17).NE.DFLOAT(bi) .OR.
      &         record(18).NE.DFLOAT(bj) .OR.
-     &         record(19).NE.0. _d 0 .OR.
-     &         record(20).NE.0. _d 0 .OR.
-     &         record(21).NE.0. _d 0 .OR.
-     &         record(22).NE.0. _d 0 .OR.
-     &         record(23).NE.0. _d 0 .OR.
-     &         record(24).NE.0. _d 0 ) THEN
+     &         .NOT.reservedValid .OR. .NOT.diagConsistent ) THEN
             WRITE(msgBuf,'(A,A,A,I6,A,3I5,A,I20,A,I5)')
      &           'BOM_READ_PICKUP: invalid record prefix=',
      &           fileName(1:prefixLen),
@@ -574,6 +600,12 @@ C--   Parse every tile into non-authoritative scratch storage.
           DO k=1,12
             scratchReal(k,ip,bi,bj) = record(k+3)
           ENDDO
+          IF ( activeSchema.EQ.bomPickupSchema2 ) THEN
+            DO iDiag=1,BOM_RHS_NDIAG
+              scratchDiag(iDiag,ip,bi,bj) =
+     &             record(18+iDiag)
+            ENDDO
+          ENDIF
           previousId = particleId
           IF ( localIdCount.LT.bomMaxInitRecords .AND.
      &         particleId.GT.0 ) THEN
@@ -606,9 +638,10 @@ C--   Stop before global ID exchange if any rank has malformed scratch.
 #endif
       IF ( globalErrCount.GT.0 ) THEN
         IF ( myProcId.EQ.0 ) THEN
-          WRITE(msgBuf,'(A,A,A,I12)')
+          WRITE(msgBuf,'(A,A,A,I4,A,I12)')
      &         'BOM_READ_PICKUP: scratch validation failed suffix=',
-     &         suffix, ' errors=', globalErrCount
+     &         suffix, ' code=', BOM_FAIL_PICKUP_SCHEMA,
+     &         ' errors=', globalErrCount
           CALL PRINT_ERROR( msgBuf, myThid )
         ENDIF
         CALL ALL_PROC_DIE( 0 )
@@ -749,6 +782,10 @@ C--   One commit publishes the fully validated scratch transaction.
             bomWindNorth(ip,bi,bj) = scratchReal(10,ip,bi,bj)
             bomDriftEast(ip,bi,bj) = scratchReal(11,ip,bi,bj)
             bomDriftNorth(ip,bi,bj) = scratchReal(12,ip,bi,bj)
+            DO iDiag=1,BOM_RHS_NDIAG
+              bomRhsDiag(iDiag,ip,bi,bj) =
+     &             scratchDiag(iDiag,ip,bi,bj)
+            ENDDO
           ELSE
             bomId(ip,bi,bj) = 0_8
             bomStatus(ip,bi,bj) = BOM_UNUSED
@@ -764,6 +801,9 @@ C--   One commit publishes the fully validated scratch transaction.
             bomWindNorth(ip,bi,bj) = 0. _d 0
             bomDriftEast(ip,bi,bj) = 0. _d 0
             bomDriftNorth(ip,bi,bj) = 0. _d 0
+            DO iDiag=1,BOM_RHS_NDIAG
+              bomRhsDiag(iDiag,ip,bi,bj) = 0. _d 0
+            ENDDO
           ENDIF
         ENDDO
        ENDDO

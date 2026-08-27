@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 2 slow-manifold verification
 
-Status: **P2.4 CLOSED; P2.5 IS THE UNIQUE NEXT WORK PACKAGE**
+Status: **P2.1--P2.5 CLOSED; PHASE 2 INTEGRATION COMPLETE**
 
 This directory is the source-controlled design and verification index for
 Phase 2. P2.0 remains the normative frozen contract. P2.1 has runtime
@@ -55,7 +55,7 @@ authority for grid metrics, lifecycle ordering, MPI, and I/O.
 | P2.2 (closed) | C-point SI gradients, covariant terms, vorticity, metric validity | P2-D01--D05 and P2-N05 |
 | P2.3 (closed) | stateless `PAPER2024`/`JULIA` component RHS and diagnostics | P2-H01--H06 and P2-N06 |
 | P2.4 (closed) | stage-time RK integration, B04/B05, fixed Julia B16 files and checksums | P2-I01--I06 and P2-N07 |
-| P2.5 | schema-2 output/restart integration, 1/2/4-rank, FLT coexistence, full regression | P2-P01--P04, P2-M01, P2-K01 and P2-G01 |
+| P2.5 (closed) | schema-2 output/restart integration, 1/2/4-rank, FLT coexistence, full regression | P2-P01--P04, P2-M01, P2-K01 and P2-G01 |
 
 A later work package may refine internal implementation details, but it may
 not change a frozen formula, source ownership rule, failure meaning, schema,
@@ -75,7 +75,7 @@ Executable work starts in P2.1. All generated content remains outside Git:
 Drivers must reject reuse of a test ID. Compact Markdown results and
 manifests may be committed only after execution on a clean exact source head.
 
-## Accepted P2.4 boundary and unique next task
+## Accepted P2.4 boundary
 
 P2.4 functional head `4b2d09d40` passes stage/RK B04/B05 11/11, B16/N07
 12/12, P2.3 RHS 18/18, P2.2 derivatives 16/16, accepted P2.1
@@ -86,8 +86,21 @@ exact stage-position/time sampling, RK2/RK4 all-or-nothing updates, B04/B05
 convergence, fixed checksummed B16 JULIA RHS/trajectories, and complete N07.
 It does not change the frozen P2.3 equations or Stokes policy.
 
-The unique next implementation task is P2.5. It must integrate the new live
-diagnostic state into the frozen schema-2 output/pickup contract, prove
-same-decomposition restart and 1/2/4-rank total-system consistency, preserve
-FLT isolation, and execute P2-P01--P04, P2-M01, P2-K01 and final P2-G01.
-Merge, release and `MITGCM-BOM-v0.3` remain outside the closed P2.4 scope.
+P2.5 was assigned to integrate the new live diagnostic state into the frozen
+schema-2 output/pickup contract, prove same-decomposition restart and
+1/2/4-rank total-system consistency, preserve FLT isolation, and execute
+P2-P01--P04, P2-M01, P2-K01 and final P2-G01. It is closed below.
+
+## Accepted P2.5 and Phase-2 boundary
+
+P2.5 functional head `d37dccae7d7c219deeafbea5bee65b880a48efd0`
+passes schema-2 integration P2-P01--P04/P2-M01 20/20, BOM-mode FLT
+coexistence P2-K01 12/12, accepted P2.1--P2.4 gates 101/101, and all
+Phase-1/Phase-0 predecessors 257/257. The independently audited aggregate is
+`p25-closure/p25-closure-d37dccae7-attempt01`, totaling 390/390.
+
+This closes same-decomposition schema-2 restart, all 27 diagnostic fields,
+1/2/4-rank total-system invariance, schema-1 LEEW compatibility, corruption
+rollback and FLT isolation. Changed-decomposition restart remains an explicit
+unsupported/rejected operation. Phase 2 is complete; merge, release and
+creation of `MITGCM-BOM-v0.3` require separate authorization.

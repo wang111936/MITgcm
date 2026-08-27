@@ -20,8 +20,11 @@ CEOP
       INTEGER bomInitialFields
       INTEGER bomOutputSchema
       INTEGER bomOutputFields
+      INTEGER bomOutputSchema2
+      INTEGER bomOutputFields2
       INTEGER bomPickupSchema
       INTEGER bomPickupFields
+      INTEGER bomPickupFields2
       INTEGER bomPickupSigFields
       INTEGER bomPickupSchema2
       INTEGER bomPickup2SigBase
@@ -39,11 +42,14 @@ CEOP
       PARAMETER ( bomInitialFields  = 8 )
       PARAMETER ( bomOutputSchema   = 1 )
       PARAMETER ( bomOutputFields   = 24 )
+      PARAMETER ( bomOutputSchema2  = 2 )
+      PARAMETER ( bomOutputFields2  = 48 )
       PARAMETER ( bomPickupSchema   = 1 )
       PARAMETER ( bomPickupFields   = 24 )
+      PARAMETER ( bomPickupFields2  = 45 )
       PARAMETER ( bomPickupSigFields = 16 )
       PARAMETER ( bomPickupSchema2  = 2 )
-      PARAMETER ( bomPickup2SigBase = 52 )
+      PARAMETER ( bomPickup2SigBase = 53 )
       PARAMETER ( bomPickupEnvHeader = 12 )
       PARAMETER ( bomPickupChunkFields = 24 )
 

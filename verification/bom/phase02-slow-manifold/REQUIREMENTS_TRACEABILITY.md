@@ -1,6 +1,6 @@
 # Phase 2 slow-manifold requirements traceability
 
-Status: **P2.0 FROZEN; P2.1--P2.4 CLOSED; P2.5 NEXT**
+Status: **P2.0 FROZEN; P2.1--P2.5 CLOSED; PHASE 2 COMPLETE**
 
 A requirement is complete only after its production implementation and the
 listed executable evidence are both recorded. P2.0 freezes the mapping.
@@ -10,14 +10,15 @@ Derivative/metric/covariant operators have exact-commit evidence at
 `5d4b91831`. Stateless RHS mode routing, component diagnostics, Stokes
 de-duplication, and P2-H01--H06/P2-N06 have exact-commit evidence at
 `fb004faf7`. Exact stage sampling, transactional RK2/RK4, B04/B05, locked B16
-and P2-I01--I06/P2-N07 have exact-commit evidence at `4b2d09d40`; output,
-pickup, total-system MPI and FLT integration remain P2.5.
+and P2-I01--I06/P2-N07 have exact-commit evidence at `4b2d09d40`. Schema-2
+output/pickup, total-system MPI, restart, FLT isolation and final P2-G01 have
+exact-commit evidence at `d37dccae7`.
 
 ## 1. Requirement matrix
 
 | ID | Requirement | Planned production owner | Acceptance | Package | Status |
 |---|---|---|---|---|---|
-| P2-R01 | Preserve accepted LEEW, owner, output, pickup and FLT coexistence behavior | dispatch plus unchanged Phase-1 paths | P2-Z01, P2-K01, P2-G01 | P2.1--P2.5 | in progress |
+| P2-R01 | Preserve accepted LEEW, owner, output, pickup and FLT coexistence behavior | dispatch plus unchanged Phase-1 paths | P2-Z01, P2-K01, P2-G01 | P2.1--P2.5 | verified: `d37dccae7`, 390/390 |
 | P2-R02 | Validate BOM mode, equation mode and SI slow-manifold parameters without aliasing leeway coefficient | `BOM_READPARMS`, `BOM_CHECK` | P2-C01, P2-N01, P2-H05 | P2.1/P2.3 | verified through H05/N06: `fb004faf7` |
 | P2-R03 | Publish an exact, transactional two-endpoint environment bracket with stable labels and source codes | `BOM_FIELDS.h`, `BOM_BUILD_ENDPOINTS` | P2-E01, P2-E02, P2-N02 | P2.1 | verified: `b81bb0129` |
 | P2-R04 | Evaluate EXF wind at exact model endpoints without mutating or relabeling EXF globals | `BOM_GET_EXF_WIND` | P2-E03, P2-N03 | P2.1 | verified: `43a79d1b1` |
@@ -32,9 +33,9 @@ pickup, total-system MPI and FLT integration remain P2.5.
 | P2-R13 | Pass B04 solid-body-rotation analytical component and trajectory gates | derivative/RHS/RK integration | P2-I01, P2-I02 | P2.4 | verified: `4b2d09d40` |
 | P2-R14 | Pass B05 time-varying-uniform exact and endpoint-refinement order gates | endpoint/RHS/RK integration | P2-I03, P2-I04 | P2.4 | verified: `4b2d09d40` |
 | P2-R15 | Generate and pass locked, checksummed B16 Julia RHS and fixed-step trajectories | Julia generator and MITgcm comparison | P2-I05, P2-I06, P2-N07 | P2.4 | verified: `4b2d09d40` |
-| P2-R16 | Restore schema-2 mode, fingerprint and two-endpoint state transactionally; constrain schema-1 migration | pickup read/write | P2-P01, P2-P02, P2-P04 | P2.1/P2.5 | field/schema preflight verified `41d0dbc20`; full particle/P2-P03 remain P2.5 |
-| P2-R17 | Preserve 1/2/4-rank decomposition consistency, same-decomposition restart and FLT isolation | migration, pickup, lifecycle | P2-M01, P2-P03, P2-K01 | P2.5 | planned |
-| P2-R18 | Append stable failure/stage codes, direct diagnostics and complete predecessor regression | all Phase-2 paths | all negative gates, P2-P04, P2-G01 | P2.1--P2.5 | through P2.4 at 358/358 verified; P2.5 remains |
+| P2-R16 | Restore schema-2 mode, fingerprint and two-endpoint state transactionally; constrain schema-1 migration | pickup read/write | P2-P01, P2-P02, P2-P04 | P2.1/P2.5 | verified: `d37dccae7`; schema-1 LEEW accepted, schema-1 BOM rejected |
+| P2-R17 | Preserve 1/2/4-rank decomposition consistency, same-decomposition restart and FLT isolation | migration, pickup, lifecycle | P2-M01, P2-P03, P2-K01 | P2.5 | verified: `d37dccae7` |
+| P2-R18 | Append stable failure/stage codes, direct diagnostics and complete predecessor regression | all Phase-2 paths | all negative gates, P2-P04, P2-G01 | P2.1--P2.5 | verified: `d37dccae7`, P2-G01 390/390 |
 
 ## 2. Reverse traceability by planned interface
 
@@ -110,7 +111,17 @@ accepted P2.1--P2.3 gates 78/78, and 15 Phase-1/Phase-0 predecessor groups
 257/257: 358/358 total. This closes P2-R13--R15 and the integrated-stage/
 transaction portions of P2-R07 and P2-R10--R12. New live diagnostics are
 finite-checked and migration-safe; output/pickup schema integration and final
-P2-R01/P2-R16--R18 closure remain P2.5.
+P2-R01/P2-R16--R18 closure were assigned to P2.5 and are closed below.
+
+P2.5 closure evidence is
+`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p25-closure/`
+`p25-closure-d37dccae7-attempt01` at exact functional commit `d37dccae7`.
+It audits P2-P01--P04/P2-M01 20/20, P2-K01 12/12, accepted P2.1--P2.4
+gates 101/101, and 15 Phase-1/Phase-0 predecessor groups 257/257: 390/390
+total. This closes P2-R01 and P2-R16--R18, including transactional schema-2
+restart with all 27 diagnostics, 1/2/4-rank invariance, same-decomposition
+restart, corruption rollback and FLT isolation. Changed-decomposition restart
+remains explicitly unsupported and rejected.
 
 A work package must not mark a later requirement complete by using a test-only
 stub in place of the planned production owner. Component tests may inject
@@ -124,5 +135,6 @@ lifecycle and all source policies that are claimed as supported.
 - stable IDs are never renumbered or reused;
 - a deferred capability stays planned and is not described as implemented;
 - `TEST_RESULTS.md` records only actual exact-head runs;
-- P2-G01 covers every requirement and all Phase-1/Phase-0 predecessors before
-  Phase 2 can exit or `MITGCM-BOM-v0.3` can be created.
+- P2-G01 covers every requirement and all Phase-1/Phase-0 predecessors; its
+  390/390 closure satisfies the Phase-2 exit gate, while merge, release and
+  `MITGCM-BOM-v0.3` creation require separate authorization.
