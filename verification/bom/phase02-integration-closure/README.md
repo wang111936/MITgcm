@@ -1,5 +1,7 @@
 # Phase 2.5 integration closure
 
+Status: **P2.5 CLOSED; PHASE 2 INTEGRATION COMPLETE**
+
 P2.5 completes the Phase-2 production integration left after P2.4: live
 schema-2 diagnostics, transactional restart, serial/MPI reproducibility,
 same-decomposition restart and FLT isolation. It does not add changed-
@@ -41,6 +43,6 @@ Development evidence before the exact-head closure run:
 - LEEW coexistence matrix: 25/25
 - BOM-mode coexistence extension: 12/12
 
-The authoritative P2-G01 exact-head evidence and aggregate manifest are
-recorded in `TEST_RESULTS.md` after the functional commit is frozen.
-
+The authoritative P2-G01 exact-head evidence is 390/390 PASS at functional
+commit `d37dccae7d7c219deeafbea5bee65b880a48efd0`. Its aggregate manifest,
+independent audit and SHA-256 identifiers are recorded in `TEST_RESULTS.md`.

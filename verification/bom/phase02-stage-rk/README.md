@@ -1,6 +1,6 @@
 # MITGCM-BOM P2.4 stage-time RK verification
 
-Status: **P2.4 CLOSED; P2.5 IS THE UNIQUE NEXT WORK PACKAGE**
+Status: **P2.4 CLOSED; PHASE 2 CLOSED BY P2.5**
 
 This case verifies the production slow-manifold stage sampler and the
 transactional explicit midpoint RK2/classical RK4 integrators. The
@@ -47,7 +47,7 @@ verification/bom/phase02-stage-rk/run_stage_rk_gate.sh
 P2.4 stores the stable 27-component diagnostic vector in live particle
 state, but does not extend trajectory output or pickup schemas. Schema-2
 particle output/restart integration, 1/2/4-rank total-system comparison and
-FLT coexistence remain P2.5 scope.
+FLT coexistence were assigned to P2.5 and are closed by its 390/390 aggregate.
 
 Exact functional-head results and aggregate predecessor evidence are recorded
 in `TEST_RESULTS.md`.

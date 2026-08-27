@@ -1,6 +1,6 @@
 # MITGCM-BOM P2.4 B16 Julia-reference verification
 
-Status: **P2.4 CLOSED; P2.5 IS THE UNIQUE NEXT WORK PACKAGE**
+Status: **P2.4 CLOSED; PHASE 2 CLOSED BY P2.5**
 
 This isolated serial comparator verifies the production `JULIA` equation
 path against the locked Phase-2 B16 fixture. It uses three particles in a
