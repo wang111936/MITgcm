@@ -9,23 +9,28 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/development`（退出审计合并后恢复点） |
-| 当前阶段 PR | PR #20--#24 已顺序 merge；Phase 2 退出审计 PR 是 v0.3 发布边界 |
-| 当前阶段 | Phase 2：慢流形惯性物理（完成） |
-| 当前工作包 | 最终集成门禁 390/390 PASS；独立退出审计 PASS |
-| 下一工作包 | Phase 3 P3.0 设计/接口/测试冻结 |
+| 当前任务分支 | `MITGCM-BOM/p3.0-interface-freeze` |
+| 当前阶段 PR | Draft PR #26：远端范围复审 PASS，保持未合并且未获合并授权 |
+| 当前阶段 | Phase 3：非线性弹簧和分布式邻居（进行中） |
+| 当前工作包 | P3.0 完成：本地审计 12/12，PR #26 为 9 个 Markdown、behind 0 |
+| 下一工作包 | 获得明确授权并集成 PR #26 后，进入 P3.1 参数/代码、geometry、KNN oracle 和 spring laws |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 核对 `MITGCM-BOM-v0.3` 已发布并 peel 到 Phase 2 退出审计 merge commit；
-2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md)、[最终集成结果](../../../verification/bom/phase02-slow-manifold/PHASE2_INTEGRATION_RESULTS.md) 和 [退出审计](../../../verification/bom/phase02-slow-manifold/PHASE2_EXIT_AUDIT.md)；
-3. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为进入 Phase 3 的本地基线；
-4. 核对 Phase 2 生产集成头 `f71e76e8` 与最终 audit head `db41805c` 的 390/390 证据及空 Git 状态；
-5. 创建独立 Phase 3 阶段记录，首先执行 P3.0 设计/接口/测试冻结；
-6. P3.0 只冻结 K-neighbor、cell-linked-list、ghost exchange、spring/raft 与 B07--B09/B17/performance 契约，不提前加入生产 Fortran。
+1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md) 和
+   [P3.0 验证入口](../../../verification/bom/phase03-springs-neighbors/README.md)；
+2. 核对冻结提交 `e81ddaa521e5f3babe54ba0ac8964c3dae058f88` 的
+   `P3.0_DOC_AUDIT PASS 12/12` 和 `P3.0_DESIGN_AUDIT.md`；
+3. 核对 Draft PR #26 仍以 `MITGCM-BOM/development` 为 base、以
+   `MITGCM-BOM/p3.0-interface-freeze` 为 head，且 behind 为 0；
+4. 未经用户明确授权不得合并 PR #26，也不得创建 `MITGCM-BOM-v0.4`；
+5. P3.0 集成后进入 P3.1；范围仅限参数/代码、canonical pair geometry、
+   verification-only KNN oracle 和 stateless Hooke/eBOMB laws；
+6. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12
+   为 Phase 3 本地基线。
 
 开始前执行：
 
@@ -43,7 +48,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
-| Phase 3 弹簧与邻居 | 未开始 | v0.4 | Phase 2 门禁通过；下一步 P3.0 冻结 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
+| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0 完成；Draft PR #26 远端复审 PASS，等待明确合并授权 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
@@ -780,6 +785,30 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   审计为 PASS、无开放 finding；
 - 下一动作是合并退出审计 PR，在其 merge commit 上创建并推送 annotated
   tag `MITGCM-BOM-v0.3`；之后从 P3.0 设计/接口/测试冻结开始 Phase 3。
+
+### 2026-08-27：Phase 3 准入与 P3.0 冻结候选
+
+- `MITGCM-BOM-v0.3` tag object `9360a06d0379051aced0601b25aa814dda6330fb`
+  已核对 peel 到 Phase 2 退出审计 merge commit `332a406e958e5005f60267c187fada1f74319fc3`；
+- 从该提交创建 `MITGCM-BOM/p3.0-interface-freeze`，未继承其他开发任务文件；
+- 锁定 Julia 参考提交 `156557359185e4413ce82829f3ed26a4eb8c6283`，记录 springs、physics、
+  rafts/clumps 与 Project/Manifest 的 SHA-256；
+- 冻结 KNN oracle、exact cutoff graph、cell-linked-list、ghost、Hooke/eBOMB、
+  ensemble RK、raft、schema 3、错误码、复杂度与 B07--B09/B17 契约；
+- 建立 P3-R01--P3-R18、P3-D001--P3-D022 和分工作包测试矩阵；
+- 本工作包只允许 Markdown；生产 Fortran、测试脚本、输入和生成证据变化必须为零；
+- 冻结提交 `e81ddaa521e5f3babe54ba0ac8964c3dae058f88` 在精确提交上通过
+  changed-path、Markdown-only、diff whitespace、禁用词、requirements、
+  decisions、source findings、测试标识、核心契约、链接和 v0.3 基线共
+  12/12 审计；
+- 8 个冻结文件共 1410 insertions、12 deletions；`pkg/bom` 和 `model`
+  差异为空，没有生产源码、脚本、输入、锁定数据或生成证据变化；
+- P3.0 标记完成、无开放 design/scope finding；分支已批量推送并创建
+  Draft PR #26；
+- PR #26 远端复审确认 `draft=true`、`mergeable=true`、base/head 正确、
+  9 个 Markdown 且 behind 0；
+- 未经用户明确授权不合并 PR #26，不创建 `MITGCM-BOM-v0.4`；
+- P3.1--P3.5 的实现和运行测试均未开始；下一生产任务严格限于 P3.1。
 
 ## 6. 每次会话结束时必须更新
 
