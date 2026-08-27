@@ -789,6 +789,11 @@ C--   One commit publishes the fully validated scratch transaction.
 
       _END_MASTER(myThid)
       _BARRIER
+C--   Schema 2 stores primary endpoints; derived gradients are rebuilt.
+      IF ( bomMode.EQ.'BOM' ) THEN
+        CALL BOM_BUILD_DERIVATIVES( myThid )
+      ENDIF
+      _BARRIER
 #endif
 
       RETURN
