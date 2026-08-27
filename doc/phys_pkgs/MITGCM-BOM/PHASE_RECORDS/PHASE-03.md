@@ -8,7 +8,7 @@
 | 基线 tag object | `9360a06d0379051aced0601b25aa814dda6330fb` |
 | 基线提交 | `332a406e958e5005f60267c187fada1f74319fc3` |
 | 准入日期 | 2026-08-27 |
-| 状态 | **进行中：P3.0 完成，等待 Draft PR 集成；P3.1 未开始** |
+| 状态 | **进行中：P3.0 完成，Draft PR #26 等待明确合并授权；P3.1 未开始** |
 | 当前工作包 | P3.0 设计、接口与测试冻结（完成） |
 | 当前分支 | `MITGCM-BOM/p3.0-interface-freeze` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
@@ -115,9 +115,10 @@ P3.0 的权威文档位于
 
 ## 8. 唯一下一任务
 
-批量推送 `MITGCM-BOM/p3.0-interface-freeze` 并建立/复审 Draft PR；未经
-用户明确授权不得合并。P3.0 集成后，P3.1 才能开始参数/稳定代码、canonical
-pair geometry、verification-only KNN oracle 和 stateless spring laws。
+复核 Draft PR #26 并等待明确合并授权；只能使用 merge commit，且不得
+提前创建 `MITGCM-BOM-v0.4`。P3.0 集成后，P3.1 才能开始参数/稳定代码、
+canonical pair geometry、verification-only KNN oracle 和 stateless
+spring laws。
 
 ## 9. P3.0 完成记录
 
@@ -133,3 +134,6 @@ pair geometry、verification-only KNN oracle 和 stateless spring laws。
   `P3.0_DESIGN_AUDIT.md`；
 - P3.0 无开放 design/scope finding；P3.1--P3.5 的实现与运行门禁仍全部
   未开始，不能由本次文档审计代替。
+- GitHub Draft PR #26 以 `MITGCM-BOM/development` 为 base；远端复审为
+  `draft=true`、`mergeable=true`、9 个 Markdown、ahead 2/behind 0；
+  未经用户明确授权保持未合并。

@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/p3.0-interface-freeze` |
-| 当前阶段 PR | P3.0 已完成，待一次批量推送并创建/复审 Draft PR；未获合并授权 |
+| 当前阶段 PR | Draft PR #26：远端范围复审 PASS，保持未合并且未获合并授权 |
 | 当前阶段 | Phase 3：非线性弹簧和分布式邻居（进行中） |
-| 当前工作包 | P3.0 完成：冻结头 `e81ddaa52`，精确提交文档审计 12/12 PASS |
-| 下一工作包 | P3.0 Draft PR 集成后进入 P3.1 参数/代码、geometry、KNN oracle 和 spring laws |
+| 当前工作包 | P3.0 完成：本地审计 12/12，PR #26 为 9 个 Markdown、ahead 2/behind 0 |
+| 下一工作包 | 获得明确授权并集成 PR #26 后，进入 P3.1 参数/代码、geometry、KNN oracle 和 spring laws |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -24,8 +24,9 @@
    [P3.0 验证入口](../../../verification/bom/phase03-springs-neighbors/README.md)；
 2. 核对冻结提交 `e81ddaa521e5f3babe54ba0ac8964c3dae058f88` 的
    `P3.0_DOC_AUDIT PASS 12/12` 和 `P3.0_DESIGN_AUDIT.md`；
-3. 一次批量推送 `MITGCM-BOM/p3.0-interface-freeze` 并建立/复审 Draft PR；
-4. 未经用户明确授权不得合并 P3.0 PR，也不得创建 `MITGCM-BOM-v0.4`；
+3. 核对 Draft PR #26 仍以 `MITGCM-BOM/development` 为 base、以
+   `MITGCM-BOM/p3.0-interface-freeze` 为 head，且 behind 为 0；
+4. 未经用户明确授权不得合并 PR #26，也不得创建 `MITGCM-BOM-v0.4`；
 5. P3.0 集成后进入 P3.1；范围仅限参数/代码、canonical pair geometry、
    verification-only KNN oracle 和 stateless Hooke/eBOMB laws；
 6. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12
@@ -47,7 +48,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
-| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0 冻结头 `e81ddaa52` 的文档审计 12/12 PASS；等待 Draft PR 集成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
+| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0 完成；Draft PR #26 远端复审 PASS，等待明确合并授权 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
@@ -802,8 +803,11 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   12/12 审计；
 - 8 个冻结文件共 1410 insertions、12 deletions；`pkg/bom` 和 `model`
   差异为空，没有生产源码、脚本、输入、锁定数据或生成证据变化；
-- P3.0 标记完成、无开放 design/scope finding；等待一次批量推送和 Draft
-  PR 不可变补丁复审，未经用户授权不合并；
+- P3.0 标记完成、无开放 design/scope finding；分支已批量推送并创建
+  Draft PR #26；
+- PR #26 远端复审确认 `draft=true`、`mergeable=true`、base/head SHA
+  正确、2 个提交、9 个 Markdown、ahead 2/behind 0；
+- 未经用户明确授权不合并 PR #26，不创建 `MITGCM-BOM-v0.4`；
 - P3.1--P3.5 的实现和运行测试均未开始；下一生产任务严格限于 P3.1。
 
 ## 6. 每次会话结束时必须更新
