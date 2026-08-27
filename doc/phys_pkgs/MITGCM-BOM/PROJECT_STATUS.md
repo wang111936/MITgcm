@@ -9,11 +9,11 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p2.2-derivatives` |
-| 当前阶段 PR | P2.1 Draft PR #20 保持开放；P2.2 精确功能头 `5d4b91831` 已关闭，远端仅按完整工作包批量同步 |
+| 当前任务分支 | `MITGCM-BOM/p2.3-rhs-components` |
+| 当前阶段 PR | P2.1 Draft PR #20、P2.2 Draft PR #21 保持开放；P2.3 完整工作包形成后只批量同步一次 |
 | 当前阶段 | Phase 2：慢流形惯性物理（进行中） |
-| 当前工作包 | P2.2 完成：导数/度量 16/16，含 P2.1 与前序总计 317/317 |
-| 下一工作包 | P2.3 stateless `PAPER2024`/`JULIA` RHS 与 P2-H01--H06/P2-N06 |
+| 当前工作包 | P2.3 完成：双模式 RHS 18/18，含 P2.2/P2.1 与前序总计 335/335 |
+| 下一工作包 | P2.4 RK stage 接线与 B04/B05/B16、P2-I01--I06/P2-N07 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -23,9 +23,9 @@
 1. 核对 `MITGCM-BOM-v0.2` tag object 为 `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1`，peeled commit 为 `1067c21d230e9c9619e89245b97c01e9474c7ed7`；
 2. 读取 [Phase 2 阶段记录](PHASE_RECORDS/PHASE-02.md) 和 [P2.0 接口冻结](../../../verification/bom/phase02-slow-manifold/P2.0_INTERFACE_FREEZE.md)；
 3. Phase 2 继续以 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地基线；
-4. 核对当前分支为 `MITGCM-BOM/p2.2-derivatives`，精确功能头 `5d4b91831` 的 P2.2 关闭证据为 317/317；
-5. 从 P2.3 stateless RHS 开始，先建立 `PAPER2024`/`JULIA` 分量接口与 P2-H01--H06/P2-N06，不重复 P2.2 球面工作；
-6. P2.3 本增量不加入粒子 RK stage/P2.4，不创建 v0.3 tag；GitHub 继续采用阶段性批量推送。
+4. 核对当前分支为 `MITGCM-BOM/p2.3-rhs-components`，精确功能头 `fb004faf7` 的 P2.3 关闭证据为 335/335；
+5. 从 P2.4 开始，把 stage-time field/derivative interpolation 与 P2.3 dispatcher 接入 RK2/RK4，并建立 B04/B05/B16 轨迹及 P2-I01--I06/P2-N07；
+6. P2.4 不修改已冻结的双模式方程或 Stokes policy，不提前进入 P2.5，不创建 v0.3 tag；GitHub 继续采用完整工作包批量推送。
 
 开始前执行：
 
@@ -42,7 +42,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase -1 环境与基线 | 完成 | 基线 | WSL、GNU/MPI、Julia、串并行 exp2 均通过 | [环境报告](ENVIRONMENT_READINESS.md) |
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
-| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1/P2.2 完成；P2.2 精确头 `5d4b91831` 聚合 317/317；P2.3 下一 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
+| Phase 2 慢流形惯性 | 进行中 | v0.3 | P2.1--P2.3 完成；P2.3 精确头 `fb004faf7` 聚合 335/335；P2.4 下一 | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 未开始 | v0.4 | 等待 Phase 2 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-3非线性弹簧和分布式邻居) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
@@ -236,6 +236,27 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - P2.2 标记完成，无开放实现 finding；P2.3 成为唯一下一工作包；
 - 远端同步按完整工作包批量进行；Draft PR #20 仍属于 P2.1，未合并，
   也未创建 `MITGCM-BOM-v0.3`。
+
+### P2.3 双模式慢流形 RHS 完成
+
+- 功能提交 `fb004faf735e638c9248beabc49422b05aa09eb7` 增加独立
+  `BOM_RHS_PAPER2024`、`BOM_RHS_JULIA` 和统一 stateless dispatcher；
+- PAPER 路径使用 combined-total material derivative 与 total vorticity；
+  JULIA 路径保持 weighted per-source derivative 与 base-current vorticity；
+- 27 个稳定诊断分量、显式/预合成 Stokes policy、SI 参数、`fCori`、
+  `tauSphere`、有限/溢出保护和 final-drift CFL 只在整次成功后发布；
+- 权威 `p23-rhs-fb004faf7-attempt01` 为 18/18 PASS，串行/MPI4 的八条
+  component records 位级一致，17 项 N06 注入均保持粒子 sentinels 不变；
+- 同一精确头的 P2.2 为 16/16、P2.1 endpoint/pickup 为 34/34 与 10/10、
+  Phase-1/Phase-0 前序为 257/257；19 组聚合总计 335/335 PASS；
+- 关闭证据为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/`
+  `p23-closure/p23-closure-fb004faf7-attempt01`；row audit 与 manifest
+  SHA-256 分别为 `290b3626e8343ae389f2227425ddf4b3591b4fa2f3e8ed54a08090c7b418c13e`
+  和 `9feacb71d499c8327b9d2b6ba5c61d6e53ffa7c521dd4e7aba93bc4b32a8fb42`；
+- 19 份 summary、13 份原生 manifest、source/driver hashes、环境、精确
+  source head 和空 Git 状态均通过自验证；
+- P2.3 未接入 `BOM_MAIN`/RK、未改 pickup、未实现 B04/B05/B16；P2.4
+  成为唯一下一工作包。无开放实现 finding，未创建 v0.3 tag。
 
 ## 4. 未决问题与风险
 
@@ -685,6 +706,24 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   P2-H01--H06/P2-N06，不进入 RK stage/P2.4；
 - 本轮在完整阶段记录形成后最多进行一次批量推送，不在小增量间反复同步；
   不创建 `MITGCM-BOM-v0.3` 标签。
+
+### 2026-08-26：P2.3 双模式 RHS 完成与工作包关闭
+
+- 本地分支 `MITGCM-BOM/p2.3-rhs-components` 的功能提交 `fb004faf7`
+  完成 PAPER combined-total 与 JULIA weighted per-source 两条独立路径；
+- H01--H06/N06、串行/MPI4 构建及八条记录位级一致共 18/18 PASS；
+- 同一精确头重跑 P2.2 16/16、P2.1 endpoint 34/34、pickup 10/10 与
+  Phase-1/Phase-0 257/257，总计 335/335 PASS；
+- 聚合证据为 `p23-closure/p23-closure-fb004faf7-attempt01`，row audit 与
+  manifest SHA-256 分别为
+  `290b3626e8343ae389f2227425ddf4b3591b4fa2f3e8ed54a08090c7b418c13e`
+  和 `9feacb71d499c8327b9d2b6ba5c61d6e53ffa7c521dd4e7aba93bc4b32a8fb42`；
+- 历史 P1.1 runner 首次沿用 pre-P1.4 日志文本，启用已集成 owner-migration
+  兼容开关后 42/42 PASS；没有生产源码修复或跳过项；
+- P2.3 关闭；P2.4 是唯一下一工作包，范围为 RK stage-time 接线、
+  B04/B05/B16 和 P2-I01--I06/P2-N07；不提前进入 P2.5；
+- 用户要求减少 GitHub 推送，本工作包只在代码、测试、证据和文档全部
+  完成后批量同步一次；不合并既有 PR，不创建 v0.3 tag。
 
 ## 6. 每次会话结束时必须更新
 

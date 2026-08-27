@@ -1,36 +1,38 @@
 # Phase 2 slow-manifold requirements traceability
 
-Status: **P2.0 FROZEN; P2.1/P2.2 CLOSED; P2.3 NOT STARTED**
+Status: **P2.0 FROZEN; P2.1--P2.3 CLOSED; P2.4 NEXT**
 
 A requirement is complete only after its production implementation and the
 listed executable evidence are both recorded. P2.0 freezes the mapping.
 P2-R03--P2-R05, the field-value portion of P2-R07, and the P2.1 field-state
 portion of P2-R16/P2-R18 have exact-commit evidence at `41d0dbc20`.
 Derivative/metric/covariant operators have exact-commit evidence at
-`5d4b91831`; RHS mode routing, RK and later integration remain.
+`5d4b91831`. Stateless RHS mode routing, component diagnostics, Stokes
+de-duplication, and P2-H01--H06/P2-N06 have exact-commit evidence at
+`fb004faf7`; RK wiring and later integration remain.
 
 ## 1. Requirement matrix
 
 | ID | Requirement | Planned production owner | Acceptance | Package | Status |
 |---|---|---|---|---|---|
 | P2-R01 | Preserve accepted LEEW, owner, output, pickup and FLT coexistence behavior | dispatch plus unchanged Phase-1 paths | P2-Z01, P2-K01, P2-G01 | P2.1--P2.5 | in progress |
-| P2-R02 | Validate BOM mode, equation mode and SI slow-manifold parameters without aliasing leeway coefficient | `BOM_READPARMS`, `BOM_CHECK` | P2-C01, P2-N01, P2-H05 | P2.1/P2.3 | in progress |
+| P2-R02 | Validate BOM mode, equation mode and SI slow-manifold parameters without aliasing leeway coefficient | `BOM_READPARMS`, `BOM_CHECK` | P2-C01, P2-N01, P2-H05 | P2.1/P2.3 | verified through H05/N06: `fb004faf7` |
 | P2-R03 | Publish an exact, transactional two-endpoint environment bracket with stable labels and source codes | `BOM_FIELDS.h`, `BOM_BUILD_ENDPOINTS` | P2-E01, P2-E02, P2-N02 | P2.1 | verified: `b81bb0129` |
 | P2-R04 | Evaluate EXF wind at exact model endpoints without mutating or relabeling EXF globals | `BOM_GET_EXF_WIND` | P2-E03, P2-N03 | P2.1 | verified: `43a79d1b1` |
 | P2-R05 | Support NONE/FILES/COUPLER Stokes ownership with exact endpoint and availability semantics | `BOM_GET_STOKES` and provider hook | P2-E04, P2-E05, P2-N03 | P2.1 | verified through COUPLER: `6247ee6ba` |
-| P2-R06 | Prevent explicit/embedded Stokes double counting and publish an auditable policy | `BOM_CHECK`, field metadata | P2-E05, P2-H04, P2-N04 | P2.1/P2.3 | endpoint policy matrix verified `6247ee6ba`; H04 diagnostic remains |
+| P2-R06 | Prevent explicit/embedded Stokes double counting and publish an auditable policy | `BOM_CHECK`, field metadata | P2-E05, P2-H04, P2-N04 | P2.1/P2.3 | verified through H04/N06: `fb004faf7` |
 | P2-R07 | Interpolate every field and derivative at exact RK stage time with no extrapolation | `BOM_INTERP_ENV_TIME`, `BOM_INTERP_ENV_DERIVATIVES` | P2-E06, P2-I04, P2-N02 | P2.1/P2.4 | field `83913ce59` and derivative `f2c86ddf7` verified; I04 remains |
 | P2-R08 | Compute second-order nonuniform C-point SI derivatives without crossing land | `BOM_BUILD_DERIVATIVES` | P2-D01, P2-D02, P2-D03, P2-N05 | P2.2 | verified `5d4b91831`: D01--D03 and complete N05 |
-| P2-R09 | Apply Cartesian/spherical covariant metrics once and use MITgcm `fCori` | metric/derivative helpers | P2-D04, P2-D05, P2-H05, P2-N05 | P2.2/P2.3 | P2.2 production owner verified `5d4b91831`; H05 RHS consumer remains P2.3 |
-| P2-R10 | Implement the paper combined-field material derivative, total vorticity and component signs | `BOM_RHS_PAPER2024` | P2-H01, P2-H03, P2-H05, P2-I01 | P2.3/P2.4 | planned |
-| P2-R11 | Implement the locked Julia per-source derivative and base-vorticity behavior separately | `BOM_RHS_JULIA` | P2-H02, P2-H03, P2-I05 | P2.3/P2.4 | planned |
-| P2-R12 | Retain stateless RHS, per-stage finite/CFL checks and all-or-nothing particle commit | RHS, RK2/RK4, `BOM_MAIN` | P2-H06, P2-I04, P2-N06 | P2.3/P2.4 | planned |
+| P2-R09 | Apply Cartesian/spherical covariant metrics once and use MITgcm `fCori` | metric/derivative helpers | P2-D04, P2-D05, P2-H05, P2-N05 | P2.2/P2.3 | verified through RHS consumer H05: `fb004faf7` |
+| P2-R10 | Implement the paper combined-field material derivative, total vorticity and component signs | `BOM_RHS_PAPER2024` | P2-H01, P2-H03, P2-H05, P2-I01 | P2.3/P2.4 | component verified `fb004faf7`; integrated I01 remains |
+| P2-R11 | Implement the locked Julia per-source derivative and base-vorticity behavior separately | `BOM_RHS_JULIA` | P2-H02, P2-H03, P2-I05 | P2.3/P2.4 | component verified `fb004faf7`; integrated I05 remains |
+| P2-R12 | Retain stateless RHS, per-stage finite/CFL checks and all-or-nothing particle commit | RHS, RK2/RK4, `BOM_MAIN` | P2-H06, P2-I04, P2-N06 | P2.3/P2.4 | stateless H06/N06 verified `fb004faf7`; RK commit remains |
 | P2-R13 | Pass B04 solid-body-rotation analytical component and trajectory gates | derivative/RHS/RK integration | P2-I01, P2-I02 | P2.4 | planned |
 | P2-R14 | Pass B05 time-varying-uniform exact and endpoint-refinement order gates | endpoint/RHS/RK integration | P2-I03, P2-I04 | P2.4 | planned |
 | P2-R15 | Generate and pass locked, checksummed B16 Julia RHS and fixed-step trajectories | Julia generator and MITgcm comparison | P2-I05, P2-I06, P2-N07 | P2.4 | planned |
 | P2-R16 | Restore schema-2 mode, fingerprint and two-endpoint state transactionally; constrain schema-1 migration | pickup read/write | P2-P01, P2-P02, P2-P04 | P2.1/P2.5 | field/schema preflight verified `41d0dbc20`; full particle/P2-P03 remain P2.5 |
 | P2-R17 | Preserve 1/2/4-rank decomposition consistency, same-decomposition restart and FLT isolation | migration, pickup, lifecycle | P2-M01, P2-P03, P2-K01 | P2.5 | planned |
-| P2-R18 | Append stable failure/stage codes, direct diagnostics and complete predecessor regression | all Phase-2 paths | all negative gates, P2-P04, P2-G01 | P2.1--P2.5 | P2.1/P2.2 failures and 257 predecessors verified; later packages remain |
+| P2-R18 | Append stable failure/stage codes, direct diagnostics and complete predecessor regression | all Phase-2 paths | all negative gates, P2-P04, P2-G01 | P2.1--P2.5 | through P2.3 and 257 predecessors verified; later packages remain |
 
 ## 2. Reverse traceability by planned interface
 
@@ -87,6 +89,16 @@ This closes the P2.2 production boundary for P2-R08 and the metric/operator
 portion of P2-R09. D05 verifies separate PAPER-total and JULIA-base vorticity
 operator candidates; binding them into full mode-specific RHS components and
 the P2-H05 consumer remains P2.3, not an implicit P2.2 claim.
+
+P2.3 closure evidence is
+`/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p23-closure/`
+`p23-closure-fb004faf7-attempt01` at exact functional commit `fb004faf7`.
+It audits P2-H01--H06/complete N06 18/18, P2.2 derivatives 16/16,
+accepted endpoint/provider 34/34, schema-2 pickup 10/10, and 15 predecessor
+groups 257/257: 335/335 total. This closes the P2.3 production boundary for
+the stateless portions of P2-R10--R12 and completes the P2.3 consumer evidence
+for P2-R02, P2-R06, and P2-R09. P2-I01/I04/I05 and authoritative particle
+commit remain P2.4.
 
 A work package must not mark a later requirement complete by using a test-only
 stub in place of the planned production owner. Component tests may inject
