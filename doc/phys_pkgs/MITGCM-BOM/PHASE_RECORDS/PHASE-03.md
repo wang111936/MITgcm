@@ -8,8 +8,8 @@
 | 基线 tag object | `9360a06d0379051aced0601b25aa814dda6330fb` |
 | 基线提交 | `332a406e958e5005f60267c187fada1f74319fc3` |
 | 准入日期 | 2026-08-27 |
-| 状态 | **进行中：P3.0 冻结候选已形成，文档审计待执行** |
-| 当前工作包 | P3.0 设计、接口与测试冻结 |
+| 状态 | **进行中：P3.0 完成，等待 Draft PR 集成；P3.1 未开始** |
+| 当前工作包 | P3.0 设计、接口与测试冻结（完成） |
 | 当前分支 | `MITGCM-BOM/p3.0-interface-freeze` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -60,7 +60,7 @@ P3.0 的权威文档位于
 
 | 工作包 | 交付 | 主要验收 | 当前状态 |
 |---|---|---|---|
-| P3.0 设计冻结 | 源码审计、需求、接口、MPI/事务/schema、测试和性能契约 | 18 需求、22 决定、编号/链接/范围审计 | 进行中：审计待执行 |
+| P3.0 设计冻结 | 源码审计、需求、接口、MPI/事务/schema、测试和性能契约 | 18 需求、22 决定、编号/链接/范围审计 | 完成：冻结头 `e81ddaa52`；12/12 PASS |
 | P3.1 参考与定律 | 参数/代码、canonical geometry、外部 KNN oracle、Hooke/eBOMB kernels | P3-C01/K01/D01、B07/B08、N03/N05 | 未开始 |
 | P3.2 邻居生产路径 | cell geometry/list、exact cutoff local graph、容量事务 | P3-N01/N02、L01/L02、N10 | 未开始 |
 | P3.3 分布式积分 | ghost、ensemble RK、全局 rollback、迁移扩展 | G01/G02、I01--I03、B09/B17、M01 | 未开始 |
@@ -103,7 +103,7 @@ P3.0 的权威文档位于
 ## 7. Phase 3 总退出条件
 
 - [x] Phase 2 最终 390/390 和 `MITGCM-BOM-v0.3` 准入已核验；
-- [ ] P3.0 设计、接口、需求和测试冻结通过独立审计；
+- [x] P3.0 设计、接口、需求和测试冻结通过独立审计；
 - [ ] P3.1--P3.5 全部完成并按顺序集成；
 - [ ] B07--B09、B17、负向、restart 和 1/2/4-rank 门禁通过；
 - [ ] 跨 rank 内力与小规模 gather oracle 一致；
@@ -115,5 +115,21 @@ P3.0 的权威文档位于
 
 ## 8. 唯一下一任务
 
-完成 P3.0 文档编号、链接、范围和基线审计，记录精确冻结提交并建立 Draft
-PR。P3.0 复审完成前，不进入 P3.1，不修改生产 Fortran、测试脚本或输入。
+批量推送 `MITGCM-BOM/p3.0-interface-freeze` 并建立/复审 Draft PR；未经
+用户明确授权不得合并。P3.0 集成后，P3.1 才能开始参数/稳定代码、canonical
+pair geometry、verification-only KNN oracle 和 stateless spring laws。
+
+## 9. P3.0 完成记录
+
+- 冻结提交：`e81ddaa521e5f3babe54ba0ac8964c3dae058f88`；tree：
+  `1f7c78b4660d1211a787af52b2d863d038ced480`；
+- 变更范围：8 个 Markdown，1410 insertions、12 deletions；生产 Fortran、
+  测试脚本、算例输入、锁定数据和生成证据变化为零；
+- 精确提交审计：changed-path allowlist、Markdown-only、diff whitespace、
+  禁用词、18 requirements、22 decisions、10 source findings、测试标识、
+  核心契约、相对链接和 v0.3 tag/base 共 12/12 PASS；
+- Julia 锁定提交和五个 source/environment SHA-256 与源码审计表一致；
+- 设计审计见 `verification/bom/phase03-springs-neighbors/`
+  `P3.0_DESIGN_AUDIT.md`；
+- P3.0 无开放 design/scope finding；P3.1--P3.5 的实现与运行门禁仍全部
+  未开始，不能由本次文档审计代替。

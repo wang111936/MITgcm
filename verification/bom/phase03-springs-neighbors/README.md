@@ -2,6 +2,10 @@
 
 Status: **P3.0 DESIGN / INTERFACE / TEST FREEZE COMPLETE**
 
+Frozen source commit: `e81ddaa521e5f3babe54ba0ac8964c3dae058f88`.
+The immutable document/scope audit is 12/12 PASS; see
+`P3.0_DESIGN_AUDIT.md`.
+
 Phase 3 adds interacting-particle spring velocity, a production cutoff graph,
 distributed ghost exchange, and deterministic raft diagnostics to the accepted
 Phase 2 slow-manifold particle integrator. The release target is
