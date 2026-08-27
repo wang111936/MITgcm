@@ -8,9 +8,9 @@
 | 基线 tag object | `ab4317e5fe695fb0b2eb3be9b1ce91b39ba137f1` |
 | 基线提交 | `1067c21d230e9c9619e89245b97c01e9474c7ed7` |
 | 准入日期 | 2026-08-25 |
-| 状态 | **进行中（P2.3 已在精确功能头 `fb004faf7` 关闭）** |
-| 当前工作包 | P2.4 RK stage-time 集成与 B04/B05/B16 golden |
-| 准入记录 | PR #17/#18 已合并；当前集成基线 `f84ac9a824f6e2e38f92c7bb5d8e538ac16ced3f` |
+| 状态 | **完成（最终集成门禁 390/390；退出审计 PASS）** |
+| 当前工作包 | Phase 2 退出审计与 `MITGCM-BOM-v0.3` 发布边界 |
+| 集成记录 | PR #20--#24 已顺序合并；生产头 `f71e76e89864ab3c6f32de3770efca39f5f819e5` |
 | P2.0 记录 | PR #19；设计提交 `628a6bb4621429bf6f58e9e46a13216c21de7815` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
@@ -61,8 +61,8 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 | P2.1 old/new 场 | 双时间层海流/风/Stokes 快照、时间插值和 pickup 状态 | 常值与时变场、mask/halo、restart | 完成（精确头 `41d0dbc20`；301/301） |
 | P2.2 导数网格 | colocated 梯度、时间导数、涡度和球面度量 | B04、解析导数、坏度量负测 | 完成（精确头 `5d4b91831`；317/317） |
 | P2.3 慢流形 RHS | `PAPER2024`/`JULIA` 分量与统一调度 | 分量解析、符号、Stokes 去重 | 完成（精确头 `fb004faf7`；335/335） |
-| P2.4 积分与 golden | RK stage 时间插值、固定 Julia 对照 | B05、B16、收敛与 rollback | 未开始 |
-| P2.5 集成收口 | 全回归、MPI/restart、独立退出审计 | Phase 2 总门禁与 v0.3 决策 | 未开始 |
+| P2.4 积分与 golden | RK stage 时间插值、固定 Julia 对照 | B05、B16、收敛与 rollback | 完成（精确头 `4b2d09d40`；358/358） |
+| P2.5 集成收口 | 全回归、MPI/restart、独立退出审计 | Phase 2 总门禁与 v0.3 决策 | 完成（生产头 `d37dccae7`；最终 390/390） |
 
 实际开发允许因新发现调整内部增量，但不得跳过 P2.0，也不得把未验证
 假设静默变成生产默认值。新增问题必须登记为 finding/risk，明确 owner、
@@ -85,28 +85,23 @@ Phase 2 不包括弹簧/邻居、出生死亡、生物过程、搁浅、随机�
 - [x] P2.1 exact endpoints、时间插值、schema-2 field pickup 与全部前序回归通过；
 - [x] P2.2 C-point 导数、球面度量、协变/涡度算子与全部前序回归通过；
 - [x] P2.3 双模式 stateless RHS、Stokes 去重、SI/符号与 N06 rollback 通过；
-- [ ] P2.0—P2.5 全部完成并顺序集成；
-- [ ] B04、B05、B16 与 RK 收敛门禁通过；
+- [x] P2.0—P2.5 全部完成并顺序集成；
+- [x] B04、B05、B16 与 RK 收敛门禁通过；
 - [x] `PAPER2024`/`JULIA` 分量、Stokes 去重和单位/符号有直接证据；
-- [ ] 1/2/4-rank、连续/restart 与全部 Phase 1/Phase 0 回归通过；
-- [ ] Julia golden 从 provisional 升级或保留限制有新的明确裁决；
-- [ ] 创建 `MITGCM-BOM-v0.3` 前完成独立退出审计。
+- [x] 1/2/4-rank、连续/restart 与全部 Phase 1/Phase 0 回归通过；
+- [x] Julia fixed-step golden 升级为 gating oracle，adaptive Tsit5 明确保留为 non-gating context；
+- [x] 创建 `MITGCM-BOM-v0.3` 前完成独立退出审计。
 
 ## 7. 唯一下一任务
 
-从已关闭的 P2.3 精确功能头 `fb004faf7` 开始 P2.4，下一增量只实现：
+退出审计记录合并并发布 `MITGCM-BOM-v0.3` 后，进入 Phase 3 的 P3.0
+设计/接口/测试冻结。P3.0 先定义 K-neighbor oracle、cutoff/cell-linked-list、
+ghost exchange、Hooke/eBOMB stiffness、connected-component/raft 诊断、
+B07--B09/B17 与性能门禁，不直接加入生产弹簧或邻居 Fortran。
 
-- 在 RK2/RK4 的每个 stage position/time 调用已验收的 field/derivative
-  interpolation 和 P2.3 dispatcher，保留稳定 failure/stage context；
-- B04 solid-body rotation 的分量、轨迹和收敛；
-- B05 time-varying uniform flow 的 exact displacement、stage-time sampling
-  与 endpoint refinement order；
-- 固定、带校验和的 B16 Julia RHS/trajectory generator 与比较器；
-- P2-I01--I06/P2-N07 的串行/MPI、method order、golden 与 rollback 门禁。
-
-P2.4 不修改 P2.3 已冻结的 PAPER/JULIA 方程、诊断索引或 Stokes policy，
-不提前完成 P2.5 output/pickup/FLT/1-2-4-rank 最终集成，不合并既有 PR，
-不创建 v0.3 tag。
+Phase 3 必须保留 Phase 2 的 exact environment/RHS/RK 和事务 rollback
+契约；生产邻居算法不得使用 O(N-squared) 路径。生物、搁浅与目标服务器
+HPC 加固继续留在后续阶段。
 
 ## 8. P2.0 完成记录
 
@@ -279,3 +274,60 @@ P2.4 不修改 P2.3 已冻结的 PAPER/JULIA 方程、诊断索引或 Stokes pol
   校验均通过；精确 source head 与 Git status 为空；
 - P2.3 状态为完成；唯一下一工作包为 P2.4。未接入 RK/Main、未改
   pickup、未实现 B04/B05/B16，未创建 v0.3 tag。
+
+## 17. P2.4 stage-aware RK、B04/B05/B16 与工作包关闭
+
+- 精确功能提交 `4b2d09d40b96cd4408a64e1ee0d4716b7a6255ad` 将已验收的
+  environment/derivative sampler 与双模式 RHS 接入生产 RK2/RK4；
+- K1 保持严格 owner，后续 trial position 使用 accepted overlap，FINAL
+  只在完整成功后一次发布位置、映射、场、drift 和 27 项诊断；
+- B04/B05 stage/RK 门禁 11/11 PASS，覆盖解析分量、RK2/RK4 收敛、
+  stage-time sampling、endpoint refinement、串行/MPI4 和 rollback；
+- 锁定 B16/N07 12/12 PASS，27 项 JULIA-mode RHS 与固定步 RK2/RK4
+  trajectory 均在容差内，source/environment/input/golden 变异均 fail-closed；
+- adaptive Tsit5 文件两次生成逐字节一致，但明确标记 `gating=false`，只作
+  参考上下文，不替代 fixed-step 门禁；
+- 同一精确头聚合 358/358 PASS；`row-audit.tsv` 与 `manifest.sha256`
+  SHA-256 分别为 `1e2ea3401e43a5e4bee74ff0362ee5a23907b707a35509122c04f80123b62a23`
+  和 `157e4ad4d960097f408ebd751abdea36a7f21f95d302f84bd229cccfc7cd7cb0`；
+- 关闭记录提交 `618ccbe329b5e54287965bf3ffabb2b40932acb5`；PR #23 后续以
+  merge commit `bb641b9d1c29efac9935e056cddd1e6b903005fe` 集成。
+
+## 18. P2.5 schema-2 输出、restart、共存与工作包关闭
+
+- 生产提交 `d37dccae7d7c219deeafbea5bee65b880a48efd0` 扩展 schema 2
+  live diagnostics、transactional pickup 和完整 fingerprint；
+- schema 1 LEEW 保持不变，schema 2 支持同分解连续/restart 位级对照，
+  损坏或不兼容状态在发布前拒绝，changed-decomposition restart 明确拒绝；
+- P2-P01--P04/P2-M01 为 20/20，LEEW 共存矩阵 25/25，BOM-mode
+  FLT coexistence 扩展 12/12；串行、MPI2、MPI4 与 owner migration 均覆盖；
+- P2.5 精确功能头聚合 390/390 PASS；`row-audit.tsv` 与原功能头
+  `manifest.sha256` SHA-256 分别为
+  `d29712970d8de8db828c0611384de38f7680047c001494b3917cce4fc04e677a`
+  和 `4d608484d628d8d8181ad79dfe80c6b45cfabf3de79f7a07add4ad72148e04a7`；
+- 关闭记录提交 `560577dfac0ca52195102e7e0ae6f25bc1cde4ea`；PR #24 后续以
+  merge commit `f71e76e89864ab3c6f32de3770efca39f5f819e5` 集成，合并树与
+  该关闭记录树完全一致。
+
+## 19. 顺序集成、最终门禁与退出审计
+
+- PR #20--#24 按 P2.1--P2.5 顺序使用 merge commit 集成，提交依次为
+  `4771bdb97f254cfcc9f3cc30024b807c72f05d4e`、
+  `6c9d94e5a3ea9b9f903ac690aa9148be8cde377b`、
+  `8730fe900d9d147f099a8c06ea02948cdc67bb7e`、
+  `bb641b9d1c29efac9935e056cddd1e6b903005fe` 和
+  `f71e76e89864ab3c6f32de3770efca39f5f819e5`；
+- 审计提交 `db41805cda3a10fe9b96889c87069c6347788cbc` 只向 P2.5
+  allowlist 加入两个已集成的 P2.4 README 路径，不改变生产源码、驱动、
+  输入或 reference；
+- 权威最终测试 ID 为 `p2-integrated-g01-db41805cd-attempt02`，23 组
+  390/390 PASS；row audit 与 manifest SHA-256 分别为
+  `d29712970d8de8db828c0611384de38f7680047c001494b3917cce4fc04e677a`
+  和 `ce29af66b0a3b925cce2bc8c70a1a937aff94a621d3f6bc10b314e26b5a5b85c`；
+- attempt01 因全局 artifact-root 被嵌套驱动继承而无法由聚合器定位 summary，
+  保留为非权威配置诊断；修正后的 attempt02 是唯一最终发布证据；
+- P2-R01--P2-R18 全部关闭，退出审计结论为 PASS、无开放 finding；
+- same-decomposition restart 是当前支持契约；changed-decomposition restart
+  与目标服务器编译器/MPI/调度/性能验证分别保持显式后置，不阻塞 Phase 3；
+- 审计开始前本地/远端均无 `MITGCM-BOM-v0.3`；审计记录合并后允许在
+  该 merge commit 上创建并推送 annotated tag。

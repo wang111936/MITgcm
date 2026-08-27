@@ -68,6 +68,12 @@ external environmental datasets remain outside the repository.
   rollback, and serial/MPI4 gates;
 - `phase02-b16/`: P2.4 fail-closed locked Julia preflight, 27-component RHS
   comparison, fixed-step RK2/RK4 trajectory comparison, and N07 mutations;
+- `phase02-integration-closure/`: P2.5 schema-2 output/restart integration,
+  1/2/4-rank and FLT/BOM coexistence gates, plus the final 390-row Phase 2
+  aggregate and independent manifest audit;
+- `phase02-slow-manifold/PHASE2_INTEGRATION_RESULTS.md` and
+  `PHASE2_EXIT_AUDIT.md`: ordered PR #20--#24 integration evidence, release
+  boundary and the independent Phase 2 exit decision;
 - `reference/phase02/`: checksummed B16 inputs, fixed-step golden files, and
   a separately marked non-gating adaptive Tsit5 context trajectory;
 - later phase directories: analytical, golden-trajectory, restart, MPI

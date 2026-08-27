@@ -17,6 +17,8 @@ ALLOWED_PREFIXES = (
 ALLOWED_PATHS = {
     "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.small",
     "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.tile-small",
+    "verification/bom/phase02-b16/README.md",
+    "verification/bom/phase02-stage-rk/README.md",
 }
 
 
