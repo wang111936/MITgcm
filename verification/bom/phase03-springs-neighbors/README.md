@@ -31,7 +31,7 @@ components, computed raft diagnostics and schema 3 remain P3.4 work.
 | P3.0 | integrated | PR #26 merge `96b38052c5`; document audit 12/12 |
 | P3.1 | integrated | PR #27 merge `7c146974e0`; direct 34/34; predecessor 390/390 |
 | P3.2 | integrated | PR #28 merge `3d01b6387`; direct 18/18; P3.1 34/34; Phase 2 390/390 |
-| P3.3 | functionally complete; Draft review/push pending authorization | functional `53f9670ee9`; unified direct head `9b9ea50df2`; direct 34/34; P3.2 18/18; P3.1 34/34; Phase 2 390/390 |
+| P3.3 | functionally complete; Draft PR #29 review pending | functional `53f9670ee9`; unified direct head `9b9ea50df2`; direct 34/34; P3.2 18/18; P3.1 34/34; Phase 2 390/390 |
 | P3.4 | not started | waits for accepted P3.1--P3.3 |
 | P3.5 | not started | waits for accepted P3.1--P3.4 |
 

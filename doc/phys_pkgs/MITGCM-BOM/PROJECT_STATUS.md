@@ -10,10 +10,10 @@
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
 | 当前任务分支 | `MITGCM-BOM/p3.3-spring-ensemble` |
-| 当前阶段 PR | P3.3 尚未推送或创建 PR；等待一次批量推送与 Draft PR 授权 |
+| 当前阶段 PR | Draft PR #29：base/head 正确、mergeable、behind 0；保持 Draft 且未获合并授权 |
 | 当前阶段 | Phase 3：非线性弹簧和分布式邻居（进行中） |
 | 当前工作包 | P3.3 功能完成：直接 34/34、P3.2 18/18、P3.1 34/34、Phase 2 390/390 |
-| 下一工作包 | 授权后一次推送并创建 P3.3 Draft PR；review/集成后进入 P3.4 raft 与 schema 3 |
+| 下一工作包 | review Draft PR #29；获明确合并授权并集成后进入 P3.4 raft 与 schema 3 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -28,8 +28,8 @@
    `9b9ea50df28a5ce1e405b903d78fe6dbc9120eb0`；
 3. 核对 P3.3 34/34、P3.2 18/18、P3.1 34/34 和 Phase 2 390/390
    的仓库外证据根及 manifest；
-4. 当前唯一外部动作是取得授权后一次推送该分支，并创建以
-   `MITGCM-BOM/development` 为 base 的 Draft PR；不得自行合并；
+4. 核对 Draft PR #29 仍以 `MITGCM-BOM/development` 为 base、以
+   `MITGCM-BOM/p3.3-spring-ensemble` 为 head，且保持 Draft、behind 0；
 5. P3.4 只有在 P3.3 review 并以 merge commit 集成后才能开始；其范围是
    connected components、raft diagnostics、schema-3 trajectory/pickup；
 6. 不创建 `MITGCM-BOM-v0.4`，该标签仍属于 P3.5 完整退出动作；
@@ -834,8 +834,10 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   390/390 中；P3.1 的 p33 模式保持 raft diagnostics 属于 P3.4；
 - P3.3 与 P3.0 冻结计划一致，无公式、容差或范围修订；P3.4 仍负责
   components/raft/schema 3，P3.5 仍负责性能、P3-G99 和 Phase 3 退出；
-- 本轮未推送 GitHub、未创建 Draft PR、未合并，也未创建
-  `MITGCM-BOM-v0.4`；等待用户授权一次批量推送和 Draft PR。
+- 分支已批量推送并创建 Draft PR #29；远端复核为 `draft=true`、
+  `mergeable=true`、base/head 正确和 behind 0；
+- PR #29 未合并，未创建 `MITGCM-BOM-v0.4`；下一步是 review，并仅在
+  用户明确授权后使用 merge commit 集成。
 
 ## 6. 每次会话结束时必须更新
 

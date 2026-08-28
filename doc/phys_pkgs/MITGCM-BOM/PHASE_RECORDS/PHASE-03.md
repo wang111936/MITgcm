@@ -8,7 +8,7 @@
 | 基线 tag object | `9360a06d0379051aced0601b25aa814dda6330fb` |
 | 基线提交 | `332a406e958e5005f60267c187fada1f74319fc3` |
 | 准入日期 | 2026-08-27；P3.3 功能关闭日期 2026-08-28 |
-| 状态 | **进行中：P3.0--P3.2 已集成；P3.3 功能完成并通过全部适用门禁，等待一次推送与 Draft review 授权** |
+| 状态 | **进行中：P3.0--P3.2 已集成；P3.3 功能完成，Draft PR #29 等待 review/合并授权** |
 | 当前工作包 | P3.3 分布式 ghost 与 ensemble RK（功能完成） |
 | 当前分支 | `MITGCM-BOM/p3.3-spring-ensemble` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
@@ -115,10 +115,10 @@ P3.0 的权威文档位于
 
 ## 8. 唯一下一任务
 
-在获得明确授权后，将 `MITGCM-BOM/p3.3-spring-ensemble` 一次推送并
-创建以 `MITGCM-BOM/development` 为基准的 Draft PR；不合并、不创建
-`MITGCM-BOM-v0.4`。只有 P3.3 经 review 并以 merge commit 集成后，
-才进入 P3.4 connected components、raft diagnostics 和 schema 3。
+复核 Draft PR #29 的范围、证据、base/head 和可合并性；未经用户明确
+授权不合并、不创建 `MITGCM-BOM-v0.4`。只有 P3.3 经 review 并以
+merge commit 集成后，才进入 P3.4 connected components、raft
+diagnostics 和 schema 3。
 
 ## 9. P3.0 完成记录
 
@@ -155,4 +155,6 @@ P3.0 的权威文档位于
 - P3.4 的 connected components、计算后的 raft ID/size、schema-3
   trajectory/pickup 仍未实现；P3.5 的性能/P3-G99/退出审计仍未开始；
 - P3.3 与 P3.0 冻结计划一致，无公式、容差、图定义或接口决策修订；
-- 未创建 `MITGCM-BOM-v0.4` 标签，且 P3.3 尚未推送或创建 PR。
+- 分支已批量推送并创建 Draft PR #29；远端复核 `draft=true`、
+  `mergeable=true`、base/head 正确、behind 0；
+- 未合并 PR #29，未创建 `MITGCM-BOM-v0.4` 标签。
