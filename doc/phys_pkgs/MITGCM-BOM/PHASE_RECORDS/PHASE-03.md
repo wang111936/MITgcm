@@ -7,10 +7,10 @@
 | 基线标签 | `MITGCM-BOM-v0.3` |
 | 基线 tag object | `9360a06d0379051aced0601b25aa814dda6330fb` |
 | 基线提交 | `332a406e958e5005f60267c187fada1f74319fc3` |
-| 准入日期 | 2026-08-27；P3.3 功能关闭日期 2026-08-28 |
-| 状态 | **进行中：P3.0--P3.2 已集成；P3.3 功能完成，Draft PR #29 等待 review/合并授权** |
-| 当前工作包 | P3.3 分布式 ghost 与 ensemble RK（功能完成） |
-| 当前分支 | `MITGCM-BOM/p3.3-spring-ensemble` |
+| 准入日期 | 2026-08-27；P3.3 集成、P3.4 功能完成日期 2026-08-28 |
+| 状态 | **进行中：P3.0--P3.3 已集成；P3.4 功能完成，最终干净头证据待记录** |
+| 当前工作包 | P3.4 FINAL components、raft diagnostics 与 schema 3（功能完成） |
+| 当前分支 | `MITGCM-BOM/p3.4-components-schema3` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
 ## 1. 准入裁决
@@ -63,8 +63,8 @@ P3.0 的权威文档位于
 | P3.0 设计冻结 | 源码审计、需求、接口、MPI/事务/schema、测试和性能契约 | 18 需求、22 决定、编号/链接/范围审计 | 完成：冻结头 `e81ddaa52`；12/12 PASS |
 | P3.1 参考与定律 | 参数/代码、canonical geometry、外部 KNN oracle、Hooke/eBOMB kernels | P3-C01/K01/D01、B07/B08、N03/N05 | 已由 PR #27 集成；P3.3 头复验 34/34 |
 | P3.2 邻居生产路径 | cell geometry/list、exact cutoff local graph、容量事务 | P3-N01/N02、L01/L02、N10 | 已由 PR #28 集成；P3.3 头复验 18/18 |
-| P3.3 分布式积分 | ghost、ensemble RK、全局 rollback、迁移扩展 | G01/G02、I01--I03、B09/B17、M01 | 功能完成；直接 34/34、前序 18/18 + 34/34 + 390/390 |
-| P3.4 raft 与 schema 3 | FINAL components、raft diagnostics、sidecar/pickup | RF01/RF02、P01--P04、restart | 未开始 |
+| P3.3 分布式积分 | ghost、ensemble RK、全局 rollback、迁移扩展 | G01/G02、I01--I03、B09/B17、M01 | 已由 PR #29 以 merge commit 集成 |
+| P3.4 raft 与 schema 3 | FINAL components、raft diagnostics、sidecar/pickup | RF01/RF02、P01--P04、restart | 功能完成；开发矩阵通过，最终干净头证据待记录 |
 | P3.5 性能与收口 | 结构复杂度、固定密度基线、全回归、退出审计 | X01/X02、P3-G99、v0.4 决策 | 未开始 |
 
 工作包必须按 P3.0--P3.5 的依赖顺序关闭。允许在工作包内部拆分小增量，
@@ -104,7 +104,7 @@ P3.0 的权威文档位于
 
 - [x] Phase 2 最终 390/390 和 `MITGCM-BOM-v0.3` 准入已核验；
 - [x] P3.0 设计、接口、需求和测试冻结通过独立审计；
-- [ ] P3.1--P3.5 全部完成并按顺序集成（P3.1--P3.2 已集成，P3.3 功能完成）；
+- [ ] P3.1--P3.5 全部完成并按顺序集成（P3.1--P3.3 已集成，P3.4 功能完成）；
 - [ ] B07--B09、B17、负向、restart 和 1/2/4-rank 门禁通过；
 - [ ] 跨 rank 内力与小规模 gather oracle 一致；
 - [ ] 生产邻居调用图没有全局 all-particle 或无条件 O(N-squared) 路径；
@@ -115,10 +115,10 @@ P3.0 的权威文档位于
 
 ## 8. 唯一下一任务
 
-复核 Draft PR #29 的范围、证据、base/head 和可合并性；未经用户明确
-授权不合并、不创建 `MITGCM-BOM-v0.4`。只有 P3.3 经 review 并以
-merge commit 集成后，才进入 P3.4 connected components、raft
-diagnostics 和 schema 3。
+在精确的 P3.4 功能提交上运行 42/42 直接门禁和已接受的 P3.3、P3.2、
+P3.1、Phase 2 前序回归，记录仓库外证据根和 manifest；随后仅完成
+P3.4 本地关闭记录。未经用户明确授权不推送、不创建 PR、不合并，且不
+创建 `MITGCM-BOM-v0.4`。P3.5 仍是下一独立工作包。
 
 ## 9. P3.0 完成记录
 
@@ -138,7 +138,7 @@ diagnostics 和 schema 3。
   `draft=true`、`mergeable=true`、9 个 Markdown、behind 0；
   未经用户明确授权保持未合并。
 
-## 10. P3.1--P3.3 进展记录
+## 10. P3.1--P3.4 进展记录
 
 - P3.1 已由 PR #27 以 merge commit
   `7c146974e0133083f23ee7014dc5f1bac13dcf39` 集成；
@@ -152,9 +152,17 @@ diagnostics 和 schema 3。
 - 已实现 version-1 ghost packet、同步 ensemble RK2/RK4、组合 RHS/CFL、
   全局 rollback 和 post-commit migration packet schema 2；
 - B17 的 P3.3 动力学记录在 serial/MPI2/MPI4 间按 exact ID 位一致；
-- P3.4 的 connected components、计算后的 raft ID/size、schema-3
-  trajectory/pickup 仍未实现；P3.5 的性能/P3-G99/退出审计仍未开始；
+- P3.4 前的 P3.3 分支已批量推送，PR #29 已按用户授权转为 Ready，并以
+  merge commit `be87475712f0084c5acc1a342ebc97172ccdaf82` 集成；
 - P3.3 与 P3.0 冻结计划一致，无公式、容差、图定义或接口决策修订；
-- 分支已批量推送并创建 Draft PR #29；远端复核 `draft=true`、
-  `mergeable=true`、base/head 正确、behind 0；
-- 未合并 PR #29，未创建 `MITGCM-BOM-v0.4` 标签。
+- 从 P3.3 集成提交创建
+  `MITGCM-BOM/p3.4-components-schema3`，实现 FINAL cutoff 图分布式
+  最小标签连通分量、exact raft ID/size 和 transactional candidate
+  rollback；
+- schema 3 保持 schema-2 48/45-field core 和 Phase-2 指纹不变，新增
+  8-field P3 sidecar/P3 signature，并在 pickup 单次 commit 前重建和验证
+  FINAL graph、spring、neighbor 和 raft；
+- 开发阶段组件矩阵、Hooke/eBOMB 串行/MPI2/MPI4 写出/重启/位比较及
+  14 项 corruption matrix 均通过；最终干净提交和完整前序回归待记录；
+- P3.5 的性能、P3-G99 和 Phase 3 退出审计仍未开始；没有修改 SKRIPS
+  文件，没有推送 P3.4 分支，也没有创建 `MITGCM-BOM-v0.4` 标签。

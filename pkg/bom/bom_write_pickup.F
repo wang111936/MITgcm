@@ -10,6 +10,8 @@ C !INTERFACE:
 C !DESCRIPTION:
 C     Write the mode-selected pickup transaction.  LEEW retains the exact
 C     schema-1 layout; BOM adds schema-2 fingerprint and endpoint sidecars.
+C     Spring-enabled BOM adds schema-3 metadata and diagnostics sidecars
+C     while preserving every accepted schema-2 member byte contract.
 
 C !USES:
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -48,7 +50,7 @@ C !LOCAL VARIABLES:
       INTEGER sigRecordFields, sigRecords, sigIndex, writeRecord
       INTEGER localOwnerCount, globalOwnerCount
       INTEGER*8 idRadix, idHi8, idLo8
-      LOGICAL schemaValid
+      LOGICAL schemaValid, useSchema3
 
       idRadix = 4294967296_8
       localErrCount = 0
@@ -59,6 +61,7 @@ C !LOCAL VARIABLES:
       sigRecordFields = sigFields
       envFields = 0
       schemaValid = .TRUE.
+      useSchema3 = .FALSE.
       IF ( bomMode.EQ.'BOM' ) THEN
         activeSchema = bomPickupSchema2
         activeFields = bomPickupFields2
@@ -78,6 +81,14 @@ C !LOCAL VARIABLES:
      O       signature, sigFields, envFields, schemaValid,
      I       myThid )
         IF ( .NOT.schemaValid ) localErrCount = localErrCount + 1
+        useSchema3 = bomSpringLaw.NE.'NONE'
+        IF ( useSchema3 ) THEN
+          CALL BOM_VALIDATE_P3_IO_STATE(
+     I         myTime, myIter, bomNextOutputTime,
+     O         envLocalErr,
+     I         myThid )
+          localErrCount = localErrCount + envLocalErr
+        ENDIF
       ENDIF
       sigRecords = (sigFields+sigRecordFields-1)/sigRecordFields
       suffixLen = ILNBLNK(suffix)
@@ -148,6 +159,17 @@ C--   The full state budget is meaningful only for a nonempty owner set.
       WRITE(sigName,'(A,A)') fileName(1:ILNBLNK(fileName)), '.sig'
 
       _BEGIN_MASTER(myThid)
+      IF ( useSchema3 ) THEN
+        CALL BOM_WRITE_P3_SIGNATURE(
+     I       fileName, myTime, myIter,
+     I       bomNPartExpected, bomNextOutputTime,
+     O       localErrCount,
+     I       myThid )
+        IF ( localErrCount.NE.0 ) THEN
+          CALL ALL_PROC_DIE( 0 )
+          STOP 'ABNORMAL END: S/R BOM_WRITE_PICKUP'
+        ENDIF
+      ENDIF
       IF ( activeSchema.EQ.bomPickupSchema ) THEN
         DO k=1,sigFields
           signature(k) = 0. _d 0
@@ -271,6 +293,11 @@ C--   The full state budget is meaningful only for a nonempty owner set.
         CLOSE(ioUnit)
        ENDDO
       ENDDO
+      IF ( useSchema3 ) THEN
+        CALL BOM_WRITE_P3_SIDECAR(
+     I       fileName, myTime, myTime,
+     I       bomNextOutputTime, myIter, myThid )
+      ENDIF
       IF ( myProcId.EQ.0 ) THEN
         WRITE(msgBuf,'(A,A,A,I12,A,3(1X,1PE24.16))')
      &       'BOM_WRITE_PICKUP: suffix=', suffix(1:suffixLen),

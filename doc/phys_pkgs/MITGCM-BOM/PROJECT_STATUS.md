@@ -9,29 +9,26 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p3.3-spring-ensemble` |
-| 当前阶段 PR | Draft PR #29：base/head 正确、mergeable、behind 0；保持 Draft 且未获合并授权 |
+| 当前任务分支 | `MITGCM-BOM/p3.4-components-schema3` |
+| 当前阶段 PR | PR #29 已以 merge commit 集成；P3.4 尚未推送或创建 PR |
 | 当前阶段 | Phase 3：非线性弹簧和分布式邻居（进行中） |
-| 当前工作包 | P3.3 功能完成：直接 34/34、P3.2 18/18、P3.1 34/34、Phase 2 390/390 |
-| 下一工作包 | review Draft PR #29；获明确合并授权并集成后进入 P3.4 raft 与 schema 3 |
+| 当前工作包 | P3.4 components/raft/schema 3 功能完成；最终干净头与前序证据待记录 |
+| 下一工作包 | 完成 P3.4 本地关闭后进入 P3.5 性能、P3-G99 与 Phase 3 退出准备 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md)、
-   [Phase 3 验证入口](../../../verification/bom/phase03-springs-neighbors/README.md)
-   和 `phase03-springs-neighbors/P3.3_CLOSEOUT.md`；
-2. 核对当前分支 `MITGCM-BOM/p3.3-spring-ensemble`，功能/390 头为
-   `53f9670ee97e7b793f4a1ac164f46c1ce30c1abf`，统一直接验证头为
-   `9b9ea50df28a5ce1e405b903d78fe6dbc9120eb0`；
-3. 核对 P3.3 34/34、P3.2 18/18、P3.1 34/34 和 Phase 2 390/390
-   的仓库外证据根及 manifest；
-4. 核对 Draft PR #29 仍以 `MITGCM-BOM/development` 为 base、以
-   `MITGCM-BOM/p3.3-spring-ensemble` 为 head，且保持 Draft、behind 0；
-5. P3.4 只有在 P3.3 review 并以 merge commit 集成后才能开始；其范围是
-   connected components、raft diagnostics、schema-3 trajectory/pickup；
+1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md)、P3.4 的
+   `phase03-components-schema3/README.md`、`TEST_RESULTS.md` 和
+   `phase03-springs-neighbors/P3.4_CLOSEOUT.md`；
+2. 核对当前分支 `MITGCM-BOM/p3.4-components-schema3` 和最终功能头；
+3. 核对 P3.4 42/42、P3.3 34/34、P3.2 18/18、P3.1 34/34 及
+   Phase 2 390/390 的仓库外证据根和 manifest；
+4. P3.4 关闭后唯一下一开发包是 P3.5：固定密度计数/性能、P3-G99、
+   完整回归和 Phase 3 退出审计；
+5. 未经用户明确授权不推送 P3.4 分支、不创建或合并 PR；
 6. 不创建 `MITGCM-BOM-v0.4`，该标签仍属于 P3.5 完整退出动作；
 7. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12
    为 Phase 3 本地基线。
@@ -52,7 +49,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
-| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0--P3.2 已集成；P3.3 功能完成并通过 34/34 + 18/18 + 34/34 + 390/390 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
+| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0--P3.3 已集成；P3.4 功能完成，最终证据待记录；P3.5 未开始 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
@@ -838,6 +835,27 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   `mergeable=true`、base/head 正确和 behind 0；
 - PR #29 未合并，未创建 `MITGCM-BOM-v0.4`；下一步是 review，并仅在
   用户明确授权后使用 merge commit 集成。
+
+### 2026-08-28：PR #29 集成与 P3.4 功能候选
+
+- PR #29 已转为 Ready，并以 merge commit
+  `be87475712f0084c5acc1a342ebc97172ccdaf82` 合并到
+  `MITGCM-BOM/development`；随后创建
+  `MITGCM-BOM/p3.4-components-schema3`；
+- 新增 FINAL cutoff 图的 distributed minimum-label components 和精确
+  raft minimum ID/size，成功 FINAL 后由 spring ensemble 原子发布；
+- 新增 schema-3 P3 signature 与固定 8-field sidecar，同时保持 schema-2
+  trajectory/pickup core、endpoint/environment sidecars 和 Phase-2 指纹不变；
+- pickup 在任何 authoritative publication 前完成 P2/P3 signature、长度、
+  ID/order/invariant 检查，并从 scratch 重建 FINAL graph、spring、neighbor
+  和 raft 后作 exact/bitwise 比较；
+- 开发矩阵已覆盖 serial/MPI2/MPI4 components、Hooke/eBOMB write/restart、
+  cross-decomposition bitwise records、14 项 corruption、spring-law mismatch
+  和 changed-decomposition rejection；
+- 最后一个开发门禁误从 `STDOUT` 查找 MITgcm 的失败码，实际 code 15 已
+  正确写入 `STDERR.0000`；仅修正测试日志目标，产品行为无需更改；
+- 当前尚需在提交后的干净头运行 P3.4 42/42 与 P3.3/P3.2/P3.1/Phase-2
+  前序回归并记录 manifest；P3.4 分支尚未推送，未创建 v0.4 标签。
 
 ## 6. 每次会话结束时必须更新
 

@@ -11,6 +11,8 @@ C !DESCRIPTION:
 C     Write one mode-selected tiled MDS trajectory frame.  LEEW retains the
 C     exact schema-1 record.  BOM schema 2 appends the accepted 27-component
 C     slow-manifold diagnostic plus its equation and current-policy codes.
+C     Spring-enabled BOM adds the required schema-3 signature and sidecar
+C     without changing the accepted schema-2 core record.
 C     A complete 64-bit ID is never converted to floating point; its unsigned
 C     32-bit words are independently exact in every float64 record.
 
@@ -38,10 +40,11 @@ C !LOCAL VARIABLES:
       INTEGER bi, bj, ip, k, ioUnit, iRecord, iDiag
       INTEGER iGlobal, jGlobal
       INTEGER activeSchema, activeFields
+      INTEGER localErrCount, globalErrCount
       INTEGER modeCode, equationCode, currentCode
       INTEGER windCode, stokesCode, integratorCode
       INTEGER*8 idRadix, idHi8, idLo8
-      LOGICAL codesValid
+      LOGICAL codesValid, useSchema3
 
       idRadix = 4294967296_8
       activeSchema = bomOutputSchema
@@ -53,6 +56,7 @@ C !LOCAL VARIABLES:
       stokesCode = 0
       integratorCode = 0
       codesValid = .TRUE.
+      useSchema3 = .FALSE.
       IF ( bomMode.EQ.'BOM' ) THEN
         activeSchema = bomOutputSchema2
         activeFields = bomOutputFields2
@@ -60,6 +64,7 @@ C !LOCAL VARIABLES:
      O       modeCode, equationCode, currentCode,
      O       windCode, stokesCode, integratorCode,
      O       codesValid )
+        useSchema3 = bomSpringLaw.NE.'NONE'
       ENDIF
       IF ( .NOT.codesValid ) THEN
         WRITE(msgBuf,'(A,I12,A,A,A,A)')
@@ -78,7 +83,40 @@ C !LOCAL VARIABLES:
       ENDIF
       WRITE(fileName,'(A,A10)') 'bom_traj.', suffix
 
+C--   Reject invalid schema-3 state before creating any frame member.
+      IF ( useSchema3 ) THEN
+        CALL BOM_VALIDATE_P3_IO_STATE(
+     I       sampleTime, myIter, nextTime,
+     O       localErrCount,
+     I       myThid )
+        globalErrCount = localErrCount
+        CALL GLOBAL_SUM_INT( globalErrCount, myThid )
+        IF ( globalErrCount.GT.0 ) THEN
+          _BEGIN_MASTER(myThid)
+          IF ( myProcId.EQ.0 ) THEN
+            WRITE(msgBuf,'(A,I4,A,I12)')
+     &           'BOM_WRITE_TRAJECTORY: schema-3 state code=',
+     &           BOM_FAIL_PICKUP_SCHEMA3, ' errors=', globalErrCount
+            CALL PRINT_ERROR( msgBuf, myThid )
+          ENDIF
+          _END_MASTER(myThid)
+          CALL ALL_PROC_DIE( 0 )
+          STOP 'ABNORMAL END: S/R BOM_WRITE_TRAJECTORY'
+        ENDIF
+      ENDIF
+
       _BEGIN_MASTER(myThid)
+      IF ( useSchema3 ) THEN
+        CALL BOM_WRITE_P3_SIGNATURE(
+     I       fileName, sampleTime, myIter,
+     I       bomNPartExpected, nextTime,
+     O       localErrCount,
+     I       myThid )
+        IF ( localErrCount.NE.0 ) THEN
+          CALL ALL_PROC_DIE( 0 )
+          STOP 'ABNORMAL END: S/R BOM_WRITE_TRAJECTORY'
+        ENDIF
+      ENDIF
       DO bj=1,nSy
        DO bi=1,nSx
         DO k=1,activeFields
@@ -167,6 +205,11 @@ C !LOCAL VARIABLES:
         CLOSE(ioUnit)
        ENDDO
       ENDDO
+      IF ( useSchema3 ) THEN
+        CALL BOM_WRITE_P3_SIDECAR(
+     I       fileName, sampleTime, scheduledTime,
+     I       nextTime, myIter, myThid )
+      ENDIF
       IF ( myProcId.EQ.0 ) THEN
         WRITE(msgBuf,'(A,A10,A,I12,A,3(1X,1PE24.16))')
      &       'BOM_WRITE_TRAJECTORY: suffix=', suffix,

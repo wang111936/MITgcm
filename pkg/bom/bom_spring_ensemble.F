@@ -86,12 +86,14 @@ CEOP
       _RL finalSpringEast(bomMaxOwnerRecord)
       _RL finalSpringNorth(bomMaxOwnerRecord)
       INTEGER finalNeighbor(bomMaxOwnerRecord)
+      INTEGER*8 finalRaftId(bomMaxOwnerRecord)
+      INTEGER finalRaftSize(bomMaxOwnerRecord)
       _RL finalWet(bomMaxOwnerRecord), finalCFL(bomMaxOwnerRecord)
       LOGICAL refreshFinal(bomMaxOwnerRecord)
       LOGICAL releaseValid, doAdvance, doRefresh
       LOGICAL globalValid, intervalValid, finalValid
-      LOGICAL calcValid, statsValid
-      INTEGER releaseFail, finalFail, finalPhase
+      LOGICAL calcValid, statsValid, componentValid
+      INTEGER releaseFail, finalFail, finalPhase, componentFail
       _RL dtActive, activeCandidate, currentTime, nextTime
       _RL intervalDt
       INTEGER*8 ownerRecords, ghostRecords, nonEmptyCells
@@ -306,6 +308,23 @@ C--   FINAL graph, spring and base RHS use accepted trial positions.
         p3FailPhase = finalPhase
         RETURN
       ENDIF
+      IF ( bomRaftDiagnostics ) THEN
+        CALL BOM_COMPONENT_FETCH(
+     I       nOwner,ownerId,BOM_STAGE_FINAL,
+     I       epochCounter,mySubstep,
+     O       finalRaftId,finalRaftSize,
+     O       componentFail,componentValid,myThid)
+        IF ( .NOT.componentValid ) THEN
+          failCode = componentFail
+          p3FailPhase = BOM_P3_PHASE_COMPONENT
+          RETURN
+        ENDIF
+      ELSE
+        DO owner=1,nOwner
+          finalRaftId(owner) = 0_8
+          finalRaftSize(owner) = 0
+        ENDDO
+      ENDIF
       CALL BOM_P3_ACCUMULATE_STAGE_STATS(
      I     ownerRecords,ghostRecords,nonEmptyCells,
      I     candidateComparisons,directedNeighbors,
@@ -359,6 +378,8 @@ C--   The only authoritative owner and P3 diagnostic publication.
           bomSpringEast(ip,bi,bj) = finalSpringEast(owner)
           bomSpringNorth(ip,bi,bj) = finalSpringNorth(owner)
           bomNeighborCount(ip,bi,bj) = finalNeighbor(owner)
+          bomRaftId(ip,bi,bj) = finalRaftId(owner)
+          bomRaftSize(ip,bi,bj) = finalRaftSize(owner)
           DO iDiag=1,BOM_RHS_NDIAG
             bomRhsDiag(iDiag,ip,bi,bj) = finalDiag(iDiag,owner)
           ENDDO
