@@ -1,5 +1,7 @@
 # P3.3 versioned ghost and spring ensemble integration
 
+Status: **FUNCTIONALLY COMPLETE; 34/34 DIRECT + 18/18 P3.2 + 34/34 P3.1 + 390/390 PREDECESSOR PASS**
+
 This gate implements the P3.3 work-package frozen in
 `verification/bom/phase03-springs-neighbors/P3.0_INTERFACE_FREEZE.md`.
 
@@ -24,3 +26,7 @@ verification/bom/phase03-spring-ensemble/run_spring_ensemble_gate.sh
 
 The gate builds and runs serial, MPI2 and MPI4 layouts, requires 34/34 rows,
 and compares canonical B17 dynamics bitwise after sorting by exact particle ID.
+
+The authoritative evidence, manifest hashes and reproduction commands are in
+`TEST_RESULTS.md`. The frozen-plan consistency decision and P3.4/P3.5 boundary
+are recorded in `../phase03-springs-neighbors/P3.3_CLOSEOUT.md`.

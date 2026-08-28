@@ -1,6 +1,6 @@
 # Phase 3 requirements traceability
 
-Status: **P3.2 EVIDENCE RECORDED; P3.3--P3.5 PENDING**
+Status: **P3.3 EVIDENCE RECORDED; P3.4--P3.5 PENDING**
 
 Baseline: `MITGCM-BOM-v0.3` at `332a406e958e5005f60267c187fada1f74319fc3`
 
@@ -18,28 +18,35 @@ P3.2 evidence anchor: clean functional head
 P3.1 regression 34/34 and complete Phase 2 regression 390/390. See
 `P3.2_CLOSEOUT.md` and `../phase03-cutoff-graph/TEST_RESULTS.md`.
 
+P3.3 evidence anchors: complete predecessor functional head
+`53f9670ee97e7b793f4a1ac164f46c1ce30c1abf` with Phase 2 regression
+390/390, and clean unified direct-verification head
+`9b9ea50df28a5ce1e405b903d78fe6dbc9120eb0` with P3.3 34/34,
+accepted P3.2 18/18 and accepted P3.1 34/34. See `P3.3_CLOSEOUT.md` and
+`../phase03-spring-ensemble/TEST_RESULTS.md`.
+
 ## 1. Forward map
 
 | ID | Requirement | Intended production owner | Required evidence | Package | Current evidence state |
 |---|---|---|---|---|---|
-| P3-R01 | Preserve byte-for-byte accepted v0.3 behavior when springs are `NONE`, including LEEW/BOM schemas and FLT coexistence | `BOM_CHECK`, existing dispatch | P3-Z01 plus full 390-row predecessor gate | P3.1--P3.5 | P3.1 portion PASS: NONE isolation + 390/390; final P3.5 closure pending |
+| P3-R01 | Preserve byte-for-byte accepted v0.3 behavior when springs are `NONE`, including LEEW/BOM schemas and FLT coexistence | `BOM_CHECK`, existing dispatch | P3-Z01 plus full 390-row predecessor gate | P3.1--P3.5 | P3.3 portion PASS: explicit NONE bypass plus 390/390 including FLT coexistence; final P3.5 closure pending |
 | P3-R02 | Validate spring/neighbor modes, SI parameters, capacities and stable failure/phase codes without changing existing numeric codes | `BOM_READPARMS`, `BOM_CHECK`, `BOM.h` | P3-C01, P3-N10 | P3.1 | P3.1 parameter/code and P3.2 local capacity/phase portions PASS |
-| P3-R03 | Produce one canonical finite pair displacement/distance for Cartesian, spherical and periodic-X geometry | `BOM_PAIR_GEOMETRY` | P3-D01, B09 geometry cases, P3-N03 | P3.1 | P3-D01/N03 PASS; distributed B09 geometry waits for P3.3 |
+| P3-R03 | Produce one canonical finite pair displacement/distance for Cartesian, spherical and periodic-X geometry | `BOM_PAIR_GEOMETRY` | P3-D01, B09 geometry cases, P3-N03 | P3.1 | P3-D01/N03 and distributed B09 P3.3 geometry PASS |
 | P3-R04 | Provide a locked small-system K-non-self-neighbor oracle and deterministic median natural length; keep it out of production | verification oracle/generator | P3-K01, source/link isolation audit | P3.1 | verified at P3.1 |
 | P3-R05 | Define an exact symmetric cutoff graph with included radius equality, no self/duplicates and ID-sorted owner lists | `BOM_BUILD_NEIGHBORS` | P3-N01, P3-N02 | P3.2 | verified at P3.2 |
 | P3-R06 | Generate production candidates with bounded cell-linked storage and no global all-particle neighbor path | `BOM_INIT_CELL_GEOMETRY`, `BOM_BUILD_CELL_LIST` | P3-L01, P3-L02, P3-X01 | P3.2/P3.5 | P3.2 local path verified; final integrated scaling audit waits for P3.5 |
-| P3-R07 | Exchange exact, versioned, one-stage read-only ghosts transactionally and collectively for zero/nonzero ranks | `BOM_GHOST_EXCHANGE` | P3-G01, P3-G02, P3-N04 | P3.3 | frozen |
-| P3-R08 | Make local and remote pair accumulation independent of slot, message and rank ordering | pair/neighbor/spring kernels | B07, B09, B17 permutation records | P3.1--P3.3 | P3.1 pair and P3.2 local graph/accumulation ordering PASS; B09/B17 remote portions pending |
-| P3-R09 | Implement finite SI Hooke spring velocity with equal/opposite canonical pair contributions | `BOM_SPRING_PAIR`, `BOM_SPRING_STAGE` | B07, P3-S01, P3-N05 | P3.1/P3.3 | P3.1 direct pair-law portion PASS; production spring stage waits for P3.3 |
+| P3-R07 | Exchange exact, versioned, one-stage read-only ghosts transactionally and collectively for zero/nonzero ranks | `BOM_GHOST_EXCHANGE` | P3-G01, P3-G02, P3-N04 | P3.3 | verified at P3.3 in serial/MPI2/MPI4 |
+| P3-R08 | Make local and remote pair accumulation independent of slot, message and rank ordering | pair/neighbor/spring kernels | B07, B09, B17 permutation records | P3.1--P3.3 | verified through P3.3: local and remote B09/B17 exact-ID records PASS |
+| P3-R09 | Implement finite SI Hooke spring velocity with equal/opposite canonical pair contributions | `BOM_SPRING_PAIR`, `BOM_SPRING_STAGE` | B07, P3-S01, P3-N05 | P3.1/P3.3 | verified through P3.3 direct laws and production spring stage |
 | P3-R10 | Implement overflow-safe eBOMB stiffness and reproduce the locked Julia 200 m comparison case | `BOM_SPRING_PAIR` | B08, P3-S02, locked Julia fixture, P3-N05 | P3.1 | verified at P3.1 |
-| P3-R11 | Add spring velocity to Phase 2 final drift/native rates and enforce combined advective plus spring stability guards | ensemble stage RHS | P3-I01, P3-I03, P3-N06 | P3.3 | frozen |
-| P3-R12 | Advance all interacting particles from synchronous RK stage snapshots and commit/rollback the complete substep atomically | `BOM_RK2_SPRING_ENSEMBLE`, `BOM_RK4_SPRING_ENSEMBLE` | P3-I01, P3-I02, P3-N06 | P3.3 | frozen |
-| P3-R13 | Keep owner identity fixed during stages and migrate the complete accepted Phase 3 record only after substep commit | ensemble driver, `BOM_PARTICLE_EXCHANGE` | B09, P3-M01, P3-I02 | P3.3 | frozen |
+| P3-R11 | Add spring velocity to Phase 2 final drift/native rates and enforce combined advective plus spring stability guards | ensemble stage RHS | P3-I01, P3-I03, P3-N06 | P3.3 | verified at P3.3 |
+| P3-R12 | Advance all interacting particles from synchronous RK stage snapshots and commit/rollback the complete substep atomically | `BOM_RK2_SPRING_ENSEMBLE`, `BOM_RK4_SPRING_ENSEMBLE` | P3-I01, P3-I02, P3-N06 | P3.3 | verified at P3.3 |
+| P3-R13 | Keep owner identity fixed during stages and migrate the complete accepted Phase 3 record only after substep commit | ensemble driver, `BOM_PARTICLE_EXCHANGE` | B09, P3-M01, P3-I02 | P3.3 | verified at P3.3 with migration packet schema 2 |
 | P3-R14 | Compute deterministic FINAL connected components with raft ID equal to the minimum global ID and exact size | `BOM_COMPONENTS_FINAL` | P3-RF01, P3-RF02, B17 | P3.4 | frozen |
 | P3-R15 | Preserve the schema-2 core while transactionally writing/reading required schema-3 sidecars and rejecting corruption | trajectory/pickup schema-3 owners | P3-P01--P3-P04 | P3.4 | frozen |
-| P3-R16 | Preserve bitwise 1/2/4-rank results for graph, spring velocity, RK state and raft fields after ID sorting | ghost/ensemble/component paths | B09, B17 | P3.3/P3.4 | frozen |
-| P3-R17 | Fail closed on pair, cell, ghost, neighbor, component and disk capacity/corruption with no partial publication | all P3 transactional paths | P3-N03--P3-N10 | P3.1--P3.4 | P3-N03/N05 plus P3.2 cell/link/candidate/neighbor rollback PASS; ghost/component/disk groups pending |
-| P3-R18 | Expose work/communication counters, pass fixed-density local scaling bounds and the full predecessor matrix, with no unconditional O(N-squared) production path | counters and closure driver | P3-X01, P3-X02, P3-G99 | P3.5 | P3.2 local counters/bounds + 34/34 + 390/390 PASS; communication/performance/P3-G99 pending |
+| P3-R16 | Preserve bitwise 1/2/4-rank results for graph, spring velocity, RK state and raft fields after ID sorting | ghost/ensemble/component paths | B09, B17 | P3.3/P3.4 | P3.3 graph/spring/RK dynamics are bitwise 1/2/4-rank PASS; computed raft fields wait for P3.4 |
+| P3-R17 | Fail closed on pair, cell, ghost, neighbor, component and disk capacity/corruption with no partial publication | all P3 transactional paths | P3-N03--P3-N10 | P3.1--P3.4 | pair/cell/neighbor plus P3.3 ghost/ensemble rollback PASS; component/disk groups wait for P3.4 |
+| P3-R18 | Expose work/communication counters, pass fixed-density local scaling bounds and the full predecessor matrix, with no unconditional O(N-squared) production path | counters and closure driver | P3-X01, P3-X02, P3-G99 | P3.5 | P3.3 structural no-gather and complete 390/390 predecessor PASS; fixed-density performance/P3-G99 wait for P3.5 |
 
 ## 2. Reverse implementation map
 
@@ -62,7 +69,7 @@ P3.1 regression 34/34 and complete Phase 2 regression 390/390. See
 
 - `frozen` means P3.0 has fixed the contract; it does not mean production is
   implemented.
-- `P3.1/P3.2 portion PASS` records bounded evidence without closing later package
+- `P3.1/P3.2/P3.3 portion PASS` records bounded evidence without closing later package
   obligations named in the same requirement.
 - `verified` may be written only with an immutable source head, external
   evidence root, expected/actual row audit and manifest hash.

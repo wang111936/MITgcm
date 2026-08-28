@@ -4,32 +4,36 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-27 |
+| 最后更新 | 2026-08-28 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p3.0-interface-freeze` |
-| 当前阶段 PR | Draft PR #26：远端范围复审 PASS，保持未合并且未获合并授权 |
+| 当前任务分支 | `MITGCM-BOM/p3.3-spring-ensemble` |
+| 当前阶段 PR | P3.3 尚未推送或创建 PR；等待一次批量推送与 Draft PR 授权 |
 | 当前阶段 | Phase 3：非线性弹簧和分布式邻居（进行中） |
-| 当前工作包 | P3.0 完成：本地审计 12/12，PR #26 为 9 个 Markdown、behind 0 |
-| 下一工作包 | 获得明确授权并集成 PR #26 后，进入 P3.1 参数/代码、geometry、KNN oracle 和 spring laws |
+| 当前工作包 | P3.3 功能完成：直接 34/34、P3.2 18/18、P3.1 34/34、Phase 2 390/390 |
+| 下一工作包 | 授权后一次推送并创建 P3.3 Draft PR；review/集成后进入 P3.4 raft 与 schema 3 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md) 和
-   [P3.0 验证入口](../../../verification/bom/phase03-springs-neighbors/README.md)；
-2. 核对冻结提交 `e81ddaa521e5f3babe54ba0ac8964c3dae058f88` 的
-   `P3.0_DOC_AUDIT PASS 12/12` 和 `P3.0_DESIGN_AUDIT.md`；
-3. 核对 Draft PR #26 仍以 `MITGCM-BOM/development` 为 base、以
-   `MITGCM-BOM/p3.0-interface-freeze` 为 head，且 behind 为 0；
-4. 未经用户明确授权不得合并 PR #26，也不得创建 `MITGCM-BOM-v0.4`；
-5. P3.0 集成后进入 P3.1；范围仅限参数/代码、canonical pair geometry、
-   verification-only KNN oracle 和 stateless Hooke/eBOMB laws；
-6. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12
+1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md)、
+   [Phase 3 验证入口](../../../verification/bom/phase03-springs-neighbors/README.md)
+   和 `phase03-springs-neighbors/P3.3_CLOSEOUT.md`；
+2. 核对当前分支 `MITGCM-BOM/p3.3-spring-ensemble`，功能/390 头为
+   `53f9670ee97e7b793f4a1ac164f46c1ce30c1abf`，统一直接验证头为
+   `9b9ea50df28a5ce1e405b903d78fe6dbc9120eb0`；
+3. 核对 P3.3 34/34、P3.2 18/18、P3.1 34/34 和 Phase 2 390/390
+   的仓库外证据根及 manifest；
+4. 当前唯一外部动作是取得授权后一次推送该分支，并创建以
+   `MITGCM-BOM/development` 为 base 的 Draft PR；不得自行合并；
+5. P3.4 只有在 P3.3 review 并以 merge commit 集成后才能开始；其范围是
+   connected components、raft diagnostics、schema-3 trajectory/pickup；
+6. 不创建 `MITGCM-BOM-v0.4`，该标签仍属于 P3.5 完整退出动作；
+7. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12
    为 Phase 3 本地基线。
 
 开始前执行：
@@ -48,7 +52,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
-| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0 完成；Draft PR #26 远端复审 PASS，等待明确合并授权 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
+| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0--P3.2 已集成；P3.3 功能完成并通过 34/34 + 18/18 + 34/34 + 390/390 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
@@ -809,6 +813,29 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   9 个 Markdown 且 behind 0；
 - 未经用户明确授权不合并 PR #26，不创建 `MITGCM-BOM-v0.4`；
 - P3.1--P3.5 的实现和运行测试均未开始；下一生产任务严格限于 P3.1。
+
+### 2026-08-28：P3.1/P3.2 集成与 P3.3 功能关闭
+
+- P3.1 由 PR #27 以 merge commit `7c146974e0133083f23ee7014dc5f1bac13dcf39`
+  集成，P3.2 由 PR #28 以 merge commit
+  `3d01b638731c15e88a9b3945fe0f18368a96b231` 集成；
+- 从 P3.2 merge commit 创建独立分支 `MITGCM-BOM/p3.3-spring-ensemble`；
+- 实现 version-1 ghost exchange、cross-rank graph inputs、同步 ensemble
+  RK2/RK4、Phase 2 base RHS + spring 组合、spring/advective CFL、全局
+  rollback 和 post-commit owner migration packet schema 2；
+- 完整 Phase 2 功能/回归头
+  `53f9670ee97e7b793f4a1ac164f46c1ce30c1abf` 通过 390/390，证据根为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase02/p25-closure/`
+  `p33-phase2-53f9670ee-attempt01`；
+- 统一直接验证头 `9b9ea50df28a5ce1e405b903d78fe6dbc9120eb0`
+  通过 P3.3 34/34、P3.2 18/18 和 P3.1 34/34；P3.3 的 serial/MPI2/MPI4
+  B17 exact-ID 动力学记录位一致；
+- P1.4 predecessor gate 已适配 owner packet schema 2，其 36/36 结果包含在
+  390/390 中；P3.1 的 p33 模式保持 raft diagnostics 属于 P3.4；
+- P3.3 与 P3.0 冻结计划一致，无公式、容差或范围修订；P3.4 仍负责
+  components/raft/schema 3，P3.5 仍负责性能、P3-G99 和 Phase 3 退出；
+- 本轮未推送 GitHub、未创建 Draft PR、未合并，也未创建
+  `MITGCM-BOM-v0.4`；等待用户授权一次批量推送和 Draft PR。
 
 ## 6. 每次会话结束时必须更新
 
