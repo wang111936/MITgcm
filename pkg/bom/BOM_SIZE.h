@@ -14,8 +14,13 @@ CEOP
       INTEGER bomMaxNeighbor
       INTEGER bomMaxEventBuffer
       INTEGER bomMaxInitRecords
+      INTEGER bomPacketSchema
       INTEGER bomPacketInts
       INTEGER bomPacketReals
+      INTEGER bomGhostSchema
+      INTEGER bomGhostPacketInts
+      INTEGER bomGhostPacketReals
+      INTEGER bomGhostPacketBytes
       INTEGER bomInitialSchema
       INTEGER bomInitialFields
       INTEGER bomOutputSchema
@@ -32,12 +37,18 @@ CEOP
       INTEGER bomPickupChunkFields
       PARAMETER ( bomMaxInitRecords = 10000 )
       PARAMETER ( bomMaxPartTile    = 64 )
-      PARAMETER ( bomMaxGhostTile   = 1 )
+      PARAMETER ( bomMaxGhostTile   = bomMaxInitRecords )
       PARAMETER ( bomMaxExchange    = bomMaxInitRecords )
       PARAMETER ( bomMaxNeighbor    = bomMaxInitRecords )
       PARAMETER ( bomMaxEventBuffer = 1 )
-      PARAMETER ( bomPacketInts     = 5 )
-      PARAMETER ( bomPacketReals    = 4 )
+      PARAMETER ( bomPacketSchema   = 2 )
+      PARAMETER ( bomPacketInts     = 10 )
+      PARAMETER ( bomPacketReals    = 6 )
+      PARAMETER ( bomGhostSchema    = 1 )
+      PARAMETER ( bomGhostPacketInts = 9 )
+      PARAMETER ( bomGhostPacketReals = 2 )
+      PARAMETER ( bomGhostPacketBytes =
+     &            4*bomGhostPacketInts+8*bomGhostPacketReals )
       PARAMETER ( bomInitialSchema  = 1 )
       PARAMETER ( bomInitialFields  = 8 )
       PARAMETER ( bomOutputSchema   = 1 )

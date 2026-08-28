@@ -291,6 +291,74 @@ C     components in versioned BOM trajectory and pickup schema-2 records.
      &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       COMMON /BOM_STATE_DIAG_R/ bomRhsDiag
 
+C--   Phase-3 accepted owner diagnostics.  Raft fields are carried by the
+C     version-2 migration packet in P3.3 but remain zero until P3.4 computes
+C     connected components.
+      _RL bomSpringEast(bomMaxPartTile,nSx,nSy)
+      _RL bomSpringNorth(bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_P3_STATE_R/ bomSpringEast, bomSpringNorth
+
+      INTEGER bomNeighborCount(bomMaxPartTile,nSx,nSy)
+      INTEGER bomRaftSize(bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_P3_STATE_I/ bomNeighborCount, bomRaftSize
+
+      INTEGER*8 bomRaftId(bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_P3_STATE_I8/ bomRaftId
+
+C--   One-stage read-only ghost publication.  Counts/readiness and metadata
+C     are published only after the complete collective transaction validates.
+      INTEGER bomNGhostTile(nSx,nSy)
+      INTEGER bomGhostStatus(bomMaxGhostTile,nSx,nSy)
+      INTEGER bomGhostSourceRank(bomMaxGhostTile,nSx,nSy)
+      INTEGER bomGhostSourceBi(bomMaxGhostTile,nSx,nSy)
+      INTEGER bomGhostSourceBj(bomMaxGhostTile,nSx,nSy)
+      INTEGER bomGhostStage
+      INTEGER bomGhostEpoch
+      INTEGER bomGhostSubstep
+      COMMON /BOM_GHOST_STATE_I/
+     &       bomNGhostTile, bomGhostStatus,
+     &       bomGhostSourceRank, bomGhostSourceBi,
+     &       bomGhostSourceBj, bomGhostStage,
+     &       bomGhostEpoch, bomGhostSubstep
+
+      INTEGER*8 bomGhostId(bomMaxGhostTile,nSx,nSy)
+      INTEGER*8 bomGhostRecordsSent
+      INTEGER*8 bomGhostRecordsReceived
+      INTEGER*8 bomGhostBytesSent
+      INTEGER*8 bomGhostBytesReceived
+      COMMON /BOM_GHOST_STATE_I8/
+     &       bomGhostId, bomGhostRecordsSent,
+     &       bomGhostRecordsReceived,
+     &       bomGhostBytesSent, bomGhostBytesReceived
+
+C--   Last successful spring-enabled nominal-substep work counters.
+      INTEGER*8 bomP3OwnerRecords
+      INTEGER*8 bomP3GhostRecords
+      INTEGER*8 bomP3NonEmptyCells
+      INTEGER*8 bomP3CandidateComparisons
+      INTEGER*8 bomP3DirectedNeighbors
+      INTEGER*8 bomP3UndirectedEdges
+      INTEGER*8 bomP3MaximumNeighbors
+      INTEGER*8 bomP3RebuildCount
+      INTEGER*8 bomP3GhostPacketsSent
+      INTEGER*8 bomP3GhostPacketsReceived
+      INTEGER*8 bomP3GhostBytesSent
+      INTEGER*8 bomP3GhostBytesReceived
+      COMMON /BOM_P3_COUNTER_I8/
+     &       bomP3OwnerRecords, bomP3GhostRecords,
+     &       bomP3NonEmptyCells, bomP3CandidateComparisons,
+     &       bomP3DirectedNeighbors, bomP3UndirectedEdges,
+     &       bomP3MaximumNeighbors, bomP3RebuildCount,
+     &       bomP3GhostPacketsSent, bomP3GhostPacketsReceived,
+     &       bomP3GhostBytesSent, bomP3GhostBytesReceived
+
+      _RL bomGhostX(bomMaxGhostTile,nSx,nSy)
+      _RL bomGhostY(bomMaxGhostTile,nSx,nSy)
+      COMMON /BOM_GHOST_STATE_R/ bomGhostX, bomGhostY
+
+      LOGICAL bomGhostReady(nSx,nSy)
+      COMMON /BOM_GHOST_STATE_L/ bomGhostReady
+
 C--   Static regular-grid mapping and surface-field publication state.
       _RL bomMapXLo
       _RL bomMapXHi
