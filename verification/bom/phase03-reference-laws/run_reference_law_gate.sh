@@ -66,10 +66,11 @@ scope_audit() {
     pkg/bom/bom_validate_spring_config.F
   )
   [[ "${SCOPE_MODE}" == p31 || "${SCOPE_MODE}" == p32 \
-    || "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 ]] \
+    || "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 \
+    || "${SCOPE_MODE}" == p35 ]] \
     || fail "unsupported MITGCM_BOM_SCOPE_MODE: ${SCOPE_MODE}"
   if [[ "${SCOPE_MODE}" == p32 || "${SCOPE_MODE}" == p33 \
-    || "${SCOPE_MODE}" == p34 ]]; then
+    || "${SCOPE_MODE}" == p34 || "${SCOPE_MODE}" == p35 ]]; then
     allowed_production+=(
       pkg/bom/BOM_GRAPH_SIZE.h
       pkg/bom/bom_build_cell_list.F
@@ -77,7 +78,8 @@ scope_audit() {
       pkg/bom/bom_init_cell_geometry.F
     )
   fi
-  if [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 ]]; then
+  if [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 \
+    || "${SCOPE_MODE}" == p35 ]]; then
     allowed_production+=(
       pkg/bom/BOM_SIZE.h
       pkg/bom/bom_check_state.F
@@ -90,7 +92,7 @@ scope_audit() {
       pkg/bom/bom_spring_stage.F
     )
   fi
-  if [[ "${SCOPE_MODE}" == p34 ]]; then
+  if [[ "${SCOPE_MODE}" == p34 || "${SCOPE_MODE}" == p35 ]]; then
     allowed_production+=(
       pkg/bom/bom_component_exchange.F
       pkg/bom/bom_components_final.F
@@ -99,6 +101,11 @@ scope_audit() {
       pkg/bom/bom_read_pickup.F
       pkg/bom/bom_write_pickup.F
       pkg/bom/bom_write_trajectory.F
+    )
+  fi
+  if [[ "${SCOPE_MODE}" == p35 ]]; then
+    allowed_production+=(
+      pkg/bom/bom_p3_counters.F
     )
   fi
   git -C "${REPO_ROOT}" diff --name-only \
@@ -123,7 +130,8 @@ scope_audit() {
       || fail "unexpected author/committer identity: ${identity}"
   done < <(git -C "${REPO_ROOT}" log --format='%an <%ae>|%cn <%ce>' \
     "${BASELINE_REF}..${EXPECTED_HEAD}")
-  if [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 ]]; then
+  if [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 \
+    || "${SCOPE_MODE}" == p35 ]]; then
     grep -q 'CALL BOM_RK2_SPRING_ENSEMBLE' \
       "${REPO_ROOT}/pkg/bom/bom_main.F" \
       || fail 'P3.3 RK2 ensemble dispatcher is missing'
@@ -154,7 +162,8 @@ source_isolation_audit() {
     unexpected_hits="$(printf '%s\n' "${call_hits}" | grep -vE \
       '/pkg/bom/bom_build_neighbors.F:.*CALL[[:space:]]+BOM_PAIR_GEOMETRY' \
       || true)"
-  elif [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 ]]; then
+  elif [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 \
+    || "${SCOPE_MODE}" == p35 ]]; then
     unexpected_hits="$(printf '%s\n' "${call_hits}" | grep -vE \
       '/pkg/bom/bom_build_neighbors.F:.*CALL[[:space:]]+BOM_PAIR_GEOMETRY|/pkg/bom/bom_spring_stage.F:.*CALL[[:space:]]+BOM_(PAIR_GEOMETRY|SPRING_PAIR|SPRING_ACCUMULATE)' \
       || true)"

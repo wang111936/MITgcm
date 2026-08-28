@@ -1,0 +1,21 @@
+CBOP
+C    !ROUTINE: SIZE.h
+C    !DESCRIPTION: 64 by 64 fixed-density lattice on four ranks.
+CEOP
+      INTEGER sNx, sNy, OLx, OLy
+      INTEGER nSx, nSy, nPx, nPy
+      INTEGER Nx, Ny, Nr
+      PARAMETER (
+     &           sNx =   8,
+     &           sNy =   8,
+     &           OLx =   2,
+     &           OLy =   2,
+     &           nSx =   4,
+     &           nSy =   4,
+     &           nPx =   2,
+     &           nPy =   2,
+     &           Nx  = sNx*nSx*nPx,
+     &           Ny  = sNy*nSy*nPy,
+     &           Nr  =   2)
+      INTEGER MAX_OLX, MAX_OLY
+      PARAMETER ( MAX_OLX = OLx, MAX_OLY = OLy )

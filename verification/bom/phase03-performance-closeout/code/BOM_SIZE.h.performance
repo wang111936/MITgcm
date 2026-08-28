@@ -2,8 +2,10 @@ CBOP
 C     !ROUTINE: BOM_SIZE.h
 C     !INTERFACE:
 C     #include "BOM_SIZE.h"
+
 C     !DESCRIPTION:
-C     Verification-only P1-N03b target-tile limit; production uses 64.
+C     Compile-time storage limits for pkg/bom.  P1.4 adds bounded exact-ID
+C     owner exchange packets without changing the compact tile capacity.
 CEOP
 
       INTEGER bomMaxPartTile
@@ -60,10 +62,12 @@ CEOP
       INTEGER BOM_P3_COUNT_MAX_COMPONENT
       INTEGER BOM_P3_COUNT_COMPONENT_ITER
       PARAMETER ( bomMaxInitRecords = 10000 )
-      PARAMETER ( bomMaxPartTile    = 1 )
-      PARAMETER ( bomMaxGhostTile   = 1 )
-      PARAMETER ( bomMaxExchange    = 10000 )
-      PARAMETER ( bomMaxNeighbor    = bomMaxInitRecords )
+      PARAMETER ( bomMaxPartTile    = 64 )
+      PARAMETER ( bomMaxGhostTile   = bomMaxInitRecords )
+      PARAMETER ( bomMaxExchange    = bomMaxInitRecords )
+C--   P3-X02 keeps degree-four lattices exact and forces a five-neighbor
+C     dense-cell failure through the production capacity guard.
+      PARAMETER ( bomMaxNeighbor    = 4 )
       PARAMETER ( bomMaxEventBuffer = 1 )
       PARAMETER ( bomPacketSchema   = 2 )
       PARAMETER ( bomPacketInts     = 10 )
@@ -115,3 +119,5 @@ CEOP
       PARAMETER ( BOM_P3_COUNT_BYTE_RECEIVED = 12 )
       PARAMETER ( BOM_P3_COUNT_MAX_COMPONENT = 13 )
       PARAMETER ( BOM_P3_COUNT_COMPONENT_ITER = 14 )
+
+C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|

@@ -7,10 +7,10 @@
 | 基线标签 | `MITGCM-BOM-v0.3` |
 | 基线 tag object | `9360a06d0379051aced0601b25aa814dda6330fb` |
 | 基线提交 | `332a406e958e5005f60267c187fada1f74319fc3` |
-| 准入日期 | 2026-08-27；P3.3 集成、P3.4 完成日期 2026-08-28 |
-| 状态 | **进行中：P3.0--P3.3 已集成；P3.4 本地完成并记录全部证据；P3.5 待开始** |
-| 当前工作包 | P3.4 FINAL components、raft diagnostics 与 schema 3（完成） |
-| 当前分支 | `MITGCM-BOM/p3.4-components-schema3` |
+| 准入日期 | 2026-08-27；P3.3 集成、P3.4 完成日期 2026-08-28；P3.5 本地候选完成日期 2026-08-29 |
+| 状态 | **进行中：P3.0--P3.3 已集成；P3.4/P3.5 本地完成；最终集成与退出审计待执行** |
+| 当前工作包 | P3.5 性能计数、fixed-density scaling 与候选 P3-G99（完成） |
+| 当前分支 | `MITGCM-BOM/p3.5-performance-closeout` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
 ## 1. 准入裁决
@@ -65,7 +65,7 @@ P3.0 的权威文档位于
 | P3.2 邻居生产路径 | cell geometry/list、exact cutoff local graph、容量事务 | P3-N01/N02、L01/L02、N10 | 已由 PR #28 集成；P3.3 头复验 18/18 |
 | P3.3 分布式积分 | ghost、ensemble RK、全局 rollback、迁移扩展 | G01/G02、I01--I03、B09/B17、M01 | 已由 PR #29 以 merge commit 集成 |
 | P3.4 raft 与 schema 3 | FINAL components、raft diagnostics、sidecar/pickup | RF01/RF02、P01--P04、restart | 完成：42/42 + 34/34 + 18/18 + 34/34 + 390/390 |
-| P3.5 性能与收口 | 结构复杂度、固定密度基线、全回归、退出审计 | X01/X02、P3-G99、v0.4 决策 | 未开始 |
+| P3.5 性能与收口 | 结构复杂度、固定密度基线、全回归、退出审计 | X01/X02、P3-G99、v0.4 决策 | 本地候选完成：20/20 + 538/538；集成后 final/audit 待执行 |
 
 工作包必须按 P3.0--P3.5 的依赖顺序关闭。允许在工作包内部拆分小增量，
 但每个包必须在精确提交上通过自身门禁和全部适用前序回归。
@@ -104,22 +104,21 @@ P3.0 的权威文档位于
 
 - [x] Phase 2 最终 390/390 和 `MITGCM-BOM-v0.3` 准入已核验；
 - [x] P3.0 设计、接口、需求和测试冻结通过独立审计；
-- [ ] P3.1--P3.5 全部完成并按顺序集成（P3.1--P3.3 已集成，P3.4 功能完成）；
-- [ ] B07--B09、B17、负向、restart 和 1/2/4-rank 门禁通过；
-- [ ] 跨 rank 内力与小规模 gather oracle 一致；
-- [ ] 生产邻居调用图没有全局 all-particle 或无条件 O(N-squared) 路径；
-- [ ] 固定密度 work/communication counter 门禁通过；
-- [ ] Phase 0--Phase 2 全部适用回归通过；
+- [ ] P3.1--P3.5 全部完成并按顺序集成（全部本地完成；P3.4/P3.5 待集成）；
+- [x] B07--B09、B17、负向、restart 和 1/2/4-rank 候选门禁通过；
+- [x] 跨 rank 内力与小规模 gather oracle 一致；
+- [x] 生产邻居调用图没有全局 all-particle 或无条件 O(N-squared) 路径；
+- [x] 固定密度 work/communication counter 门禁通过；
+- [x] Phase 0--Phase 2 候选精确头适用回归 390/390 通过；
 - [ ] 独立 Phase 3 退出审计无开放 finding；
 - [ ] 仅在最终集成和退出审计后创建 annotated tag `MITGCM-BOM-v0.4`。
 
 ## 8. 唯一下一任务
 
-开始 P3.5 性能与 Phase 3 收口：先审计 P3.0 冻结的 X01/X02、work/
-communication counters、fixed-density local scaling 和 P3-G99 需求，再做
-生产增量和最终退出证据。P3.4 尚未推送；未经用户明确授权不推送、不
-创建或合并 PR。`MITGCM-BOM-v0.4` 只能在 P3.5 最终集成与退出审计后
-创建。
+在用户明确授权后，批量推送 P3.4 与 P3.5 本地分支并建立可审查
+PR；不在本步合并或创建标签。后续必须以 merge commit 顺序集成
+P3.4、P3.5，在最终 development 头运行 final P3-G99 538/538，再单独
+运行 Phase 3 退出审计。`MITGCM-BOM-v0.4` 仍未授权。
 
 ## 9. P3.0 完成记录
 
@@ -174,3 +173,39 @@ communication counters、fixed-density local scaling 和 P3-G99 需求，再做
 - P3.4 与 P3.0 冻结计划一致并标记完成；P3.5 的性能、P3-G99 和 Phase 3
   退出审计仍未开始；没有修改 SKRIPS 文件，没有推送 P3.4 分支，也没有
   创建 `MITGCM-BOM-v0.4` 标签。
+
+## 11. P3.5 本地候选完成记录
+
+- 从 P3.4 closeout 头 `38fd1824ff2ad69ce439f0c144cb3d5ab4d71ba3`
+  建立 `MITGCM-BOM/p3.5-performance-closeout`；
+- 功能与候选证据头为
+  `fc64c6e8c5671db2f1e123142b9b073da50d1e31`；
+- 生产实现 14 个 overflow-checked 64-bit graph/ghost/communication/
+  component counters，以可移植五位 base-32768 归约得到精确全局 sum/max；
+- fixed-density 门禁使用 Cartesian/spherical 16x16、32x32、64x64、
+  serial/MPI2/MPI4；candidate comparisons/owner 观测范围为 9.0--9.7657，
+  低于冻结上限 16 且不随全局 N 增长；
+- 密集五邻居算例在验证专用容量 4 处对三种分解都失败关闭，
+  生产 `bomMaxNeighbor=10000` 未改变；
+- P3-X02 暴露 tile-routed ghost 重复进入 rank-wide cell list；已在
+  `BOM_SPRING_STAGE` 中按 exact ID 排序/校验/去重，忽略 same-rank owner
+  copy 并压紧 remote ghosts，恢复冻结的局地密度复杂度；
+- P3.5 直接门禁 20/20 PASS；候选 P3-G99 按固定六组运行
+  20+42+34+18+34+390，合计 538/538 PASS；
+- 候选证据根为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/`
+  `p3-g99/p3-g99-candidate-fc64c6e8c-attempt01`；manifest、row audit 和
+  all-rows SHA-256 分别为 `b15067cef6c168f5ccf2cee1eaebabf587579c079f9b24d461ce763ab7291689`、
+  `14bb14aadf48382e169a325d0bd435f1a7f02f36eec0c8e9a3a36ca5ed8f98f2`、
+  `880168235bc942e359f209a400aa562eb02e482d7d9f3f36b3c1f12d4ea29553`；
+- rehearsal 发现 P1.4 注释词面误报与两份 reduced-size header 缺少
+  P3.5 常量；修正后 P1.4 36/36 和聚合 Phase 2 390/390 都通过，
+  未改动科学公式、容差、图或 schema 契约；
+- P3.5 与 P3.0 冻结的 P3-X01/X02、P3-D020/D021 及 P3-G99 候选
+  边界一致，没有触及 SKRIPS；
+- P3.4/P3.5 都未推送或集成；final P3-G99、独立退出审计与
+  `MITGCM-BOM-v0.4` 均仍待后续明确授权和顺序操作。
+- 在 `/tmp/mitgcm-bom-p35-integration-rehearsal-20260829-a` 的隔离共享
+  克隆中，以 merge commit `1beaf10945` 和 `5c9e70a779` 顺序演练
+  P3.4/P3.5 集成；演练 final P3-G99 538/538 及独立退出审计 PASS；
+- 演练只验证 final driver、merge topology 和 audit；权威 development 仍为
+  `be87475712f0084c5acc1a342ebc97172ccdaf82`，没有推送、集成或创建标签。

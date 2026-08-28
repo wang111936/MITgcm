@@ -10,6 +10,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #include "BOM.h"
       INTEGER myThid, failRF01, failRF02, failN07
       INTEGER globalRF01, globalRF02, globalN07, failCode
+      INTEGER componentIterations, maximumComponentSize
       INTEGER nPoint, i
       _RL pointX(8), pointY(8)
       INTEGER*8 pointId(8), expectedRaft(8)
@@ -167,14 +168,19 @@ C--   A stale/missing component candidate fails 24 without output writes.
       pointId(1)=777_8
       expectedRaft(1)=-777_8
       expectedSize(1)=-777
+      componentIterations=-777
+      maximumComponentSize=-777
       CALL BOM_COMPONENT_FETCH(
      I     1,pointId,BOM_STAGE_FINAL,999,1,
      O     expectedRaft,expectedSize,
+     O     componentIterations,maximumComponentSize,
      O     failCode,valid,myThid)
       CALL BOM_P34_ASSERT(.NOT.valid .AND.
      &     failCode.EQ.BOM_FAIL_COMPONENT .AND.
      &     expectedRaft(1).EQ.-777_8 .AND.
-     &     expectedSize(1).EQ.-777,failN07)
+     &     expectedSize(1).EQ.-777 .AND.
+     &     componentIterations.EQ.-777 .AND.
+     &     maximumComponentSize.EQ.-777,failN07)
 
       globalRF01=failRF01
       globalRF02=failRF02
@@ -232,6 +238,8 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       INTEGER*8 ownerRecords,ghostRecords,nonEmptyCells
       INTEGER*8 comparisons,directed,edges,maxNeighbors
       INTEGER failCode,failPhase,expectedSlot
+      INTEGER componentIterations,maximumComponentSize
+      INTEGER expectedMaximumSize
       LOGICAL valid,found
 
       CALL BOM_INIT_STATE(myThid)
@@ -277,9 +285,21 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       CALL BOM_COMPONENT_FETCH(
      I     nOwner,ownerId,BOM_STAGE_FINAL,epoch,1,
      O     ownerRaftId,ownerRaftSize,
+     O     componentIterations,maximumComponentSize,
      O     failCode,valid,myThid)
       CALL BOM_P34_ASSERT(valid .AND. failCode.EQ.BOM_FAIL_NONE,
      &     nFail)
+      expectedMaximumSize=0
+      DO owner=1,nOwner
+        DO point=1,nPoint
+          IF ( ownerId(owner).EQ.pointId(point) )
+     &         expectedMaximumSize=
+     &         MAX(expectedMaximumSize,expectedSize(point))
+        ENDDO
+      ENDDO
+      CALL BOM_P34_ASSERT(componentIterations.GE.1 .AND.
+     &     componentIterations.LE.nPoint .AND.
+     &     maximumComponentSize.EQ.expectedMaximumSize,nFail)
       DO owner=1,nOwner
         found=.FALSE.
         expectedSlot=0

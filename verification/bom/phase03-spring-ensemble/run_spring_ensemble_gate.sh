@@ -62,9 +62,10 @@ source_audit() {
     pkg/bom/bom_spring_rhs_stage.F
     pkg/bom/bom_spring_stage.F
   )
-  [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 ]] \
+  [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 \
+    || "${SCOPE_MODE}" == p35 ]] \
     || fail "unsupported MITGCM_BOM_SCOPE_MODE: ${SCOPE_MODE}"
-  if [[ "${SCOPE_MODE}" == p34 ]]; then
+  if [[ "${SCOPE_MODE}" == p34 || "${SCOPE_MODE}" == p35 ]]; then
     allowed_production+=(
       pkg/bom/bom_component_exchange.F
       pkg/bom/bom_components_final.F
@@ -73,6 +74,11 @@ source_audit() {
       pkg/bom/bom_read_pickup.F
       pkg/bom/bom_write_pickup.F
       pkg/bom/bom_write_trajectory.F
+    )
+  fi
+  if [[ "${SCOPE_MODE}" == p35 ]]; then
+    allowed_production+=(
+      pkg/bom/bom_p3_counters.F
     )
   fi
   git -C "${REPO_ROOT}" diff --name-only \
