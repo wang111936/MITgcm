@@ -12,7 +12,7 @@ C !INTERFACE:
 C !DESCRIPTION:
 C     Snapshot the last committed local Phase-3 counters and form exact
 C     global sums and maxima.  Outputs remain unchanged if validation or
-C     reduction fails.  The integer-only reduction avoids MPI_INTEGER8.
+C     reduction fails.  The integer-only reduction uses portable datatypes.
 
       IMPLICIT NONE
 #include "SIZE.h"
