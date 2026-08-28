@@ -291,9 +291,8 @@ C     components in versioned BOM trajectory and pickup schema-2 records.
      &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       COMMON /BOM_STATE_DIAG_R/ bomRhsDiag
 
-C--   Phase-3 accepted owner diagnostics.  Raft fields are carried by the
-C     version-2 migration packet in P3.3 but remain zero until P3.4 computes
-C     connected components.
+C--   Phase-3 accepted owner diagnostics.  Raft fields are the deterministic
+C     minimum-ID and exact size of the successful FINAL cutoff component.
       _RL bomSpringEast(bomMaxPartTile,nSx,nSy)
       _RL bomSpringNorth(bomMaxPartTile,nSx,nSy)
       COMMON /BOM_P3_STATE_R/ bomSpringEast, bomSpringNorth
@@ -304,6 +303,27 @@ C     connected components.
 
       INTEGER*8 bomRaftId(bomMaxPartTile,nSx,nSy)
       COMMON /BOM_P3_STATE_I8/ bomRaftId
+
+C--   Transactional FINAL component candidate.  The spring stage publishes
+C     this scratch only after label convergence and exact size aggregation;
+C     the ensemble validates the owner identity tuple before its one commit.
+      INTEGER bomComponentNOwner
+      INTEGER bomComponentStage
+      INTEGER bomComponentEpoch
+      INTEGER bomComponentSubstep
+      INTEGER bomComponentRaftSize(bomMaxPartTile*nSx*nSy)
+      COMMON /BOM_COMPONENT_CANDIDATE_I/
+     &       bomComponentNOwner, bomComponentStage,
+     &       bomComponentEpoch, bomComponentSubstep,
+     &       bomComponentRaftSize
+
+      INTEGER*8 bomComponentOwnerId(bomMaxPartTile*nSx*nSy)
+      INTEGER*8 bomComponentRaftId(bomMaxPartTile*nSx*nSy)
+      COMMON /BOM_COMPONENT_CANDIDATE_I8/
+     &       bomComponentOwnerId, bomComponentRaftId
+
+      LOGICAL bomComponentReady
+      COMMON /BOM_COMPONENT_CANDIDATE_L/ bomComponentReady
 
 C--   One-stage read-only ghost publication.  Counts/readiness and metadata
 C     are published only after the complete collective transaction validates.

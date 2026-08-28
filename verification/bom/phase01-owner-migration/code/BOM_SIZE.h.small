@@ -19,12 +19,22 @@ CEOP
       INTEGER bomGhostPacketInts
       INTEGER bomGhostPacketReals
       INTEGER bomGhostPacketBytes
+      INTEGER bomComponentLabelSchema
+      INTEGER bomComponentLabelPacketInts
+      INTEGER bomComponentLabelPacketBytes
+      INTEGER bomComponentSizeSchema
+      INTEGER bomComponentSizePacketInts
+      INTEGER bomComponentSizePacketBytes
       INTEGER bomInitialSchema
       INTEGER bomInitialFields
       INTEGER bomOutputSchema
       INTEGER bomOutputFields
       INTEGER bomOutputSchema2
       INTEGER bomOutputFields2
+      INTEGER bomP3ContainerSchema
+      INTEGER bomP3SidecarSchema
+      INTEGER bomP3SidecarFields
+      INTEGER bomP3SigBase
       INTEGER bomPickupSchema
       INTEGER bomPickupFields
       INTEGER bomPickupFields2
@@ -47,12 +57,24 @@ CEOP
       PARAMETER ( bomGhostPacketReals = 2 )
       PARAMETER ( bomGhostPacketBytes =
      &            4*bomGhostPacketInts+8*bomGhostPacketReals )
+      PARAMETER ( bomComponentLabelSchema = 1 )
+      PARAMETER ( bomComponentLabelPacketInts = 10 )
+      PARAMETER ( bomComponentLabelPacketBytes =
+     &            4*bomComponentLabelPacketInts )
+      PARAMETER ( bomComponentSizeSchema = 1 )
+      PARAMETER ( bomComponentSizePacketInts = 5 )
+      PARAMETER ( bomComponentSizePacketBytes =
+     &            4*bomComponentSizePacketInts )
       PARAMETER ( bomInitialSchema  = 1 )
       PARAMETER ( bomInitialFields  = 8 )
       PARAMETER ( bomOutputSchema   = 1 )
       PARAMETER ( bomOutputFields   = 24 )
       PARAMETER ( bomOutputSchema2  = 2 )
       PARAMETER ( bomOutputFields2  = 48 )
+      PARAMETER ( bomP3ContainerSchema = 3 )
+      PARAMETER ( bomP3SidecarSchema = 1 )
+      PARAMETER ( bomP3SidecarFields = 8 )
+      PARAMETER ( bomP3SigBase = 44 )
       PARAMETER ( bomPickupSchema   = 1 )
       PARAMETER ( bomPickupFields   = 24 )
       PARAMETER ( bomPickupFields2  = 45 )

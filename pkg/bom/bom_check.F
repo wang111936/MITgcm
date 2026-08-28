@@ -238,24 +238,6 @@ C     pole, where no globally unique positive physical X cutoff exists.
         errCount = errCount + 1
       ENDIF
 
-C--   P3.3 activates spring integration.  Connected components and their
-C     schema-3 persistence remain an explicit P3.4 entry gate.
-      IF ( bomSpringLaw.NE.'NONE' .AND.
-     &     bomRaftDiagnostics ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: raft diagnostics start in P3.4'
-        CALL PRINT_ERROR( msgBuf, myThid )
-        errCount = errCount + 1
-      ENDIF
-      IF ( bomSpringLaw.NE.'NONE' .AND.
-     &     (bomOutputFreq.GT.0. _d 0 .OR.
-     &      bomPickupFreq.GT.0. _d 0) ) THEN
-        WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: spring schema-3 I/O starts in P3.4'
-        CALL PRINT_ERROR( msgBuf, myThid )
-        errCount = errCount + 1
-      ENDIF
-
       IF ( bomMode.NE.'LEEW' .AND.
      &     bomMode.NE.'BOM' ) THEN
         WRITE(msgBuf,'(A,A)')

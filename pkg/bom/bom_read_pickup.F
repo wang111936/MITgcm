@@ -9,6 +9,8 @@ C !INTERFACE:
 C !DESCRIPTION:
 C     Restore a same-decomposition pickup transactionally.  LEEW accepts
 C     schema 1; BOM requires schema 2 plus the complete endpoint sidecar.
+C     Spring-enabled BOM additionally requires the schema-3 signature and
+C     exact-ID diagnostic sidecar, including a successful FINAL-graph rebuild.
 C     Every component is validated before authoritative state is committed.
 
 C !USES:
@@ -44,6 +46,8 @@ C !LOCAL VARIABLES:
       _RL scratchReal(12,bomMaxPartTile,nSx,nSy)
       _RL scratchDiag(
      &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
+      _RL scratchSpringEast(bomMaxPartTile,nSx,nSy)
+      _RL scratchSpringNorth(bomMaxPartTile,nSx,nSy)
       _RL metaTimList(1), metaMissingValue
       _RL xMap, mappedI, mappedJ
       _RL storedTime, storedFreq, storedNext
@@ -51,7 +55,10 @@ C !LOCAL VARIABLES:
       _RS dummyRS(1)
       INTEGER scratchCount(nSx,nSy)
       INTEGER scratchStatus(bomMaxPartTile,nSx,nSy)
+      INTEGER scratchNeighbor(bomMaxPartTile,nSx,nSy)
+      INTEGER scratchRaftSize(bomMaxPartTile,nSx,nSy)
       INTEGER*8 scratchId(bomMaxPartTile,nSx,nSy)
+      INTEGER*8 scratchRaftId(bomMaxPartTile,nSx,nSy)
       INTEGER idCounts(nPx*nPy), idDispls(nPx*nPy)
       INTEGER idHiLocal(bomMaxInitRecords)
       INTEGER idLoLocal(bomMaxInitRecords)
@@ -76,6 +83,7 @@ C !LOCAL VARIABLES:
       LOGICAL dataExists, metaExists, useCurrentDir
       LOGICAL recordFinite, isOwner, hasStencil
       LOGICAL signatureValid, diagConsistent, reservedValid
+      LOGICAL useSchema3
 
       _BEGIN_MASTER(myThid)
 
@@ -91,12 +99,14 @@ C !LOCAL VARIABLES:
       sigFields = bomPickupSigFields
       sigRecordFields = sigFields
       envFields = 0
+      useSchema3 = .FALSE.
       IF ( bomMode.EQ.'BOM' ) THEN
         activeSchema = bomPickupSchema2
         activeFields = bomPickupFields2
         CALL BOM_GET_PICKUP2_SIZES(
      O       sigFields, envFields )
         sigRecordFields = bomPickupChunkFields
+        useSchema3 = bomSpringLaw.NE.'NONE'
       ENDIF
       sigRecords = (sigFields+sigRecordFields-1)/sigRecordFields
       signatureValid = .TRUE.
@@ -129,6 +139,11 @@ C !LOCAL VARIABLES:
         DO ip=1,bomMaxPartTile
           scratchId(ip,bi,bj) = 0_8
           scratchStatus(ip,bi,bj) = BOM_UNUSED
+          scratchSpringEast(ip,bi,bj) = 0. _d 0
+          scratchSpringNorth(ip,bi,bj) = 0. _d 0
+          scratchNeighbor(ip,bi,bj) = 0
+          scratchRaftId(ip,bi,bj) = 0_8
+          scratchRaftSize(ip,bi,bj) = 0
           DO k=1,12
             scratchReal(k,ip,bi,bj) = 0. _d 0
           ENDDO
@@ -310,6 +325,35 @@ C--   Read and validate the global signature before touching tiled files.
         ENDIF
         CALL ALL_PROC_DIE( 0 )
         STOP 'ABNORMAL END: S/R BOM_READ_PICKUP'
+      ENDIF
+
+C--   The schema-3 metadata embeds an unchanged bitwise copy of schema 2.
+      IF ( useSchema3 ) THEN
+        localErrCount = 0
+        CALL BOM_READ_P3_SIGNATURE(
+     I       fileName, signature, sigFields,
+     I       storedTime, storedIter, storedExpected, storedNext,
+     O       localErrCount,
+     I       myThid )
+        globalErrCount = localErrCount
+#ifdef ALLOW_USE_MPI
+        IF ( usingMPI ) THEN
+          CALL MPI_Allreduce(localErrCount,globalErrCount,1,MPI_INTEGER,
+     &         MPI_SUM,MPI_COMM_MODEL,mpiRC)
+          IF ( mpiRC.NE.0 ) globalErrCount = globalErrCount + 1
+        ENDIF
+#endif
+        IF ( globalErrCount.GT.0 ) THEN
+          IF ( myProcId.EQ.0 ) THEN
+            WRITE(msgBuf,'(A,A,A,I4,A,I12)')
+     &           'BOM_READ_PICKUP: schema-3 signature suffix=',
+     &           suffix, ' code=', BOM_FAIL_PICKUP_SCHEMA3,
+     &           ' errors=', globalErrCount
+            CALL PRINT_ERROR( msgBuf, myThid )
+          ENDIF
+          CALL ALL_PROC_DIE( 0 )
+          STOP 'ABNORMAL END: S/R BOM_READ_PICKUP'
+        ENDIF
       ENDIF
 
 C--   BOM restores the complete endpoint sidecar into scratch first.
@@ -648,6 +692,53 @@ C--   Stop before global ID exchange if any rank has malformed scratch.
         STOP 'ABNORMAL END: S/R BOM_READ_PICKUP'
       ENDIF
 
+C--   Decode schema-3 diagnostics, then independently rebuild the FINAL graph.
+      IF ( useSchema3 ) THEN
+        localErrCount = 0
+        CALL BOM_READ_P3_SIDECAR(
+     I       fileName, storedTime, storedTime, storedNext, storedIter,
+     I       scratchCount, scratchId, scratchStatus,
+     O       scratchSpringEast, scratchSpringNorth,
+     O       scratchNeighbor, scratchRaftId, scratchRaftSize,
+     O       localErrCount,
+     I       myThid )
+        globalErrCount = localErrCount
+#ifdef ALLOW_USE_MPI
+        IF ( usingMPI ) THEN
+          CALL MPI_Allreduce(localErrCount,globalErrCount,1,MPI_INTEGER,
+     &         MPI_SUM,MPI_COMM_MODEL,mpiRC)
+          IF ( mpiRC.NE.0 ) globalErrCount = globalErrCount + 1
+        ENDIF
+#endif
+        IF ( globalErrCount.EQ.0 ) THEN
+          CALL BOM_VALIDATE_P3_RESTART_GRAPH(
+     I         scratchCount, scratchId, scratchStatus, scratchReal,
+     I         scratchSpringEast, scratchSpringNorth,
+     I         scratchNeighbor, scratchRaftId, scratchRaftSize,
+     O         localErrCount,
+     I         myThid )
+          globalErrCount = localErrCount
+#ifdef ALLOW_USE_MPI
+          IF ( usingMPI ) THEN
+            CALL MPI_Allreduce(localErrCount,globalErrCount,1,
+     &           MPI_INTEGER,MPI_SUM,MPI_COMM_MODEL,mpiRC)
+            IF ( mpiRC.NE.0 ) globalErrCount = globalErrCount + 1
+          ENDIF
+#endif
+        ENDIF
+        IF ( globalErrCount.GT.0 ) THEN
+          IF ( myProcId.EQ.0 ) THEN
+            WRITE(msgBuf,'(A,A,A,I4,A,I12)')
+     &           'BOM_READ_PICKUP: schema-3 sidecar suffix=', suffix,
+     &           ' code=', BOM_FAIL_PICKUP_SCHEMA3,
+     &           ' errors=', globalErrCount
+            CALL PRINT_ERROR( msgBuf, myThid )
+          ENDIF
+          CALL ALL_PROC_DIE( 0 )
+          STOP 'ABNORMAL END: S/R BOM_READ_PICKUP'
+        ENDIF
+      ENDIF
+
 C--   Gather and sort exact integer ID words before committing COMMON state.
 #ifdef ALLOW_USE_MPI
       IF ( usingMPI ) THEN
@@ -786,6 +877,22 @@ C--   One commit publishes the fully validated scratch transaction.
               bomRhsDiag(iDiag,ip,bi,bj) =
      &             scratchDiag(iDiag,ip,bi,bj)
             ENDDO
+            IF ( useSchema3 ) THEN
+              bomSpringEast(ip,bi,bj) =
+     &             scratchSpringEast(ip,bi,bj)
+              bomSpringNorth(ip,bi,bj) =
+     &             scratchSpringNorth(ip,bi,bj)
+              bomNeighborCount(ip,bi,bj) =
+     &             scratchNeighbor(ip,bi,bj)
+              bomRaftId(ip,bi,bj) = scratchRaftId(ip,bi,bj)
+              bomRaftSize(ip,bi,bj) = scratchRaftSize(ip,bi,bj)
+            ELSE
+              bomSpringEast(ip,bi,bj) = 0. _d 0
+              bomSpringNorth(ip,bi,bj) = 0. _d 0
+              bomNeighborCount(ip,bi,bj) = 0
+              bomRaftId(ip,bi,bj) = 0_8
+              bomRaftSize(ip,bi,bj) = 0
+            ENDIF
           ELSE
             bomId(ip,bi,bj) = 0_8
             bomStatus(ip,bi,bj) = BOM_UNUSED
@@ -801,6 +908,11 @@ C--   One commit publishes the fully validated scratch transaction.
             bomWindNorth(ip,bi,bj) = 0. _d 0
             bomDriftEast(ip,bi,bj) = 0. _d 0
             bomDriftNorth(ip,bi,bj) = 0. _d 0
+            bomSpringEast(ip,bi,bj) = 0. _d 0
+            bomSpringNorth(ip,bi,bj) = 0. _d 0
+            bomNeighborCount(ip,bi,bj) = 0
+            bomRaftId(ip,bi,bj) = 0_8
+            bomRaftSize(ip,bi,bj) = 0
             DO iDiag=1,BOM_RHS_NDIAG
               bomRhsDiag(iDiag,ip,bi,bj) = 0. _d 0
             ENDDO

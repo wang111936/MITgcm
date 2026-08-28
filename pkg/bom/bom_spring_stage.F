@@ -52,6 +52,7 @@ C !LOCAL VARIABLES:
       INTEGER owner, rec, ig, bi, bj, neighbor
       INTEGER nRecord, nCellX, nCellY, nCell, cellReachY
       INTEGER localFail, geometryFail, listFail, graphFail
+      INTEGER componentFail
       INTEGER localPhase, geometryPhase, listPhase, graphPhase
       INTEGER recordStatus(bomMaxCellRecord)
       INTEGER recordOwner(bomMaxCellRecord)
@@ -64,6 +65,8 @@ C !LOCAL VARIABLES:
       INTEGER neighborCountWork(bomMaxOwnerRecord)
       INTEGER*8 neighborId(bomMaxNeighbor,bomMaxOwnerRecord)
       INTEGER neighborRecord(bomMaxNeighbor,bomMaxOwnerRecord)
+      INTEGER*8 raftIdWork(bomMaxOwnerRecord)
+      INTEGER raftSizeWork(bomMaxOwnerRecord)
       _RL springEastWork(bomMaxOwnerRecord)
       _RL springNorthWork(bomMaxOwnerRecord)
       _RL cellWidthX, cellWidthY
@@ -78,6 +81,7 @@ C !LOCAL VARIABLES:
       INTEGER*8 maximumWork, failureNeed, failureCapacity
       LOGICAL geometryValid, listValid, neighborsValid
       LOGICAL pairValid, accumulationValid, calcValid
+      LOGICAL componentValid
       SAVE neighborId, neighborRecord
       SAVE recordId, recordStatus, recordOwner, recordX, recordY
 #endif
@@ -87,6 +91,8 @@ C !LOCAL VARIABLES:
       stageValid = .FALSE.
 
 #ifdef ALLOW_BOM
+      IF ( ghostStage.EQ.BOM_STAGE_FINAL )
+     &     CALL BOM_COMPONENT_INVALIDATE
       localFail = BOM_FAIL_NONE
       localPhase = BOM_P3_PHASE_NONE
       IF ( nOwner.LT.0 .OR.
@@ -305,6 +311,26 @@ C--       Arithmetic failure precedes a mathematical spring-CFL rejection.
           neighborCountWork(owner) = 0
         ENDIF
       ENDDO
+
+C--   Raft diagnostics consume this exact successful FINAL graph while its
+C     ghost routes and sorted neighbor IDs are still authoritative.
+      IF ( bomRaftDiagnostics .AND.
+     &     ghostStage.EQ.BOM_STAGE_FINAL ) THEN
+        CALL BOM_COMPONENTS_FINAL(
+     I       nOwner,ownerId,ownerStatus,ownerX,ownerY,
+     I       neighborCountWork,neighborId,
+     I       ghostStage,ghostEpoch,ghostSubstep,
+     O       raftIdWork,raftSizeWork,
+     O       componentFail,componentValid,myThid)
+        IF ( .NOT.componentValid ) THEN
+          failCode = componentFail
+          p3FailPhase = BOM_P3_PHASE_COMPONENT
+          RETURN
+        ENDIF
+        CALL BOM_COMPONENT_PUBLISH(
+     I       nOwner,ownerId,raftIdWork,raftSizeWork,
+     I       ghostStage,ghostEpoch,ghostSubstep)
+      ENDIF
 
 C--   Publish only after every owner, edge, accumulation and guard succeeds.
       DO owner=1,nOwner

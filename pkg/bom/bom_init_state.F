@@ -8,7 +8,8 @@ C !INTERFACE:
       SUBROUTINE BOM_INIT_STATE( myThid )
 
 C !DESCRIPTION:
-C     Reset owner, Phase-3 ghost, and environmental state deterministically.
+C     Reset owner, Phase-3 component/ghost, and environmental state
+C     deterministically.
 C     Valid records later occupy 1:bomNPartTile on each tile.
 
 C !USES:
@@ -25,6 +26,7 @@ CEOP
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
       INTEGER bi, bj, i, j, ip, ig, iEnd, iSource, iComponent
+      INTEGER iOwner
       INTEGER iDiag
 
       _BEGIN_MASTER(myThid)
@@ -46,6 +48,16 @@ C !LOCAL VARIABLES:
       bomGhostRecordsReceived = 0_8
       bomGhostBytesSent = 0_8
       bomGhostBytesReceived = 0_8
+      bomComponentReady = .FALSE.
+      bomComponentNOwner = 0
+      bomComponentStage = BOM_STAGE_NONE
+      bomComponentEpoch = 0
+      bomComponentSubstep = 0
+      DO iOwner=1,bomMaxPartTile*nSx*nSy
+        bomComponentOwnerId(iOwner) = 0_8
+        bomComponentRaftId(iOwner) = 0_8
+        bomComponentRaftSize(iOwner) = 0
+      ENDDO
       bomP3OwnerRecords = 0_8
       bomP3GhostRecords = 0_8
       bomP3NonEmptyCells = 0_8
