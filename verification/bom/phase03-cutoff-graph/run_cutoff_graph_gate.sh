@@ -10,6 +10,7 @@ readonly EXP2_CODE="${REPO_ROOT}/verification/exp2/code"
 readonly EXPECTED_HEAD="${MITGCM_BOM_EXPECTED_HEAD:-$(git -C "${REPO_ROOT}" rev-parse HEAD)}"
 readonly BASELINE_REF="${MITGCM_BOM_BASELINE_REF:-MITGCM-BOM/development}"
 readonly REQUIRE_CLEAN="${MITGCM_BOM_REQUIRE_CLEAN:-yes}"
+readonly SCOPE_MODE="${MITGCM_BOM_SCOPE_MODE:-p32}"
 readonly SHORT_HEAD="${EXPECTED_HEAD:0:10}"
 readonly TEST_ID="${MITGCM_BOM_TEST_ID:-p32-cutoff-${SHORT_HEAD}-attempt01}"
 readonly BUILD_ROOT="${MITGCM_BOM_TEST_BUILD_ROOT:-/home/wyl/build/mitgcm-bom/phase03-cutoff-graph}/${TEST_ID}"
@@ -56,6 +57,23 @@ scope_audit() {
     pkg/bom/bom_build_neighbors.F
     pkg/bom/bom_init_cell_geometry.F
   )
+  [[ "${SCOPE_MODE}" == p32 || "${SCOPE_MODE}" == p33 ]] \
+    || fail "unsupported MITGCM_BOM_SCOPE_MODE: ${SCOPE_MODE}"
+  if [[ "${SCOPE_MODE}" == p33 ]]; then
+    allowed_production+=(
+      pkg/bom/BOM.h
+      pkg/bom/BOM_SIZE.h
+      pkg/bom/bom_check.F
+      pkg/bom/bom_check_state.F
+      pkg/bom/bom_ghost_exchange.F
+      pkg/bom/bom_init_state.F
+      pkg/bom/bom_main.F
+      pkg/bom/bom_particle_exchange.F
+      pkg/bom/bom_spring_ensemble.F
+      pkg/bom/bom_spring_rhs_stage.F
+      pkg/bom/bom_spring_stage.F
+    )
+  fi
   git -C "${REPO_ROOT}" diff --name-only \
     "${BASELINE_REF}...${EXPECTED_HEAD}" > "${RUN_ROOT}/changed-paths.txt"
   while IFS= read -r path; do
@@ -74,11 +92,20 @@ scope_audit() {
       || fail "unexpected author/committer identity: ${identity}"
   done < <(git -C "${REPO_ROOT}" log --format='%an <%ae>|%cn <%ce>' \
     "${BASELINE_REF}..${EXPECTED_HEAD}")
-  git -C "${REPO_ROOT}" diff --quiet \
-    "${BASELINE_REF}...${EXPECTED_HEAD}" -- pkg/bom/bom_main.F \
-    || fail 'live dispatcher changed during P3.2 kernel work'
+  if [[ "${SCOPE_MODE}" == p33 ]]; then
+    grep -q 'CALL BOM_BUILD_CELL_LIST' \
+      "${REPO_ROOT}/pkg/bom/bom_spring_stage.F" \
+      || fail 'P3.3 cell-list integration is missing'
+    grep -q 'CALL BOM_BUILD_NEIGHBORS' \
+      "${REPO_ROOT}/pkg/bom/bom_spring_stage.F" \
+      || fail 'P3.3 neighbor integration is missing'
+  else
+    git -C "${REPO_ROOT}" diff --quiet \
+      "${BASELINE_REF}...${EXPECTED_HEAD}" -- pkg/bom/bom_main.F \
+      || fail 'live dispatcher changed during P3.2 kernel work'
+  fi
   record_pass p3-z01-scope \
-    'P3.2 paths bounded; dispatcher unchanged; identities exact; no tag'
+    "P3.2 predecessor paths valid in ${SCOPE_MODE}; identities exact; no tag"
 }
 
 source_isolation_audit() {
