@@ -893,6 +893,11 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - P3.4/P3.5 都未推送或集成，未创建 v0.4。唯一下一任务是
   经明确授权后批量推送/审查，随后顺序集成、final P3-G99 和独立
   Phase 3 退出审计。
+- `/tmp/mitgcm-bom-p35-integration-rehearsal-20260829-a` 隔离共享克隆已
+  用两个 merge commit 演练 P3.4→P3.5；演练合并头 `5c9e70a779`
+  通过 final P3-G99 538/538 和独立 Phase 3 退出审计；
+- 演练没有修改权威 development (`be8747571`)、GitHub 或标签；真实
+  集成后仍必须重跑同样的 final 538 和退出审计。
 
 ## 6. 每次会话结束时必须更新
 

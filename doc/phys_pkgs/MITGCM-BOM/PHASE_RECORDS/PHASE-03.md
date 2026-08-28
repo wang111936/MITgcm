@@ -204,3 +204,8 @@ P3.4、P3.5，在最终 development 头运行 final P3-G99 538/538，再单独
   边界一致，没有触及 SKRIPS；
 - P3.4/P3.5 都未推送或集成；final P3-G99、独立退出审计与
   `MITGCM-BOM-v0.4` 均仍待后续明确授权和顺序操作。
+- 在 `/tmp/mitgcm-bom-p35-integration-rehearsal-20260829-a` 的隔离共享
+  克隆中，以 merge commit `1beaf10945` 和 `5c9e70a779` 顺序演练
+  P3.4/P3.5 集成；演练 final P3-G99 538/538 及独立退出审计 PASS；
+- 演练只验证 final driver、merge topology 和 audit；权威 development 仍为
+  `be87475712f0084c5acc1a342ebc97172ccdaf82`，没有推送、集成或创建标签。

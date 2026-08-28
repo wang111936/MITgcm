@@ -42,6 +42,34 @@ Both native and aggregate manifests self-validated. The independent marker is
 `P3-G99 CANDIDATE AUDIT PASS`, with 538 rows and 120 Phase 3 changed files.
 The captured Git status is empty.
 
+## Isolated final-mode rehearsal
+
+After the candidate closeout was committed, a shared clone under
+`/tmp/mitgcm-bom-p35-integration-rehearsal-20260829-a` reproduced the frozen
+merge order without modifying the authoritative repository:
+
+1. P3.4 package head `38fd1824f` was merged with merge commit `1beaf10945`;
+2. P3.5 package head `b904c91d7` was merged with merge commit `5c9e70a779`;
+3. final-mode P3-G99 passed 538/538 at `5c9e70a779`;
+4. the separate Phase 3 exit audit passed and identified the same two merges.
+
+Rehearsal evidence roots are:
+
+- `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/`
+  `p3-g99-final-rehearsal-5c9e70a779-attempt01`;
+- `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/phase3-exit-audit/`
+  `phase3-exit-rehearsal-5c9e70a779-attempt01`.
+
+The final-rehearsal P3-G99 manifest SHA-256 is
+`1d28cf6301b04a295fddd8858e0161bbe1bbecc0096b1e64c83eeb250287eb8c`.
+The exit-audit manifest and independent-log SHA-256 values are
+`6e4f8c00dfcfc2020bbbf504944c73aab01e52fe7d17875580e08de885876758`
+and `868a440e0e7f570cc3d9d0b510a7ea4c80bbf563f407e1616b6843f9bf212d58`.
+
+This rehearsal proves the final-mode driver and exit-audit topology, but it is
+not authoritative integration evidence. The real development branch remained
+at `be87475712f0084c5acc1a342ebc97172ccdaf82`; no remote ref or tag changed.
+
 ## Fixed-density observations
 
 All six Cartesian/spherical fixtures pass in serial, MPI2 and MPI4. Candidate
