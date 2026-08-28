@@ -10,6 +10,7 @@ C !INTERFACE:
      I                 neighborCount, neighborId,
      I                 graphStage, graphEpoch, graphSubstep,
      O                 raftId, raftSize,
+     O                 componentIterations, maximumComponentSize,
      O                 failCode, isValid,
      I                 myThid )
 
@@ -37,6 +38,7 @@ C     label rendezvous and never gather all owners on every rank.
       INTEGER*8 neighborId(bomMaxNeighbor,bomMaxOwnerRecord)
       INTEGER*8 raftId(bomMaxOwnerRecord)
       INTEGER raftSize(bomMaxOwnerRecord)
+      INTEGER componentIterations, maximumComponentSize
       LOGICAL isValid
 CEOP
 
@@ -57,6 +59,8 @@ CEOP
 
       failCode = BOM_FAIL_COMPONENT
       isValid = .FALSE.
+      componentIterations = 0
+      maximumComponentSize = 0
 
 #ifdef ALLOW_BOM
       localErr = 0
@@ -211,6 +215,8 @@ CEOP
      &         raftSize(owner).LT.1 .OR.
      &         raftSize(owner).GT.globalAlive ) localErr=localErr+1
           raftId(owner) = labelOld(owner)
+          maximumComponentSize =
+     &         MAX(maximumComponentSize,raftSize(owner))
         ELSE
           IF ( labelOld(owner).NE.0_8 .OR.
      &         raftSize(owner).NE.0 ) localErr=localErr+1
@@ -220,6 +226,7 @@ CEOP
       globalErr = localErr
       CALL GLOBAL_SUM_INT(globalErr,myThid)
       IF ( globalErr.GT.0 ) RETURN
+      componentIterations = iteration
       failCode = BOM_FAIL_NONE
       isValid = .TRUE.
 #endif /* ALLOW_BOM */
@@ -618,6 +625,8 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       bomComponentStage = BOM_STAGE_NONE
       bomComponentEpoch = 0
       bomComponentSubstep = 0
+      bomComponentIterations = 0
+      bomComponentMaximumSize = 0
       DO owner=1,bomMaxOwnerRecord
         bomComponentOwnerId(owner) = 0_8
         bomComponentRaftId(owner) = 0_8
@@ -629,6 +638,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       SUBROUTINE BOM_COMPONENT_PUBLISH(
      I                 nOwner, ownerId, raftId, raftSize,
+     I                 componentIterations, maximumComponentSize,
      I                 graphStage, graphEpoch, graphSubstep )
       IMPLICIT NONE
 #include "SIZE.h"
@@ -637,13 +647,18 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #include "BOM_GRAPH_SIZE.h"
 #include "BOM.h"
       INTEGER nOwner, graphStage, graphEpoch, graphSubstep, owner
+      INTEGER componentIterations, maximumComponentSize
       INTEGER*8 ownerId(bomMaxOwnerRecord)
       INTEGER*8 raftId(bomMaxOwnerRecord)
       INTEGER raftSize(bomMaxOwnerRecord)
       CALL BOM_COMPONENT_INVALIDATE
       IF ( nOwner.LT.0 .OR. nOwner.GT.bomMaxOwnerRecord .OR.
      &     graphStage.NE.BOM_STAGE_FINAL .OR.
-     &     graphEpoch.LE.0 .OR. graphSubstep.LE.0 ) RETURN
+     &     graphEpoch.LE.0 .OR. graphSubstep.LE.0 .OR.
+     &     componentIterations.LT.0 .OR.
+     &     componentIterations.GT.bomMaxInitRecords .OR.
+     &     maximumComponentSize.LT.0 .OR.
+     &     maximumComponentSize.GT.bomMaxInitRecords ) RETURN
       DO owner=1,nOwner
         bomComponentOwnerId(owner) = ownerId(owner)
         bomComponentRaftId(owner) = raftId(owner)
@@ -653,6 +668,8 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       bomComponentStage = graphStage
       bomComponentEpoch = graphEpoch
       bomComponentSubstep = graphSubstep
+      bomComponentIterations = componentIterations
+      bomComponentMaximumSize = maximumComponentSize
       bomComponentReady = .TRUE.
       RETURN
       END
@@ -662,6 +679,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
      I                 nOwner, ownerId,
      I                 graphStage, graphEpoch, graphSubstep,
      O                 raftId, raftSize,
+     O                 componentIterations, maximumComponentSize,
      O                 failCode, isValid,
      I                 myThid )
       IMPLICIT NONE
@@ -672,6 +690,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #include "BOM.h"
       INTEGER nOwner, graphStage, graphEpoch, graphSubstep
       INTEGER failCode, myThid, owner, localErr, globalErr
+      INTEGER componentIterations, maximumComponentSize
       INTEGER*8 ownerId(bomMaxOwnerRecord)
       INTEGER*8 raftId(bomMaxOwnerRecord)
       INTEGER raftSize(bomMaxOwnerRecord)
@@ -686,6 +705,11 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
      &     bomComponentStage.NE.graphStage .OR.
      &     bomComponentEpoch.NE.graphEpoch .OR.
      &     bomComponentSubstep.NE.graphSubstep ) localErr=localErr+1
+      IF ( bomComponentIterations.LT.0 .OR.
+     &     bomComponentIterations.GT.bomMaxInitRecords .OR.
+     &     bomComponentMaximumSize.LT.0 .OR.
+     &     bomComponentMaximumSize.GT.bomMaxInitRecords )
+     &     localErr=localErr+1
       DO owner=1,MAX(0,MIN(nOwner,bomMaxOwnerRecord))
         IF ( bomComponentOwnerId(owner).NE.ownerId(owner) .OR.
      &       bomComponentRaftId(owner).LT.0_8 .OR.
@@ -698,6 +722,8 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
         raftId(owner) = bomComponentRaftId(owner)
         raftSize(owner) = bomComponentRaftSize(owner)
       ENDDO
+      componentIterations = bomComponentIterations
+      maximumComponentSize = bomComponentMaximumSize
       failCode = BOM_FAIL_NONE
       isValid = .TRUE.
       RETURN

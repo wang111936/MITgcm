@@ -53,6 +53,8 @@ C !LOCAL VARIABLES:
       bomComponentStage = BOM_STAGE_NONE
       bomComponentEpoch = 0
       bomComponentSubstep = 0
+      bomComponentIterations = 0
+      bomComponentMaximumSize = 0
       DO iOwner=1,bomMaxPartTile*nSx*nSy
         bomComponentOwnerId(iOwner) = 0_8
         bomComponentRaftId(iOwner) = 0_8
@@ -70,6 +72,8 @@ C !LOCAL VARIABLES:
       bomP3GhostPacketsReceived = 0_8
       bomP3GhostBytesSent = 0_8
       bomP3GhostBytesReceived = 0_8
+      bomP3MaximumComponentSize = 0_8
+      bomP3ComponentIterations = 0_8
       DO iEnd=1,BOM_ENV_NEND
         bomEnvTime(iEnd) = 0. _d 0
         bomEnvIter(iEnd) = 0

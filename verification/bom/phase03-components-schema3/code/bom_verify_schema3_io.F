@@ -54,6 +54,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       INTEGER myThid
       INTEGER nPoint,point,rank,bi,bj,hop,ip,iDiag
       INTEGER nOwner,owner,failCode,failPhase
+      INTEGER componentIterations,maximumComponentSize
       INTEGER pointStatus(4),ownerStatus(bomMaxOwnerRecord)
       INTEGER ownerIp(bomMaxOwnerRecord)
       INTEGER ownerBi(bomMaxOwnerRecord)
@@ -174,6 +175,7 @@ C--   Ascending exact IDs keep every compact tile record canonical.
       CALL BOM_COMPONENT_FETCH(
      I     nOwner,ownerId,BOM_STAGE_FINAL,301,1,
      O     ownerRaftId,ownerRaftSize,
+     O     componentIterations,maximumComponentSize,
      O     failCode,valid,myThid)
       IF ( .NOT.valid ) THEN
         CALL ALL_PROC_DIE(0)

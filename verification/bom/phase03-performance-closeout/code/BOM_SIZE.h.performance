@@ -65,7 +65,9 @@ CEOP
       PARAMETER ( bomMaxPartTile    = 64 )
       PARAMETER ( bomMaxGhostTile   = bomMaxInitRecords )
       PARAMETER ( bomMaxExchange    = bomMaxInitRecords )
-      PARAMETER ( bomMaxNeighbor    = bomMaxInitRecords )
+C--   P3-X02 keeps degree-four lattices exact and forces a five-neighbor
+C     dense-cell failure through the production capacity guard.
+      PARAMETER ( bomMaxNeighbor    = 4 )
       PARAMETER ( bomMaxEventBuffer = 1 )
       PARAMETER ( bomPacketSchema   = 2 )
       PARAMETER ( bomPacketInts     = 10 )

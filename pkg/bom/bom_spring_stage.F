@@ -50,14 +50,20 @@ CEOP
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
       INTEGER owner, rec, ig, bi, bj, neighbor
+      INTEGER nGhostRaw, writeRecord, ownerIndex
       INTEGER nRecord, nCellX, nCellY, nCell, cellReachY
       INTEGER localFail, geometryFail, listFail, graphFail
       INTEGER componentFail
+      INTEGER componentIterations, maximumComponentSize
       INTEGER localPhase, geometryPhase, listPhase, graphPhase
       INTEGER recordStatus(bomMaxCellRecord)
       INTEGER recordOwner(bomMaxCellRecord)
       INTEGER*8 recordId(bomMaxCellRecord)
+      INTEGER*8 ownerIdSort(bomMaxOwnerRecord)
+      INTEGER*8 ownerIndexSort(bomMaxOwnerRecord)
+      INTEGER*8 ownerIndex8, lastGhostId
       _RL recordX(bomMaxCellRecord), recordY(bomMaxCellRecord)
+      _RL lastGhostX, lastGhostY
       INTEGER cellHead(bomMaxCell)
       INTEGER cellNext(bomMaxCellRecord)
       INTEGER recordCell(bomMaxCellRecord)
@@ -81,7 +87,8 @@ C !LOCAL VARIABLES:
       INTEGER*8 maximumWork, failureNeed, failureCapacity
       LOGICAL geometryValid, listValid, neighborsValid
       LOGICAL pairValid, accumulationValid, calcValid
-      LOGICAL componentValid
+      INTEGER lastGhostStatus
+      LOGICAL componentValid,sortValid,found
       SAVE neighborId, neighborRecord
       SAVE recordId, recordStatus, recordOwner, recordX, recordY
 #endif
@@ -126,8 +133,10 @@ C !LOCAL VARIABLES:
         RETURN
       ENDIF
 
-C--   Owner records precede per-tile ghosts; duplicate ghost copies are
-C     intentionally retained for the exact-ID deduplication in the graph.
+C--   Owner records precede ghosts.  The exchange routes one source to every
+C     relevant tile, but this rank-wide cell list needs one exact-ID record.
+C     Sort and validate all copies before compacting them; a same-rank owner
+C     copy is not a graph ghost.
       nRecord = nOwner
       DO owner=1,nOwner
         recordId(owner) = ownerId(owner)
@@ -135,7 +144,18 @@ C     intentionally retained for the exact-ID deduplication in the graph.
         recordX(owner) = ownerX(owner)
         recordY(owner) = ownerY(owner)
         recordOwner(owner) = owner
+        ownerIdSort(owner) = ownerId(owner)
+        ownerIndexSort(owner) = INT(owner,8)
       ENDDO
+      CALL BOM_COMPONENT_SORT_PAIRS_I8(
+     U     ownerIdSort,ownerIndexSort,
+     I     nOwner,bomMaxOwnerRecord,
+     O     sortValid)
+      IF ( .NOT.sortValid ) THEN
+        failCode = BOM_FAIL_GHOST_PACKET
+        p3FailPhase = BOM_P3_PHASE_GHOST
+        RETURN
+      ENDIF
       DO bj=1,nSy
        DO bi=1,nSx
         DO ig=1,bomNGhostTile(bi,bj)
@@ -153,6 +173,58 @@ C     intentionally retained for the exact-ID deduplication in the graph.
         ENDDO
        ENDDO
       ENDDO
+      nGhostRaw = nRecord-nOwner
+      CALL BOM_SPRING_SORT_GHOST_RECORDS(
+     U     recordId,recordStatus,recordX,recordY,
+     I     nOwner+1,nGhostRaw,bomMaxCellRecord,
+     O     sortValid)
+      IF ( .NOT.sortValid ) THEN
+        failCode = BOM_FAIL_GHOST_PACKET
+        p3FailPhase = BOM_P3_PHASE_GHOST
+        RETURN
+      ENDIF
+      writeRecord = nOwner
+      lastGhostId = 0_8
+      lastGhostStatus = BOM_UNUSED
+      lastGhostX = 0. _d 0
+      lastGhostY = 0. _d 0
+      DO rec=nOwner+1,nOwner+nGhostRaw
+        IF ( rec.EQ.nOwner+1 .OR.
+     &       recordId(rec).NE.lastGhostId ) THEN
+          lastGhostId = recordId(rec)
+          lastGhostStatus = recordStatus(rec)
+          lastGhostX = recordX(rec)
+          lastGhostY = recordY(rec)
+          CALL BOM_COMPONENT_FIND_I8(
+     I         recordId(rec),ownerIdSort,ownerIndexSort,nOwner,
+     O         ownerIndex8,found)
+          IF ( found ) THEN
+            ownerIndex = INT(ownerIndex8)
+            IF ( ownerIndex.LT.1 .OR. ownerIndex.GT.nOwner .OR.
+     &           ownerStatus(ownerIndex).NE.recordStatus(rec) .OR.
+     &           ownerX(ownerIndex).NE.recordX(rec) .OR.
+     &           ownerY(ownerIndex).NE.recordY(rec) ) THEN
+              failCode = BOM_FAIL_GHOST_PACKET
+              p3FailPhase = BOM_P3_PHASE_GHOST
+              RETURN
+            ENDIF
+          ELSE
+            writeRecord = writeRecord+1
+            recordId(writeRecord) = recordId(rec)
+            recordStatus(writeRecord) = recordStatus(rec)
+            recordX(writeRecord) = recordX(rec)
+            recordY(writeRecord) = recordY(rec)
+            recordOwner(writeRecord) = 0
+          ENDIF
+        ELSEIF ( recordStatus(rec).NE.lastGhostStatus .OR.
+     &           recordX(rec).NE.lastGhostX .OR.
+     &           recordY(rec).NE.lastGhostY ) THEN
+          failCode = BOM_FAIL_GHOST_PACKET
+          p3FailPhase = BOM_P3_PHASE_GHOST
+          RETURN
+        ENDIF
+      ENDDO
+      nRecord = writeRecord
 
       CALL BOM_INIT_CELL_GEOMETRY(
      I     usingCartesianGrid,usingSphericalPolarGrid,
@@ -321,6 +393,7 @@ C     ghost routes and sorted neighbor IDs are still authoritative.
      I       neighborCountWork,neighborId,
      I       ghostStage,ghostEpoch,ghostSubstep,
      O       raftIdWork,raftSizeWork,
+     O       componentIterations,maximumComponentSize,
      O       componentFail,componentValid,myThid)
         IF ( .NOT.componentValid ) THEN
           failCode = componentFail
@@ -329,6 +402,7 @@ C     ghost routes and sorted neighbor IDs are still authoritative.
         ENDIF
         CALL BOM_COMPONENT_PUBLISH(
      I       nOwner,ownerId,raftIdWork,raftSizeWork,
+     I       componentIterations,maximumComponentSize,
      I       ghostStage,ghostEpoch,ghostSubstep)
       ENDIF
 
@@ -350,5 +424,90 @@ C--   Publish only after every owner, edge, accumulation and guard succeeds.
       stageValid = .TRUE.
 #endif /* ALLOW_BOM */
 
+      RETURN
+      END
+
+C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+      SUBROUTINE BOM_SPRING_SORT_GHOST_RECORDS(
+     U                 recordId, recordStatus, recordX, recordY,
+     I                 firstRecord, nValue, capacity,
+     O                 isValid )
+      IMPLICIT NONE
+      INTEGER*8 recordId(*)
+      INTEGER recordStatus(*)
+      _RL recordX(*),recordY(*)
+      INTEGER firstRecord,nValue,capacity
+      INTEGER start,finish,root,child,rootRecord,childRecord
+      LOGICAL isValid
+
+      isValid = .FALSE.
+      IF ( firstRecord.LT.1 .OR. nValue.LT.0 .OR.
+     &     firstRecord-1.GT.capacity-nValue ) RETURN
+      DO start=nValue/2,1,-1
+        root = start
+        DO WHILE ( 2*root.LE.nValue )
+          child = 2*root
+          IF ( child.LT.nValue ) THEN
+            IF ( recordId(firstRecord+child-1).LT.
+     &           recordId(firstRecord+child) ) child=child+1
+          ENDIF
+          rootRecord = firstRecord+root-1
+          childRecord = firstRecord+child-1
+          IF ( recordId(rootRecord).GE.recordId(childRecord) )
+     &         GOTO 410
+          CALL BOM_SPRING_SWAP_GHOST_RECORD(
+     I         rootRecord,childRecord,
+     U         recordId,recordStatus,recordX,recordY)
+          root = child
+        ENDDO
+  410   CONTINUE
+      ENDDO
+      DO finish=nValue,2,-1
+        CALL BOM_SPRING_SWAP_GHOST_RECORD(
+     I       firstRecord,firstRecord+finish-1,
+     U       recordId,recordStatus,recordX,recordY)
+        root = 1
+        DO WHILE ( 2*root.LE.finish-1 )
+          child = 2*root
+          IF ( child.LT.finish-1 ) THEN
+            IF ( recordId(firstRecord+child-1).LT.
+     &           recordId(firstRecord+child) ) child=child+1
+          ENDIF
+          rootRecord = firstRecord+root-1
+          childRecord = firstRecord+child-1
+          IF ( recordId(rootRecord).GE.recordId(childRecord) )
+     &         GOTO 420
+          CALL BOM_SPRING_SWAP_GHOST_RECORD(
+     I         rootRecord,childRecord,
+     U         recordId,recordStatus,recordX,recordY)
+          root = child
+        ENDDO
+  420   CONTINUE
+      ENDDO
+      isValid = .TRUE.
+      RETURN
+      END
+
+C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+      SUBROUTINE BOM_SPRING_SWAP_GHOST_RECORD(
+     I                 recordA, recordB,
+     U                 recordId, recordStatus, recordX, recordY )
+      IMPLICIT NONE
+      INTEGER recordA,recordB,statusSwap
+      INTEGER*8 recordId(*),idSwap
+      INTEGER recordStatus(*)
+      _RL recordX(*),recordY(*),realSwap
+      idSwap = recordId(recordA)
+      recordId(recordA) = recordId(recordB)
+      recordId(recordB) = idSwap
+      statusSwap = recordStatus(recordA)
+      recordStatus(recordA) = recordStatus(recordB)
+      recordStatus(recordB) = statusSwap
+      realSwap = recordX(recordA)
+      recordX(recordA) = recordX(recordB)
+      recordX(recordB) = realSwap
+      realSwap = recordY(recordA)
+      recordY(recordA) = recordY(recordB)
+      recordY(recordB) = realSwap
       RETURN
       END

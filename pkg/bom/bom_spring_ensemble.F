@@ -94,6 +94,7 @@ CEOP
       LOGICAL globalValid, intervalValid, finalValid
       LOGICAL calcValid, statsValid, componentValid
       INTEGER releaseFail, finalFail, finalPhase, componentFail
+      INTEGER componentIterations, maximumComponentSize
       _RL dtActive, activeCandidate, currentTime, nextTime
       _RL intervalDt
       INTEGER*8 ownerRecords, ghostRecords, nonEmptyCells
@@ -313,6 +314,7 @@ C--   FINAL graph, spring and base RHS use accepted trial positions.
      I       nOwner,ownerId,BOM_STAGE_FINAL,
      I       epochCounter,mySubstep,
      O       finalRaftId,finalRaftSize,
+     O       componentIterations,maximumComponentSize,
      O       componentFail,componentValid,myThid)
         IF ( .NOT.componentValid ) THEN
           failCode = componentFail
@@ -320,6 +322,8 @@ C--   FINAL graph, spring and base RHS use accepted trial positions.
           RETURN
         ENDIF
       ELSE
+        componentIterations = 0
+        maximumComponentSize = 0
         DO owner=1,nOwner
           finalRaftId(owner) = 0_8
           finalRaftSize(owner) = 0
@@ -397,6 +401,8 @@ C--   The only authoritative owner and P3 diagnostic publication.
       bomP3GhostPacketsReceived = sumPacketsReceived
       bomP3GhostBytesSent = sumBytesSent
       bomP3GhostBytesReceived = sumBytesReceived
+      bomP3MaximumComponentSize = INT(maximumComponentSize,8)
+      bomP3ComponentIterations = INT(componentIterations,8)
       failStage = BOM_STAGE_NONE
       p3FailPhase = BOM_P3_PHASE_NONE
       failCode = BOM_FAIL_NONE

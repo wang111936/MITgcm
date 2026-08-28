@@ -93,6 +93,7 @@ C     derived spring/component field before authoritative state is committed.
       INTEGER localErrCount,myThid
       INTEGER nOwner,owner,ip,bi,bj,failCode,failPhase
       INTEGER graphErrors,globalGraphErrors,componentFail
+      INTEGER componentIterations,maximumComponentSize
       INTEGER ownerStatus(bomMaxOwnerRecord)
       INTEGER ownerBi(bomMaxOwnerRecord)
       INTEGER ownerBj(bomMaxOwnerRecord)
@@ -160,6 +161,7 @@ C     derived spring/component field before authoritative state is committed.
         CALL BOM_COMPONENT_FETCH(
      I       nOwner,ownerId,BOM_STAGE_FINAL,1,1,
      O       calcRaftId,calcRaftSize,
+     O       componentIterations,maximumComponentSize,
      O       componentFail,componentValid,myThid)
         IF ( .NOT.componentValid ) localErrCount=localErrCount+1
       ELSEIF ( globalGraphErrors.NE.0 ) THEN

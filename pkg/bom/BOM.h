@@ -311,10 +311,13 @@ C     the ensemble validates the owner identity tuple before its one commit.
       INTEGER bomComponentStage
       INTEGER bomComponentEpoch
       INTEGER bomComponentSubstep
+      INTEGER bomComponentIterations
+      INTEGER bomComponentMaximumSize
       INTEGER bomComponentRaftSize(bomMaxPartTile*nSx*nSy)
       COMMON /BOM_COMPONENT_CANDIDATE_I/
      &       bomComponentNOwner, bomComponentStage,
      &       bomComponentEpoch, bomComponentSubstep,
+     &       bomComponentIterations, bomComponentMaximumSize,
      &       bomComponentRaftSize
 
       INTEGER*8 bomComponentOwnerId(bomMaxPartTile*nSx*nSy)
@@ -364,13 +367,17 @@ C--   Last successful spring-enabled nominal-substep work counters.
       INTEGER*8 bomP3GhostPacketsReceived
       INTEGER*8 bomP3GhostBytesSent
       INTEGER*8 bomP3GhostBytesReceived
+      INTEGER*8 bomP3MaximumComponentSize
+      INTEGER*8 bomP3ComponentIterations
       COMMON /BOM_P3_COUNTER_I8/
      &       bomP3OwnerRecords, bomP3GhostRecords,
      &       bomP3NonEmptyCells, bomP3CandidateComparisons,
      &       bomP3DirectedNeighbors, bomP3UndirectedEdges,
      &       bomP3MaximumNeighbors, bomP3RebuildCount,
      &       bomP3GhostPacketsSent, bomP3GhostPacketsReceived,
-     &       bomP3GhostBytesSent, bomP3GhostBytesReceived
+     &       bomP3GhostBytesSent, bomP3GhostBytesReceived,
+     &       bomP3MaximumComponentSize,
+     &       bomP3ComponentIterations
 
       _RL bomGhostX(bomMaxGhostTile,nSx,nSy)
       _RL bomGhostY(bomMaxGhostTile,nSx,nSy)
