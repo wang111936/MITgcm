@@ -4,36 +4,34 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-28 |
+| 最后更新 | 2026-08-29 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p3.4-components-schema3` |
-| 当前阶段 PR | PR #29 已以 merge commit 集成；P3.4 尚未推送或创建 PR |
+| 当前任务分支 | `MITGCM-BOM/p3.5-performance-closeout` |
+| 当前阶段 PR | PR #29 已以 merge commit 集成；P3.4/P3.5 尚未推送或创建 PR |
 | 当前阶段 | Phase 3：非线性弹簧和分布式邻居（进行中） |
-| 当前工作包 | P3.4 components/raft/schema 3 本地完成；42/42 + 34/34 + 18/18 + 34/34 + 390/390 |
-| 下一工作包 | P3.5 性能计数、fixed-density scaling、P3-G99 与 Phase 3 退出准备 |
+| 当前工作包 | P3.5 本地候选完成；直接 20/20，P3-G99 candidate 538/538 |
+| 下一工作包 | 批量推送/审查 P3.4、P3.5；顺序集成后 final P3-G99 和独立退出审计 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md)、P3.4 的
-   `phase03-components-schema3/README.md`、`TEST_RESULTS.md` 和
-   `phase03-springs-neighbors/P3.4_CLOSEOUT.md`；
-2. 核对当前分支 `MITGCM-BOM/p3.4-components-schema3`，功能头
-   `718bf351de9b896a4a496a0a9d582808006e2acd`、P3 前序验证头
-   `990feb6ee3367a7ff679860faa27654de144497a` 和 Phase-2 验证头
-   `eeb5f0705a0e6dcad62bd058809faf4b763232cd`；
-3. 核对 P3.4 42/42、P3.3 34/34、P3.2 18/18、P3.1 34/34 及
-   Phase 2 390/390 的仓库外证据根和五份 manifest 哈希；
-4. P3.4 关闭后唯一下一开发包是 P3.5：固定密度计数/性能、P3-G99、
-   完整回归和 Phase 3 退出审计；
-5. 未经用户明确授权不推送 P3.4 分支、不创建或合并 PR；
-6. 不创建 `MITGCM-BOM-v0.4`，该标签仍属于 P3.5 完整退出动作；
-7. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12
+1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md)、P3.5 的
+   `phase03-performance-closeout/README.md`、`TEST_RESULTS.md` 和
+   `phase03-springs-neighbors/P3.5_CLOSEOUT.md`；
+2. 核对当前分支 `MITGCM-BOM/p3.5-performance-closeout`和功能/候选证据头
+   `fc64c6e8c5671db2f1e123142b9b073da50d1e31`；
+3. 核对 P3.5 20/20 和 candidate P3-G99 538/538 的仓库外证据根、
+   row audit、all rows 与 manifest 哈希；
+4. 未经用户明确授权不推送 P3.4/P3.5 分支、不创建或合并 PR；
+5. 授权后先批量推送并审查，再以 merge commit 按 P3.4、P3.5 顺序集成；
+6. 最终 development 头必须重跑 final P3-G99 538/538 和单独退出审计；
+7. 不创建 `MITGCM-BOM-v0.4`，直到集成与退出条件全部满足且用户明确授权；
+8. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12
    为 Phase 3 本地基线。
 
 开始前执行：
@@ -52,7 +50,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
-| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0--P3.3 已集成；P3.4 本地完成并通过全部直接/前序门禁；P3.5 未开始 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
+| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0--P3.3 已集成；P3.4/P3.5 本地完成；候选 538/538；最终集成/退出待执行 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
 | Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
@@ -868,6 +866,33 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   `TEST_RESULTS.md`；
 - P3.4 与 P3.0 冻结范围一致并完成；分支仍未推送、未创建 PR、未合并，
   也未创建 v0.4 标签。唯一下一开发包是 P3.5。
+
+### 2026-08-29：P3.5 性能计数、fixed-density 与候选 P3-G99 完成
+
+- 在独立分支 `MITGCM-BOM/p3.5-performance-closeout` 完成 14 个
+  graph/ghost/communication/component 64-bit counters 和可移植精确全局
+  sum/max 归约；
+- P3-X02 性能算例发现 tile-routed ghost 重复进入 rank-wide graph；
+  生产路径已按 exact ID 校验去重并仅保留 remote ghosts，比较数/
+  owner 由 36 恢复到 9.0--9.7657；
+- 16/32/64 的 Cartesian/spherical fixed-density 矩阵在 serial/MPI2/MPI4
+  全部通过，候选比较上限 16、ghost boundary 上限与密集容量
+  失败关闭均满足；WSL timing 仅作信息记录；
+- P3.5 功能/候选头
+  `fc64c6e8c5671db2f1e123142b9b073da50d1e31` 通过直接 20/20；
+- candidate P3-G99 在同一干净精确头上通过
+  P3.5 20、P3.4 42、P3.3 34、P3.2 18、P3.1 34 和 Phase 2 390，
+  总计 538/538；独立审计与 manifest 自校验 PASS；
+- 候选 evidence root 为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/`
+  `p3-g99/p3-g99-candidate-fc64c6e8c-attempt01`；manifest SHA-256 为
+  `b15067cef6c168f5ccf2cee1eaebabf587579c079f9b24d461ce763ab7291689`；
+- rehearsal 发现的 P1.4 注释词面误报与两份验证头常量缺失均已
+  关闭；完整聚合中 P1.4 36/36、Phase 2 390/390 通过；
+- P3.5 与 P3.0 冻结计划一致，未触及 SKRIPS，也未声称 Phase 5
+  的 100k/256-rank 目标服务器性能；
+- P3.4/P3.5 都未推送或集成，未创建 v0.4。唯一下一任务是
+  经明确授权后批量推送/审查，随后顺序集成、final P3-G99 和独立
+  Phase 3 退出审计。
 
 ## 6. 每次会话结束时必须更新
 
