@@ -79,5 +79,6 @@ P3.4/P3.5 merge order, exact final P3-G99 evidence, known commit identities and
 the absence of `MITGCM-BOM-v0.4`. It must not be used to approve a candidate
 branch.
 
-See `TEST_RESULTS.md` and `../phase03-springs-neighbors/P3.5_CLOSEOUT.md` for
-the accepted local-candidate evidence and remaining integration boundary.
+See `TEST_RESULTS.md`, `../phase03-springs-neighbors/P3.5_CLOSEOUT.md` and
+`../phase03-springs-neighbors/PHASE3_EXIT_AUDIT.md` for candidate evidence,
+authoritative integrated evidence and the final release boundary.

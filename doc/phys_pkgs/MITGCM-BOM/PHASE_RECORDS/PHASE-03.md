@@ -8,9 +8,9 @@
 | 基线 tag object | `9360a06d0379051aced0601b25aa814dda6330fb` |
 | 基线提交 | `332a406e958e5005f60267c187fada1f74319fc3` |
 | 准入日期 | 2026-08-27；P3.3 集成、P3.4 完成日期 2026-08-28；P3.5 本地候选完成日期 2026-08-29 |
-| 状态 | **进行中：P3.0--P3.3 已集成；P3.4/P3.5 本地完成；最终集成与退出审计待执行** |
-| 当前工作包 | P3.5 性能计数、fixed-density scaling 与候选 P3-G99（完成） |
-| 当前分支 | `MITGCM-BOM/p3.5-performance-closeout` |
+| 状态 | **收尾中：P3.0--P3.5 已顺序集成；final P3-G99 538/538 与独立退出审计 PASS；退出记录、release-head 复验和 v0.4 待完成** |
+| 当前工作包 | Phase 3 独立退出记录与 `MITGCM-BOM-v0.4` 发布边界 |
+| 当前分支 | `MITGCM-BOM/phase3-exit-audit` |
 | 作者身份 | `WangYuLin <wang111936@outlook.com>` |
 
 ## 1. 准入裁决
@@ -64,8 +64,8 @@ P3.0 的权威文档位于
 | P3.1 参考与定律 | 参数/代码、canonical geometry、外部 KNN oracle、Hooke/eBOMB kernels | P3-C01/K01/D01、B07/B08、N03/N05 | 已由 PR #27 集成；P3.3 头复验 34/34 |
 | P3.2 邻居生产路径 | cell geometry/list、exact cutoff local graph、容量事务 | P3-N01/N02、L01/L02、N10 | 已由 PR #28 集成；P3.3 头复验 18/18 |
 | P3.3 分布式积分 | ghost、ensemble RK、全局 rollback、迁移扩展 | G01/G02、I01--I03、B09/B17、M01 | 已由 PR #29 以 merge commit 集成 |
-| P3.4 raft 与 schema 3 | FINAL components、raft diagnostics、sidecar/pickup | RF01/RF02、P01--P04、restart | 完成：42/42 + 34/34 + 18/18 + 34/34 + 390/390 |
-| P3.5 性能与收口 | 结构复杂度、固定密度基线、全回归、退出审计 | X01/X02、P3-G99、v0.4 决策 | 本地候选完成：20/20 + 538/538；集成后 final/audit 待执行 |
+| P3.4 raft 与 schema 3 | FINAL components、raft diagnostics、sidecar/pickup | RF01/RF02、P01--P04、restart | PR #30；merge `286d1ad59`；已顺序集成 |
+| P3.5 性能与收口 | 结构复杂度、固定密度基线、全回归、退出审计 | X01/X02、P3-G99、v0.4 决策 | PR #31；merge `e9eabb041`；final 538/538 与独立 audit PASS |
 
 工作包必须按 P3.0--P3.5 的依赖顺序关闭。允许在工作包内部拆分小增量，
 但每个包必须在精确提交上通过自身门禁和全部适用前序回归。
@@ -104,21 +104,21 @@ P3.0 的权威文档位于
 
 - [x] Phase 2 最终 390/390 和 `MITGCM-BOM-v0.3` 准入已核验；
 - [x] P3.0 设计、接口、需求和测试冻结通过独立审计；
-- [ ] P3.1--P3.5 全部完成并按顺序集成（全部本地完成；P3.4/P3.5 待集成）；
+- [x] P3.1--P3.5 全部完成并按顺序以 merge commit 集成；
 - [x] B07--B09、B17、负向、restart 和 1/2/4-rank 候选门禁通过；
 - [x] 跨 rank 内力与小规模 gather oracle 一致；
 - [x] 生产邻居调用图没有全局 all-particle 或无条件 O(N-squared) 路径；
 - [x] 固定密度 work/communication counter 门禁通过；
 - [x] Phase 0--Phase 2 候选精确头适用回归 390/390 通过；
-- [ ] 独立 Phase 3 退出审计无开放 finding；
+- [x] 独立 Phase 3 退出审计无开放 finding；
 - [ ] 仅在最终集成和退出审计后创建 annotated tag `MITGCM-BOM-v0.4`。
 
 ## 8. 唯一下一任务
 
-在用户明确授权后，批量推送 P3.4 与 P3.5 本地分支并建立可审查
-PR；不在本步合并或创建标签。后续必须以 merge commit 顺序集成
-P3.4、P3.5，在最终 development 头运行 final P3-G99 538/538，再单独
-运行 Phase 3 退出审计。`MITGCM-BOM-v0.4` 仍未授权。
+提交并以 merge commit 集成 Phase 3 独立退出记录；随后在新的
+`MITGCM-BOM/development` release head 重新运行 final P3-G99 538/538 和
+独立退出审计。两项都通过后，在该精确提交上创建并推送 annotated tag
+`MITGCM-BOM-v0.4`，核验 tag object 与 peeled commit 后才允许进入 Phase 4。
 
 ## 9. P3.0 完成记录
 
@@ -209,3 +209,33 @@ P3.4、P3.5，在最终 development 头运行 final P3-G99 538/538，再单独
   P3.4/P3.5 集成；演练 final P3-G99 538/538 及独立退出审计 PASS；
 - 演练只验证 final driver、merge topology 和 audit；权威 development 仍为
   `be87475712f0084c5acc1a342ebc97172ccdaf82`，没有推送、集成或创建标签。
+
+## 12. P3.4/P3.5 顺序集成与权威退出审计
+
+- P3.4 package head `38fd1824ff2ad69ce439f0c144cb3d5ab4d71ba3`
+  由 PR #30 以 merge commit
+  `286d1ad59dcc826839a3f53a08172c3bf7ea0a73` 集成；
+- P3.5 package head `4c669cf985599031696e2279126625a0fa150c74`
+  在 PR #30 合并后重定向到 `MITGCM-BOM/development`，由 PR #31 以
+  merge commit `e9eabb0418f0119c747bce3ec13092641f664bfc` 集成；
+- 两个 merge commit 均具有独立双亲、正确的 `Merge PR #...` 标题和允许的
+  GitHub merge 身份；P3.4 先于 P3.5，两个 package head 都是最终集成头祖先；
+- final P3-G99 在干净的 `e9eabb0418f0119c747bce3ec13092641f664bfc`
+  上通过 538/538，六组为 20+42+34+18+34+390；证据根为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/`
+  `p3-g99-final-e9eabb0418-attempt01`；
+- final row audit、aggregate manifest 与 independent audit log SHA-256 分别为
+  `14bb14aadf48382e169a325d0bd435f1a7f02f36eec0c8e9a3a36ca5ed8f98f2`、
+  `4d39d4a086cafdd009446da05fbf143b884a89e47c1952c829998aea5b73a252` 和
+  `dc189fb8a84c42963e1203ff9e1193e86a6861ae25fe04bae41855e2b8107213`；
+- 单独的 Phase 3 exit audit 在同一精确头 PASS，无开放 finding；证据根为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/phase3-exit-audit/`
+  `phase3-exit-e9eabb0418-attempt01`；其 manifest 与 independent audit log
+  SHA-256 分别为
+  `d6da6efc85c5339b2eeb7ec6d454637af8ad6effbbe3bbb44a960702e132e975` 和
+  `1857cc468f77f088cfb0b60e7a42697622d76e43ce1d58c9e8db662b084a6eae`；
+- 审计开始和记录形成时，本地与远端均不存在 `MITGCM-BOM-v0.4`；没有
+  修改或读取 SKRIPS 文件；目标服务器 100k/256-rank 验证仍由 Phase 5
+  负责，不是 Phase 3 的开放 finding；
+- 本记录 PR 合并后，标签前必须在新的 release head 重跑 final P3-G99 和
+  独立 exit audit；旧的 `e9eabb0418` 证据不替代该最终精确头复验。

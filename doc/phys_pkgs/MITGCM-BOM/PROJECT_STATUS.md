@@ -9,30 +9,29 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p3.5-performance-closeout` |
-| 当前阶段 PR | PR #29 已以 merge commit 集成；P3.4/P3.5 尚未推送或创建 PR |
-| 当前阶段 | Phase 3：非线性弹簧和分布式邻居（进行中） |
-| 当前工作包 | P3.5 本地候选完成；直接 20/20，P3-G99 candidate 538/538 |
-| 下一工作包 | 批量推送/审查 P3.4、P3.5；顺序集成后 final P3-G99 和独立退出审计 |
+| 当前任务分支 | `MITGCM-BOM/phase3-exit-audit` |
+| 当前阶段 PR | PR #30/#31 已顺序以 merge commit 集成；退出记录 PR 待创建 |
+| 当前阶段 | Phase 3：非线性弹簧和分布式邻居（退出记录与发布收尾） |
+| 当前工作包 | final P3-G99 538/538 与独立退出审计 PASS；记录集成和 release-head 复验待完成 |
+| 下一工作包 | 合并退出记录，复跑 final 538/538 与 exit audit，发布并核验 `MITGCM-BOM-v0.4` |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md)、P3.5 的
-   `phase03-performance-closeout/README.md`、`TEST_RESULTS.md` 和
-   `phase03-springs-neighbors/P3.5_CLOSEOUT.md`；
-2. 核对当前分支 `MITGCM-BOM/p3.5-performance-closeout`和功能/候选证据头
-   `fc64c6e8c5671db2f1e123142b9b073da50d1e31`；
-3. 核对 P3.5 20/20 和 candidate P3-G99 538/538 的仓库外证据根、
-   row audit、all rows 与 manifest 哈希；
-4. 未经用户明确授权不推送 P3.4/P3.5 分支、不创建或合并 PR；
-5. 授权后先批量推送并审查，再以 merge commit 按 P3.4、P3.5 顺序集成；
-6. 最终 development 头必须重跑 final P3-G99 538/538 和单独退出审计；
-7. 不创建 `MITGCM-BOM-v0.4`，直到集成与退出条件全部满足且用户明确授权；
-8. 保持 Ubuntu 22.04、GNU Fortran 11.4、OpenMPI 4.1.2 和 Julia 1.10.12
-   为 Phase 3 本地基线。
+1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md) 和
+   `phase03-springs-neighbors/PHASE3_EXIT_AUDIT.md`；
+2. 核对 PR #30/#31 merge commits `286d1ad59`、`e9eabb041` 和 package
+   heads `38fd1824f`、`4c669cf98` 的顺序祖先关系；
+3. 核对 `e9eabb0418` 上 final P3-G99 538/538 与独立 exit audit 的仓库外
+   evidence roots、row audit、manifest 和 independent-log 哈希；
+4. 推送并审查 `MITGCM-BOM/phase3-exit-audit`，以 merge commit 集成；
+5. 在退出记录 merge commit 上重跑 final P3-G99 538/538 与单独 exit audit；
+6. 两项精确头复验通过后创建并推送 annotated tag `MITGCM-BOM-v0.4`；
+7. 核验本地/远端 tag object、peeled commit、development head 和洁净状态；
+8. 仅在全部核验通过后进入 Phase 4；保持 Ubuntu 22.04、GNU Fortran
+   11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地准入基线。
 
 开始前执行：
 
@@ -898,6 +897,27 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   通过 final P3-G99 538/538 和独立 Phase 3 退出审计；
 - 演练没有修改权威 development (`be8747571`)、GitHub 或标签；真实
   集成后仍必须重跑同样的 final 538 和退出审计。
+
+### 2026-08-29：PR #30/#31 顺序集成与权威 Phase 3 退出审计
+
+- PR #30 由 P3.4 package head `38fd1824ff2ad69ce439f0c144cb3d5ab4d71ba3`
+  以 merge commit `286d1ad59dcc826839a3f53a08172c3bf7ea0a73` 集成；
+- PR #31 在 P3.4 合并后由临时 stacked base 重定向到 development，P3.5
+  package head `4c669cf985599031696e2279126625a0fa150c74` 以 merge commit
+  `e9eabb0418f0119c747bce3ec13092641f664bfc` 集成；
+- 两个 PR 均在精确 head、正确 base 和 reviewed diff 上转为 Ready，使用
+  merge method，提交标题与 GitHub merge 身份满足独立审计规则；
+- `e9eabb0418` 的 authoritative final P3-G99 通过 538/538，证据根为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/`
+  `p3-g99-final-e9eabb0418-attempt01`，aggregate manifest SHA-256 为
+  `4d39d4a086cafdd009446da05fbf143b884a89e47c1952c829998aea5b73a252`；
+- 单独退出审计 PASS，无开放 finding，准确识别 P3.4/P3.5 两个 merge；
+  证据根为 `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/`
+  `phase3-exit-audit/phase3-exit-e9eabb0418-attempt01`，manifest SHA-256 为
+  `d6da6efc85c5339b2eeb7ec6d454637af8ad6effbbe3bbb44a960702e132e975`；
+- 审计时本地/远端均无 `MITGCM-BOM-v0.4`，未涉及 SKRIPS；
+- 下一任务是合并退出记录 PR，在新的 release head 重跑 final 538/538 和
+  exit audit，随后创建、推送并 peel 核验 annotated v0.4 tag。
 
 ## 6. 每次会话结束时必须更新
 
