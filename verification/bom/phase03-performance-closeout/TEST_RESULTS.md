@@ -1,7 +1,7 @@
 # P3.5 performance and closure test results
 
-Decision: **LOCAL CANDIDATE PASS; P3.5 IMPLEMENTATION COMPLETE; INTEGRATED
-PHASE 3 EXIT PENDING**
+Decision: **P3.5 IMPLEMENTATION COMPLETE; ORDERED INTEGRATION PASS;
+AUTHORITATIVE FINAL P3-G99 AND INDEPENDENT EXIT AUDIT PASS**
 
 Functional and candidate-evidence head:
 `fc64c6e8c5671db2f1e123142b9b073da50d1e31`
@@ -41,6 +41,34 @@ Evidence hashes:
 Both native and aggregate manifests self-validated. The independent marker is
 `P3-G99 CANDIDATE AUDIT PASS`, with 538 rows and 120 Phase 3 changed files.
 The captured Git status is empty.
+
+## Authoritative integrated evidence
+
+P3.4 head `38fd1824ff2ad69ce439f0c144cb3d5ab4d71ba3` was integrated by
+PR #30 merge commit `286d1ad59dcc826839a3f53a08172c3bf7ea0a73`.
+P3.5 head `4c669cf985599031696e2279126625a0fa150c74` was then integrated by
+PR #31 merge commit `e9eabb0418f0119c747bce3ec13092641f664bfc`.
+
+The authoritative integrated development head `e9eabb0418f0119c747bce3ec13092641f664bfc`
+passed final-mode P3-G99 538/538 with the same frozen group counts:
+
+| Gate | Result | Evidence root |
+|---|---:|---|
+| P3-G99 final aggregate | 538/538 PASS | `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/p3-g99-final-e9eabb0418-attempt01` |
+| independent Phase 3 exit audit | PASS — no open finding | `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/phase3-exit-audit/phase3-exit-e9eabb0418-attempt01` |
+
+Authoritative hashes are:
+
+- final row audit: `14bb14aadf48382e169a325d0bd435f1a7f02f36eec0c8e9a3a36ca5ed8f98f2`;
+- final P3-G99 manifest: `4d39d4a086cafdd009446da05fbf143b884a89e47c1952c829998aea5b73a252`;
+- final independent P3-G99 audit log: `dc189fb8a84c42963e1203ff9e1193e86a6861ae25fe04bae41855e2b8107213`;
+- exit-audit manifest: `d6da6efc85c5339b2eeb7ec6d454637af8ad6effbbe3bbb44a960702e132e975`;
+- exit independent-audit log: `1857cc468f77f088cfb0b60e7a42697622d76e43ce1d58c9e8db662b084a6eae`.
+
+Both manifests self-validate, both captured source heads are exact, the final
+mode marker is present, the worktree is clean, and the exit audit reports the
+dedicated P3.4 merge before the dedicated P3.5 merge. The v0.4 tag was absent
+locally and remotely when these checks ran.
 
 ## Isolated final-mode rehearsal
 
@@ -115,7 +143,9 @@ MITGCM_BOM_TEST_ID=p3-g99-candidate-fc64c6e8c-attempt01 \
   verification/bom/phase03-integration-closure/run_p3_g99.sh
 ```
 
-This is candidate evidence on a branch stacked above the unmerged P3.4 head.
-It does not authorize a push, PR merge, Phase 3 exit audit or creation of the
-`MITGCM-BOM-v0.4` tag. Final P3-G99 must be rerun on the ordered merged
-development head.
+The command above reproduces the historical candidate result. The integrated
+result uses `MITGCM_BOM_INTEGRATION_MODE=final`, expected head
+`e9eabb0418f0119c747bce3ec13092641f664bfc` and package head
+`4c669cf985599031696e2279126625a0fa150c74`. After the exit-record PR is
+merged, final P3-G99 and the independent exit audit must be rerun on the new
+release head before the annotated v0.4 tag is created.
