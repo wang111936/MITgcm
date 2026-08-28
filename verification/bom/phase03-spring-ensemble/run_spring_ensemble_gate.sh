@@ -9,6 +9,7 @@ readonly EXP2_CODE="${REPO_ROOT}/verification/exp2/code"
 readonly EXPECTED_HEAD="${MITGCM_BOM_EXPECTED_HEAD:-$(git -C "${REPO_ROOT}" rev-parse HEAD)}"
 readonly BASELINE_REF="${MITGCM_BOM_BASELINE_REF:-MITGCM-BOM/development}"
 readonly REQUIRE_CLEAN="${MITGCM_BOM_REQUIRE_CLEAN:-yes}"
+readonly SCOPE_MODE="${MITGCM_BOM_SCOPE_MODE:-p33}"
 readonly SHORT_HEAD="${EXPECTED_HEAD:0:10}"
 readonly TEST_ID="${MITGCM_BOM_TEST_ID:-p33-spring-${SHORT_HEAD}-attempt01}"
 readonly BUILD_ROOT="${MITGCM_BOM_TEST_BUILD_ROOT:-/home/wyl/build/mitgcm-bom/phase03-spring-ensemble}/${TEST_ID}"
@@ -61,6 +62,19 @@ source_audit() {
     pkg/bom/bom_spring_rhs_stage.F
     pkg/bom/bom_spring_stage.F
   )
+  [[ "${SCOPE_MODE}" == p33 || "${SCOPE_MODE}" == p34 ]] \
+    || fail "unsupported MITGCM_BOM_SCOPE_MODE: ${SCOPE_MODE}"
+  if [[ "${SCOPE_MODE}" == p34 ]]; then
+    allowed_production+=(
+      pkg/bom/bom_component_exchange.F
+      pkg/bom/bom_components_final.F
+      pkg/bom/bom_p3_schema.F
+      pkg/bom/bom_p3_sidecar.F
+      pkg/bom/bom_read_pickup.F
+      pkg/bom/bom_write_pickup.F
+      pkg/bom/bom_write_trajectory.F
+    )
+  fi
   git -C "${REPO_ROOT}" diff --name-only \
     "${BASELINE_REF}...${EXPECTED_HEAD}" > "${RUN_ROOT}/changed-paths.txt"
   while IFS= read -r path; do
@@ -74,7 +88,7 @@ source_audit() {
     fi
   done < "${RUN_ROOT}/changed-paths.txt"
   record_pass p33-source-scope \
-    'P3.3 production/test/document paths only; no foreign project identity'
+    "P3.3 predecessor paths valid in ${SCOPE_MODE}; no foreign project identity"
 
   grep -Fq "bomSpringLaw.NE.'NONE'" \
     "${REPO_ROOT}/pkg/bom/bom_main.F" \
