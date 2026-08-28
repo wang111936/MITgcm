@@ -50,6 +50,9 @@ P33_ALLOWED_PATHS = {
     "pkg/bom/bom_spring_ensemble.F",
     "pkg/bom/bom_spring_rhs_stage.F",
     "pkg/bom/bom_spring_stage.F",
+    "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.small",
+    "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.tile-small",
+    "verification/bom/phase01-owner-migration/run_owner_gate.sh",
     "verification/bom/phase02-integration-closure/audit_closure.py",
 }
 
