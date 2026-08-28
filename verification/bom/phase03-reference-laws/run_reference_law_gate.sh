@@ -10,6 +10,7 @@ readonly EXP2_CODE="${REPO_ROOT}/verification/exp2/code"
 readonly EXPECTED_HEAD="${MITGCM_BOM_EXPECTED_HEAD:-$(git -C "${REPO_ROOT}" rev-parse HEAD)}"
 readonly BASELINE_REF="${MITGCM_BOM_BASELINE_REF:-MITGCM-BOM/development}"
 readonly REQUIRE_CLEAN="${MITGCM_BOM_REQUIRE_CLEAN:-yes}"
+readonly SCOPE_MODE="${MITGCM_BOM_SCOPE_MODE:-p31}"
 readonly SHORT_HEAD="${EXPECTED_HEAD:0:10}"
 readonly TEST_ID="${MITGCM_BOM_TEST_ID:-p31-reference-${SHORT_HEAD}-attempt01}"
 readonly BUILD_ROOT="${MITGCM_BOM_TEST_BUILD_ROOT:-/home/wyl/build/mitgcm-bom/phase03-reference-laws}/${TEST_ID}"
@@ -64,6 +65,16 @@ scope_audit() {
     pkg/bom/bom_spring_pair.F
     pkg/bom/bom_validate_spring_config.F
   )
+  [[ "${SCOPE_MODE}" == p31 || "${SCOPE_MODE}" == p32 ]] \
+    || fail "unsupported MITGCM_BOM_SCOPE_MODE: ${SCOPE_MODE}"
+  if [[ "${SCOPE_MODE}" == p32 ]]; then
+    allowed_production+=(
+      pkg/bom/BOM_GRAPH_SIZE.h
+      pkg/bom/bom_build_cell_list.F
+      pkg/bom/bom_build_neighbors.F
+      pkg/bom/bom_init_cell_geometry.F
+    )
+  fi
   git -C "${REPO_ROOT}" diff --name-only \
     "${BASELINE_REF}...${EXPECTED_HEAD}" > "${RUN_ROOT}/changed-paths.txt"
   while IFS= read -r path; do
@@ -72,7 +83,8 @@ scope_audit() {
       printf '%s\n' "${allowed_production[@]}" | grep -Fxq "${path}" \
         || fail "out-of-scope production path: ${path}"
     fi
-    if [[ "${path}" =~ (^|/)(cell|ghost|component|schema|rk) ]]; then
+    if [[ "${SCOPE_MODE}" == p31 \
+      && "${path}" =~ (^|/)(cell|ghost|component|schema|rk) ]]; then
       fail "P3.2+ path entered P3.1: ${path}"
     fi
     if [[ "${path,,}" =~ skrips|codex ]]; then
@@ -93,7 +105,7 @@ scope_audit() {
 }
 
 source_isolation_audit() {
-  local call_hits
+  local call_hits unexpected_hits
   if grep -RniE 'knn|delta[_ ]?l|all[-_ ]?pairs' \
     "${REPO_ROOT}/pkg/bom" --include='*.F' --include='*.h' \
     > "${RUN_ROOT}/forbidden-oracle-source.txt"; then
@@ -102,7 +114,14 @@ source_isolation_audit() {
   call_hits="$(grep -RniE \
     'CALL[[:space:]]+BOM_(PAIR_GEOMETRY|SPRING_PAIR|SPRING_ACCUMULATE)' \
     "${REPO_ROOT}/pkg/bom" --include='*.F' || true)"
-  [[ -z "${call_hits}" ]] || fail 'P3.1 spring kernels entered live production dispatch'
+  unexpected_hits="${call_hits}"
+  if [[ "${SCOPE_MODE}" == p32 ]]; then
+    unexpected_hits="$(printf '%s\n' "${call_hits}" | grep -vE \
+      '/pkg/bom/bom_build_neighbors.F:.*CALL[[:space:]]+BOM_PAIR_GEOMETRY' \
+      || true)"
+  fi
+  [[ -z "${unexpected_hits}" ]] \
+    || fail 'P3.1 spring kernels entered an unapproved production path'
   record_pass p3-reference-isolation \
     'KNN remains verification-only and live NONE dispatch has no law calls'
 }
