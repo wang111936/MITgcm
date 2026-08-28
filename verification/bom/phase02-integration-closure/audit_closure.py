@@ -55,6 +55,23 @@ P33_ALLOWED_PATHS = {
     "verification/bom/phase01-owner-migration/run_owner_gate.sh",
     "verification/bom/phase02-integration-closure/audit_closure.py",
 }
+P35_ALLOWED_PREFIXES = (
+    "pkg/bom/",
+    "verification/bom/phase03-components-schema3/",
+    "verification/bom/phase03-integration-closure/",
+    "verification/bom/phase03-performance-closeout/",
+    "verification/bom/phase03-springs-neighbors/",
+    "doc/phys_pkgs/MITGCM-BOM/",
+)
+P35_ALLOWED_PATHS = {
+    "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.small",
+    "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.tile-small",
+    "verification/bom/phase01-owner-migration/run_owner_gate.sh",
+    "verification/bom/phase02-integration-closure/audit_closure.py",
+    "verification/bom/phase03-cutoff-graph/run_cutoff_graph_gate.sh",
+    "verification/bom/phase03-reference-laws/run_reference_law_gate.sh",
+    "verification/bom/phase03-spring-ensemble/run_spring_ensemble_gate.sh",
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -76,6 +93,8 @@ def scope_rules() -> tuple[str, tuple[str, ...], set[str]]:
         return scope, P31_ALLOWED_PREFIXES, P31_ALLOWED_PATHS
     if scope == "P3.3":
         return scope, P33_ALLOWED_PREFIXES, P33_ALLOWED_PATHS
+    if scope == "P3.5":
+        return scope, P35_ALLOWED_PREFIXES, P35_ALLOWED_PATHS
     raise RuntimeError(f"unsupported closure scope: {scope}")
 
 
