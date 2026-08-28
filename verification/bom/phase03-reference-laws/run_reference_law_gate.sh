@@ -416,8 +416,13 @@ record_pass p3-s02-julia \
 log 'run accepted SI configurations'
 run_config_accept hooke BOM HOOKE CUTOFF \
   1000. 2.E-4 0. 0. 3000. 1.E-6 0.5 .FALSE.
-run_config_accept ebomb BOM EBOMB CUTOFF \
-  1000. 0. 3.E-4 200. 3600. 1.E-6 0.4 .TRUE.
+if [[ "${SCOPE_MODE}" == p33 ]]; then
+  run_config_accept ebomb BOM EBOMB CUTOFF \
+    1000. 0. 3.E-4 200. 3600. 1.E-6 0.4 .FALSE.
+else
+  run_config_accept ebomb BOM EBOMB CUTOFF \
+    1000. 0. 3.E-4 200. 3600. 1.E-6 0.4 .TRUE.
+fi
 
 log 'run fail-before-state configuration matrix'
 run_config_reject leew-spring LEEW HOOKE CUTOFF \
