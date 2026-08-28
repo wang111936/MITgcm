@@ -19,7 +19,12 @@ C !USES:
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
+#include "EESUPPORT.h"
 #include "PARAMS.h"
+#ifdef ALLOW_EXCH2
+# include "W2_EXCH2_SIZE.h"
+#endif
+#include "SET_GRID.h"
 #ifdef ALLOW_EXF
 # include "EXF_PARAM.h"
 #endif
@@ -41,6 +46,14 @@ C !LOCAL VARIABLES:
       LOGICAL stokesStartFinite, stokesPeriodFinite
       LOGICAL stokesRepFinite, stokesScaleFinite
       LOGICAL tauDaysInRange
+      INTEGER springFailCode
+      INTEGER i, j
+      _RL springHalfPeriod, springXPeriod
+      _RL springMinCos, springCosLat, springFactor
+      _RL springCandidate
+      _RL springYLo, springYHi
+      LOGICAL springPeriodicX, springConfigValid
+      LOGICAL springCalcValid, springTermValid
 
       _BEGIN_MASTER(myThid)
 
@@ -72,6 +85,26 @@ C !LOCAL VARIABLES:
      &     'bomStokesSource =', ' /* NONE, FILES, COUPLER */')
       CALL WRITE_0D_C( bomCurrentPolicy, -1, INDEX_NONE,
      &     'bomCurrentPolicy =', ' /* explicit current policy */')
+      CALL WRITE_0D_C( bomSpringLaw, -1, INDEX_NONE,
+     &     'bomSpringLaw =', ' /* NONE, HOOKE, or EBOMB */')
+      CALL WRITE_0D_C( bomNeighborPolicy, -1, INDEX_NONE,
+     &     'bomNeighborPolicy =', ' /* NONE or CUTOFF */')
+      CALL WRITE_0D_RL( bomSpringL, INDEX_NONE,
+     &     'bomSpringL =', ' /* global natural length [m] */')
+      CALL WRITE_0D_RL( bomHookeK, INDEX_NONE,
+     &     'bomHookeK =', ' /* Hooke stiffness [s^-2] */')
+      CALL WRITE_0D_RL( bomSpringA, INDEX_NONE,
+     &     'bomSpringA =', ' /* eBOMB amplitude [s^-2] */')
+      CALL WRITE_0D_RL( bomSpringDelta, INDEX_NONE,
+     &     'bomSpringDelta =', ' /* eBOMB smoothing [m] */')
+      CALL WRITE_0D_RL( bomNeighborCutoff, INDEX_NONE,
+     &     'bomNeighborCutoff =', ' /* exact cutoff [m] */')
+      CALL WRITE_0D_RL( bomPairDistanceMin, INDEX_NONE,
+     &     'bomPairDistanceMin =', ' /* pair reject [m] */')
+      CALL WRITE_0D_RL( bomSpringCFL, INDEX_NONE,
+     &     'bomSpringCFL =', ' /* spring stability bound */')
+      CALL WRITE_0D_L( bomRaftDiagnostics, INDEX_NONE,
+     &     'bomRaftDiagnostics =', ' /* FINAL components */')
 
       errCount = 0
       nSub = 0
@@ -94,6 +127,126 @@ C !LOCAL VARIABLES:
       stokesScaleFinite = IEEE_IS_FINITE(bomStokesInScale)
       tauDaysInRange = .FALSE.
       bomTau = 0. _d 0
+
+C--   Derive one global, rank-identical conservative physical half-period
+C     from the regular-grid origin and spacing arrays.  Using the latitude
+C     faces also rejects a positive cutoff when a periodic domain reaches a
+C     pole, where no globally unique positive physical X cutoff exists.
+      springPeriodicX = .NOT.notUsingXPeriodicity
+      springHalfPeriod = 0. _d 0
+      springXPeriod = 0. _d 0
+      springMinCos = oneRL
+      springCalcValid = .TRUE.
+      IF ( bomSpringLaw.NE.'NONE' .AND. springPeriodicX ) THEN
+        DO i=1,Nx
+          IF ( .NOT.IEEE_IS_FINITE(DBLE(delX(i))) ) THEN
+            springCalcValid = .FALSE.
+          ELSEIF ( DBLE(delX(i)).LE.0. _d 0 ) THEN
+            springCalcValid = .FALSE.
+          ELSEIF ( springCalcValid ) THEN
+            CALL BOM_SAFE_ADD_RL(
+     I           springXPeriod, DBLE(delX(i)),
+     O           springCandidate, springTermValid )
+            springCalcValid = springCalcValid.AND.springTermValid
+            IF ( springTermValid ) springXPeriod = springCandidate
+          ENDIF
+        ENDDO
+        IF ( springCalcValid .AND. usingCartesianGrid .AND.
+     &       .NOT.usingSphericalPolarGrid ) THEN
+          CALL BOM_SAFE_MULT_RL(
+     I         halfRL, springXPeriod,
+     O         springHalfPeriod, springCalcValid )
+        ELSEIF ( springCalcValid .AND.
+     &           usingSphericalPolarGrid .AND.
+     &           .NOT.usingCartesianGrid ) THEN
+          IF ( .NOT.IEEE_IS_FINITE(rSphere) ) THEN
+            springCalcValid = .FALSE.
+          ELSEIF ( rSphere.LE.0. _d 0 ) THEN
+            springCalcValid = .FALSE.
+          ENDIF
+          springYLo = ygOrigin
+          springYHi = ygOrigin
+          DO j=1,Ny
+            IF ( .NOT.IEEE_IS_FINITE(DBLE(delY(j))) ) THEN
+              springCalcValid = .FALSE.
+            ELSEIF ( DBLE(delY(j)).LE.0. _d 0 ) THEN
+              springCalcValid = .FALSE.
+            ELSEIF ( springCalcValid ) THEN
+              CALL BOM_SAFE_ADD_RL(
+     I             springYHi, DBLE(delY(j)),
+     O             springCandidate, springTermValid )
+              springCalcValid = springCalcValid.AND.springTermValid
+              IF ( springTermValid ) springYHi = springCandidate
+            ENDIF
+          ENDDO
+          IF ( springYLo.LT.-90. _d 0 .OR.
+     &         springYHi.GT.90. _d 0 .OR.
+     &         springYHi.LE.springYLo ) springCalcValid = .FALSE.
+          IF ( springCalcValid ) THEN
+            springCosLat = ABS(COS(deg2rad*springYLo))
+            springMinCos = ABS(COS(deg2rad*springYHi))
+            IF ( .NOT.IEEE_IS_FINITE(springCosLat) .OR.
+     &           .NOT.IEEE_IS_FINITE(springMinCos) ) THEN
+              springCalcValid = .FALSE.
+            ELSE
+              springMinCos = MIN(springMinCos,springCosLat)
+            ENDIF
+          ENDIF
+          IF ( springCalcValid ) THEN
+            CALL BOM_SAFE_MULT_RL(
+     I           rSphere, deg2rad,
+     O           springFactor, springTermValid )
+            springCalcValid = springCalcValid.AND.springTermValid
+          ENDIF
+          IF ( springCalcValid ) THEN
+            CALL BOM_SAFE_MULT_RL(
+     I           springFactor, springXPeriod,
+     O           springCandidate, springTermValid )
+            springCalcValid = springCalcValid.AND.springTermValid
+            IF ( springTermValid ) springFactor = springCandidate
+          ENDIF
+          IF ( springCalcValid ) THEN
+            CALL BOM_SAFE_MULT_RL(
+     I           springFactor, springMinCos,
+     O           springCandidate, springTermValid )
+            springCalcValid = springCalcValid.AND.springTermValid
+            IF ( springTermValid ) springFactor = springCandidate
+          ENDIF
+          IF ( springCalcValid ) THEN
+            CALL BOM_SAFE_MULT_RL(
+     I           halfRL, springFactor,
+     O           springHalfPeriod, springTermValid )
+            springCalcValid = springCalcValid.AND.springTermValid
+          ENDIF
+        ELSE
+          springCalcValid = .FALSE.
+        ENDIF
+        IF ( .NOT.springCalcValid ) springHalfPeriod = 0. _d 0
+      ENDIF
+
+      CALL BOM_VALIDATE_SPRING_CONFIG(
+     I     bomMode, bomSpringLaw, bomNeighborPolicy,
+     I     bomSpringL, bomHookeK, bomSpringA, bomSpringDelta,
+     I     bomNeighborCutoff, bomPairDistanceMin, bomSpringCFL,
+     I     bomRaftDiagnostics, springPeriodicX, springHalfPeriod,
+     O     springFailCode, springConfigValid )
+      IF ( .NOT.springConfigValid ) THEN
+        WRITE(msgBuf,'(3A,I4)')
+     &       'BOM_CHECK: invalid Phase-3 spring configuration law=',
+     &       bomSpringLaw, ' failCode=', springFailCode
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+
+C--   P3.1 supplies reference/configuration kernels only.  Refuse a live
+C     spring run until the bounded graph and ensemble transaction exist.
+      IF ( bomSpringLaw.NE.'NONE' .AND.
+     &     bomMaxParticles.GT.0 ) THEN
+        WRITE(msgBuf,'(A)')
+     &       'BOM_CHECK: spring particle integration starts in P3.3'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
 
       IF ( bomMode.NE.'LEEW' .AND.
      &     bomMode.NE.'BOM' ) THEN

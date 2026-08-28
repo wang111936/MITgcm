@@ -13,13 +13,16 @@ CEOP
       CHARACTER*8  bomWindSource
       CHARACTER*8  bomStokesSource
       CHARACTER*12 bomCurrentPolicy
+      CHARACTER*8  bomSpringLaw
+      CHARACTER*8  bomNeighborPolicy
       CHARACTER*(MAX_LEN_FNAM) bomInitialFile
       CHARACTER*(MAX_LEN_FNAM) bomUStokesFile
       CHARACTER*(MAX_LEN_FNAM) bomVStokesFile
       COMMON /BOM_PARM_C/
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomWindSource, bomStokesSource,
-     &       bomCurrentPolicy, bomInitialFile,
+     &       bomCurrentPolicy, bomSpringLaw,
+     &       bomNeighborPolicy, bomInitialFile,
      &       bomUStokesFile, bomVStokesFile
 
       _RL bomDeltaTTarget
@@ -37,12 +40,22 @@ CEOP
       _RL bomStokesPeriod
       _RL bomStokesRepCycle
       _RL bomStokesInScale
+      _RL bomSpringL
+      _RL bomHookeK
+      _RL bomSpringA
+      _RL bomSpringDelta
+      _RL bomNeighborCutoff
+      _RL bomPairDistanceMin
+      _RL bomSpringCFL
       COMMON /BOM_PARM_R/
      &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
      &       bomLeewayWindCoeff, bomWetWeightMin, bomAdvCFL,
      &       bomAlpha, bomTauDays, bomTau, bomR, bomSigma,
      &       bomStokesStartTime, bomStokesPeriod,
-     &       bomStokesRepCycle, bomStokesInScale
+     &       bomStokesRepCycle, bomStokesInScale,
+     &       bomSpringL, bomHookeK, bomSpringA,
+     &       bomSpringDelta, bomNeighborCutoff,
+     &       bomPairDistanceMin, bomSpringCFL
 
       INTEGER bomSeed
       INTEGER bomMaxParticles
@@ -56,7 +69,9 @@ CEOP
      &       bomStokesFilePrec
 
       LOGICAL bomCheckEverySubstep
-      COMMON /BOM_PARM_L/ bomCheckEverySubstep
+      LOGICAL bomRaftDiagnostics
+      COMMON /BOM_PARM_L/
+     &       bomCheckEverySubstep, bomRaftDiagnostics
 
 C--   P1.5 trajectory schedule.  The next time is advanced only after a
 C     complete post-migration output event.
@@ -101,6 +116,16 @@ C     failure in one trial is retained; numeric codes must not be reused.
       INTEGER BOM_FAIL_EQUATION
       INTEGER BOM_FAIL_STOKES_DUPLICATE
       INTEGER BOM_FAIL_PICKUP_SCHEMA
+      INTEGER BOM_FAIL_NEIGHBOR_CONFIG
+      INTEGER BOM_FAIL_PAIR_GEOMETRY
+      INTEGER BOM_FAIL_CELL_CAPACITY
+      INTEGER BOM_FAIL_GHOST_CAPACITY
+      INTEGER BOM_FAIL_NEIGHBOR_CAPACITY
+      INTEGER BOM_FAIL_GHOST_PACKET
+      INTEGER BOM_FAIL_SPRING_LAW
+      INTEGER BOM_FAIL_SPRING_CFL
+      INTEGER BOM_FAIL_COMPONENT
+      INTEGER BOM_FAIL_PICKUP_SCHEMA3
       PARAMETER ( BOM_FAIL_NONE      = 0 )
       PARAMETER ( BOM_FAIL_MAP       = 1 )
       PARAMETER ( BOM_FAIL_OWNER     = 2 )
@@ -117,6 +142,16 @@ C     failure in one trial is retained; numeric codes must not be reused.
       PARAMETER ( BOM_FAIL_EQUATION         = 13 )
       PARAMETER ( BOM_FAIL_STOKES_DUPLICATE = 14 )
       PARAMETER ( BOM_FAIL_PICKUP_SCHEMA    = 15 )
+      PARAMETER ( BOM_FAIL_NEIGHBOR_CONFIG  = 16 )
+      PARAMETER ( BOM_FAIL_PAIR_GEOMETRY    = 17 )
+      PARAMETER ( BOM_FAIL_CELL_CAPACITY    = 18 )
+      PARAMETER ( BOM_FAIL_GHOST_CAPACITY   = 19 )
+      PARAMETER ( BOM_FAIL_NEIGHBOR_CAPACITY= 20 )
+      PARAMETER ( BOM_FAIL_GHOST_PACKET     = 21 )
+      PARAMETER ( BOM_FAIL_SPRING_LAW       = 22 )
+      PARAMETER ( BOM_FAIL_SPRING_CFL       = 23 )
+      PARAMETER ( BOM_FAIL_COMPONENT        = 24 )
+      PARAMETER ( BOM_FAIL_PICKUP_SCHEMA3   = 25 )
 
 C--   Stable Runge--Kutta diagnostic stage values.  FINAL is the
 C     accepted-position refresh, not an additional integration stage.
@@ -138,6 +173,29 @@ C     accepted-position refresh, not an additional integration stage.
       PARAMETER ( BOM_STAGE_FIELD_OLD  = 6 )
       PARAMETER ( BOM_STAGE_FIELD_NEW  = 7 )
       PARAMETER ( BOM_STAGE_DERIVATIVE = 8 )
+
+C--   Stable Phase-3 operation-phase values.  These refine failStage without
+C     changing the accepted Runge--Kutta stage numbering above.
+      INTEGER BOM_P3_PHASE_NONE
+      INTEGER BOM_P3_PHASE_POSITION
+      INTEGER BOM_P3_PHASE_GHOST
+      INTEGER BOM_P3_PHASE_CELL
+      INTEGER BOM_P3_PHASE_NEIGHBOR
+      INTEGER BOM_P3_PHASE_SPRING
+      INTEGER BOM_P3_PHASE_BASE_RHS
+      INTEGER BOM_P3_PHASE_NATIVE_RATE
+      INTEGER BOM_P3_PHASE_COMPONENT
+      INTEGER BOM_P3_PHASE_SCHEMA3
+      PARAMETER ( BOM_P3_PHASE_NONE        = 0 )
+      PARAMETER ( BOM_P3_PHASE_POSITION    = 1 )
+      PARAMETER ( BOM_P3_PHASE_GHOST       = 2 )
+      PARAMETER ( BOM_P3_PHASE_CELL        = 3 )
+      PARAMETER ( BOM_P3_PHASE_NEIGHBOR    = 4 )
+      PARAMETER ( BOM_P3_PHASE_SPRING      = 5 )
+      PARAMETER ( BOM_P3_PHASE_BASE_RHS    = 6 )
+      PARAMETER ( BOM_P3_PHASE_NATIVE_RATE = 7 )
+      PARAMETER ( BOM_P3_PHASE_COMPONENT   = 8 )
+      PARAMETER ( BOM_P3_PHASE_SCHEMA3     = 9 )
 
 C--   Stable stateless Phase-2 RHS diagnostic-vector indices.  Every entry
 C     is an SI physical component; native coordinate-rate conversion remains

@@ -1,24 +1,38 @@
 #!/usr/bin/env python3
-"""Independent structural and evidence audit for the P2.5 functional head."""
+"""Independent structural and evidence audit for Phase 2 regressions."""
 
 from __future__ import annotations
 
 import argparse
 import csv
+import os
 import subprocess
 from pathlib import Path
 
 
-ALLOWED_PREFIXES = (
+P2_ALLOWED_PREFIXES = (
     "pkg/bom/",
     "verification/bom/phase02-integration-closure/",
     "verification/bom/phase02-slow-manifold/",
 )
-ALLOWED_PATHS = {
+P2_ALLOWED_PATHS = {
     "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.small",
     "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.tile-small",
     "verification/bom/phase02-b16/README.md",
     "verification/bom/phase02-stage-rk/README.md",
+}
+P31_ALLOWED_PREFIXES = (
+    "verification/bom/phase03-reference-laws/",
+    "verification/bom/phase03-springs-neighbors/reference/",
+)
+P31_ALLOWED_PATHS = {
+    "pkg/bom/BOM.h",
+    "pkg/bom/bom_check.F",
+    "pkg/bom/bom_pair_geometry.F",
+    "pkg/bom/bom_readparms.F",
+    "pkg/bom/bom_spring_pair.F",
+    "pkg/bom/bom_validate_spring_config.F",
+    "verification/bom/phase02-integration-closure/audit_closure.py",
 }
 
 
@@ -33,6 +47,15 @@ def git(repo: Path, *args: str) -> str:
     ).strip()
 
 
+def scope_rules() -> tuple[str, tuple[str, ...], set[str]]:
+    scope = os.environ.get("MITGCM_BOM_CLOSURE_SCOPE", "P2.5")
+    if scope == "P2.5":
+        return scope, P2_ALLOWED_PREFIXES, P2_ALLOWED_PATHS
+    if scope == "P3.1":
+        return scope, P31_ALLOWED_PREFIXES, P31_ALLOWED_PATHS
+    raise RuntimeError(f"unsupported closure scope: {scope}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", type=Path)
@@ -41,6 +64,7 @@ def main() -> None:
     parser.add_argument("expected_total", type=int)
     args = parser.parse_args()
 
+    scope, allowed_prefixes, allowed_paths = scope_rules()
     head = git(args.repo, "rev-parse", "HEAD")
     require(head == args.expected_head, f"head mismatch: {head}")
     require(git(args.repo, "status", "--porcelain=v1") == "",
@@ -52,8 +76,8 @@ def main() -> None:
         lowered = path.lower()
         require("skrips" not in lowered and "codex" not in lowered,
                 f"forbidden project term in path: {path}")
-        require(path in ALLOWED_PATHS or path.startswith(ALLOWED_PREFIXES),
-                f"path outside P2.5 scope: {path}")
+        require(path in allowed_paths or path.startswith(allowed_prefixes),
+                f"path outside {scope} scope: {path}")
 
     size_text = (args.repo / "pkg/bom/BOM_SIZE.h").read_text(encoding="ascii")
     require("bomOutputFields2  = 48" in size_text, "trajectory width is not 48")
@@ -103,7 +127,7 @@ def main() -> None:
                     f"summary source head mismatch: {source}")
 
     print(
-        f"P2.5 INDEPENDENT AUDIT PASS: head={head} "
+        f"P2.5 INDEPENDENT AUDIT PASS: scope={scope} head={head} "
         f"files={len(changed)} rows={args.expected_total}"
     )
 
