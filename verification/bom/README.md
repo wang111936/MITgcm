@@ -74,9 +74,13 @@ external environmental datasets remain outside the repository.
 - `phase02-slow-manifold/PHASE2_INTEGRATION_RESULTS.md` and
   `PHASE2_EXIT_AUDIT.md`: ordered PR #20--#24 integration evidence, release
   boundary and the independent Phase 2 exit decision;
-- `phase03-springs-neighbors/`: P3.0 source audit, requirements, frozen
-  KNN/cutoff/cell-list/ghost/spring/raft/schema interfaces, B07--B09/B17,
-  negative/decomposition/performance test plan, and design-scope audit;
+- `phase03-springs-neighbors/`: P3.0 source audit and frozen contracts plus
+  the P3.1 exact-head closeout, requirements state, B07--B09/B17,
+  negative/decomposition/performance test plan, and staged progress ledger;
+- `phase03-reference-laws/`: P3.1 parameter/code schema, canonical pair
+  geometry, stateless Hooke/eBOMB kernels, verification-only KNN/locked Julia
+  references, serial/MPI4 direct gate, and the P3.1-scoped 390-row predecessor
+  regression entry point;
 - `reference/phase02/`: checksummed B16 inputs, fixed-step golden files, and
   a separately marked non-gating adaptive Tsit5 context trajectory;
 - later phase directories: analytical, golden-trajectory, restart, MPI
