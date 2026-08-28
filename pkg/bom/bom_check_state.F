@@ -164,7 +164,9 @@ CEOP
      &           IEEE_IS_FINITE(bomWindEast(ip,bi,bj)) .AND.
      &           IEEE_IS_FINITE(bomWindNorth(ip,bi,bj)) .AND.
      &           IEEE_IS_FINITE(bomDriftEast(ip,bi,bj)) .AND.
-     &           IEEE_IS_FINITE(bomDriftNorth(ip,bi,bj))
+     &           IEEE_IS_FINITE(bomDriftNorth(ip,bi,bj)) .AND.
+     &           IEEE_IS_FINITE(bomSpringEast(ip,bi,bj)) .AND.
+     &           IEEE_IS_FINITE(bomSpringNorth(ip,bi,bj))
             DO iDiag=1,BOM_RHS_NDIAG
               fieldsFinite = fieldsFinite .AND.
      &             IEEE_IS_FINITE(bomRhsDiag(iDiag,ip,bi,bj))
@@ -220,6 +222,27 @@ CEOP
               ENDIF
             ENDIF
 
+C--         Phase-3 owner fields are bounded even before P3.4 activates
+C           nonzero raft labels.  The NONE path must remain all-zero.
+            IF ( bomNeighborCount(ip,bi,bj).LT.0 .OR.
+     &           bomNeighborCount(ip,bi,bj).GT.bomMaxNeighbor .OR.
+     &           bomRaftId(ip,bi,bj).LT.0_8 .OR.
+     &           bomRaftSize(ip,bi,bj).LT.0 .OR.
+     &           (bomRaftId(ip,bi,bj).EQ.0_8 .AND.
+     &            bomRaftSize(ip,bi,bj).NE.0) .OR.
+     &           (bomRaftId(ip,bi,bj).GT.0_8 .AND.
+     &            bomRaftSize(ip,bi,bj).LT.1) ) THEN
+              localErrCount = localErrCount+1
+            ENDIF
+            IF ( bomSpringLaw.EQ.'NONE' ) THEN
+              IF ( bomSpringEast(ip,bi,bj).NE.0. _d 0 .OR.
+     &             bomSpringNorth(ip,bi,bj).NE.0. _d 0 .OR.
+     &             bomNeighborCount(ip,bi,bj).NE.0 .OR.
+     &             bomRaftId(ip,bi,bj).NE.0_8 .OR.
+     &             bomRaftSize(ip,bi,bj).NE.0 )
+     &             localErrCount = localErrCount+1
+            ENDIF
+
 C--         Mapping ownership and the wet pair must still be valid.
             xMap = bomX(ip,bi,bj)
             ix = -1. _d 0
@@ -264,7 +287,12 @@ C--         Mapping ownership and the wet pair must still be valid.
           ELSE
 C--         Compact tails retain the authoritative UNUSED/id=0 rule.
             IF ( bomStatus(ip,bi,bj).NE.BOM_UNUSED .OR.
-     &           bomId(ip,bi,bj).NE.0 ) THEN
+     &           bomId(ip,bi,bj).NE.0 .OR.
+     &           bomSpringEast(ip,bi,bj).NE.0. _d 0 .OR.
+     &           bomSpringNorth(ip,bi,bj).NE.0. _d 0 .OR.
+     &           bomNeighborCount(ip,bi,bj).NE.0 .OR.
+     &           bomRaftId(ip,bi,bj).NE.0_8 .OR.
+     &           bomRaftSize(ip,bi,bj).NE.0 ) THEN
               IF ( localErrCount.LT.8 ) THEN
                 WRITE(msgBuf,'(A,A,A,I6,A,3I5,A,I20,A,I5)')
      &               'BOM_CHECK_STATE: context=', checkContext,

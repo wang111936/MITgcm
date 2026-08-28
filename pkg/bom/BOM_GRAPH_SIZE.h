@@ -13,11 +13,14 @@ CEOP
       INTEGER bomMaxCellRecord
       INTEGER bomMaxCell
       INTEGER bomMaxCandidate
+      INTEGER bomMaxGhostExchange
       PARAMETER (
      &  bomMaxOwnerRecord = bomMaxPartTile*nSx*nSy,
      &  bomMaxCellRecord  =
      &       (bomMaxPartTile+bomMaxGhostTile)*nSx*nSy,
      &  bomMaxCell        = Nx*Ny,
-     &  bomMaxCandidate   = bomMaxPartTile )
+     &  bomMaxCandidate   = bomMaxCellRecord,
+     &  bomMaxGhostExchange =
+     &       bomMaxOwnerRecord*MAX(1,nPx*nPy-1) )
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|

@@ -65,14 +65,28 @@ scope_audit() {
     pkg/bom/bom_spring_pair.F
     pkg/bom/bom_validate_spring_config.F
   )
-  [[ "${SCOPE_MODE}" == p31 || "${SCOPE_MODE}" == p32 ]] \
+  [[ "${SCOPE_MODE}" == p31 || "${SCOPE_MODE}" == p32 \
+    || "${SCOPE_MODE}" == p33 ]] \
     || fail "unsupported MITGCM_BOM_SCOPE_MODE: ${SCOPE_MODE}"
-  if [[ "${SCOPE_MODE}" == p32 ]]; then
+  if [[ "${SCOPE_MODE}" == p32 || "${SCOPE_MODE}" == p33 ]]; then
     allowed_production+=(
       pkg/bom/BOM_GRAPH_SIZE.h
       pkg/bom/bom_build_cell_list.F
       pkg/bom/bom_build_neighbors.F
       pkg/bom/bom_init_cell_geometry.F
+    )
+  fi
+  if [[ "${SCOPE_MODE}" == p33 ]]; then
+    allowed_production+=(
+      pkg/bom/BOM_SIZE.h
+      pkg/bom/bom_check_state.F
+      pkg/bom/bom_ghost_exchange.F
+      pkg/bom/bom_init_state.F
+      pkg/bom/bom_main.F
+      pkg/bom/bom_particle_exchange.F
+      pkg/bom/bom_spring_ensemble.F
+      pkg/bom/bom_spring_rhs_stage.F
+      pkg/bom/bom_spring_stage.F
     )
   fi
   git -C "${REPO_ROOT}" diff --name-only \
@@ -97,11 +111,20 @@ scope_audit() {
       || fail "unexpected author/committer identity: ${identity}"
   done < <(git -C "${REPO_ROOT}" log --format='%an <%ae>|%cn <%ce>' \
     "${BASELINE_REF}..${EXPECTED_HEAD}")
-  git -C "${REPO_ROOT}" diff --quiet \
-    "${BASELINE_REF}...${EXPECTED_HEAD}" -- pkg/bom/bom_main.F \
-    || fail 'NONE production dispatcher changed in P3.1'
+  if [[ "${SCOPE_MODE}" == p33 ]]; then
+    grep -q 'CALL BOM_RK2_SPRING_ENSEMBLE' \
+      "${REPO_ROOT}/pkg/bom/bom_main.F" \
+      || fail 'P3.3 RK2 ensemble dispatcher is missing'
+    grep -q 'CALL BOM_RK4_SPRING_ENSEMBLE' \
+      "${REPO_ROOT}/pkg/bom/bom_main.F" \
+      || fail 'P3.3 RK4 ensemble dispatcher is missing'
+  else
+    git -C "${REPO_ROOT}" diff --quiet \
+      "${BASELINE_REF}...${EXPECTED_HEAD}" -- pkg/bom/bom_main.F \
+      || fail 'NONE production dispatcher changed before P3.3'
+  fi
   record_pass p3-z01-scope \
-    'P3.1 paths bounded; v0.3 dispatcher unchanged; identities exact'
+    "P3.1 predecessor paths valid in ${SCOPE_MODE}; identities exact"
 }
 
 source_isolation_audit() {
@@ -119,11 +142,15 @@ source_isolation_audit() {
     unexpected_hits="$(printf '%s\n' "${call_hits}" | grep -vE \
       '/pkg/bom/bom_build_neighbors.F:.*CALL[[:space:]]+BOM_PAIR_GEOMETRY' \
       || true)"
+  elif [[ "${SCOPE_MODE}" == p33 ]]; then
+    unexpected_hits="$(printf '%s\n' "${call_hits}" | grep -vE \
+      '/pkg/bom/bom_build_neighbors.F:.*CALL[[:space:]]+BOM_PAIR_GEOMETRY|/pkg/bom/bom_spring_stage.F:.*CALL[[:space:]]+BOM_(PAIR_GEOMETRY|SPRING_PAIR|SPRING_ACCUMULATE)' \
+      || true)"
   fi
   [[ -z "${unexpected_hits}" ]] \
     || fail 'P3.1 spring kernels entered an unapproved production path'
   record_pass p3-reference-isolation \
-    'KNN remains verification-only and live NONE dispatch has no law calls'
+    "KNN verification-only; law call sites valid in ${SCOPE_MODE}"
 }
 
 build_case() {
@@ -389,8 +416,13 @@ record_pass p3-s02-julia \
 log 'run accepted SI configurations'
 run_config_accept hooke BOM HOOKE CUTOFF \
   1000. 2.E-4 0. 0. 3000. 1.E-6 0.5 .FALSE.
-run_config_accept ebomb BOM EBOMB CUTOFF \
-  1000. 0. 3.E-4 200. 3600. 1.E-6 0.4 .TRUE.
+if [[ "${SCOPE_MODE}" == p33 ]]; then
+  run_config_accept ebomb BOM EBOMB CUTOFF \
+    1000. 0. 3.E-4 200. 3600. 1.E-6 0.4 .FALSE.
+else
+  run_config_accept ebomb BOM EBOMB CUTOFF \
+    1000. 0. 3.E-4 200. 3600. 1.E-6 0.4 .TRUE.
+fi
 
 log 'run fail-before-state configuration matrix'
 run_config_reject leew-spring LEEW HOOKE CUTOFF \

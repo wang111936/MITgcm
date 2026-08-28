@@ -8,7 +8,7 @@ C !INTERFACE:
       SUBROUTINE BOM_INIT_STATE( myThid )
 
 C !DESCRIPTION:
-C     Reset owner slots and environmental fields deterministically.
+C     Reset owner, Phase-3 ghost, and environmental state deterministically.
 C     Valid records later occupy 1:bomNPartTile on each tile.
 
 C !USES:
@@ -24,7 +24,8 @@ CEOP
 
 #ifdef ALLOW_BOM
 C !LOCAL VARIABLES:
-      INTEGER bi, bj, i, j, ip, iEnd, iSource, iComponent, iDiag
+      INTEGER bi, bj, i, j, ip, ig, iEnd, iSource, iComponent
+      INTEGER iDiag
 
       _BEGIN_MASTER(myThid)
       bomFieldsReady = .FALSE.
@@ -38,6 +39,25 @@ C !LOCAL VARIABLES:
       bomEnvReady = .FALSE.
       bomGradReady = .FALSE.
       bomMetricReady = .FALSE.
+      bomGhostStage = BOM_STAGE_NONE
+      bomGhostEpoch = 0
+      bomGhostSubstep = 0
+      bomGhostRecordsSent = 0_8
+      bomGhostRecordsReceived = 0_8
+      bomGhostBytesSent = 0_8
+      bomGhostBytesReceived = 0_8
+      bomP3OwnerRecords = 0_8
+      bomP3GhostRecords = 0_8
+      bomP3NonEmptyCells = 0_8
+      bomP3CandidateComparisons = 0_8
+      bomP3DirectedNeighbors = 0_8
+      bomP3UndirectedEdges = 0_8
+      bomP3MaximumNeighbors = 0_8
+      bomP3RebuildCount = 0_8
+      bomP3GhostPacketsSent = 0_8
+      bomP3GhostPacketsReceived = 0_8
+      bomP3GhostBytesSent = 0_8
+      bomP3GhostBytesReceived = 0_8
       DO iEnd=1,BOM_ENV_NEND
         bomEnvTime(iEnd) = 0. _d 0
         bomEnvIter(iEnd) = 0
@@ -52,6 +72,17 @@ C !LOCAL VARIABLES:
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = 0
+        bomNGhostTile(bi,bj) = 0
+        bomGhostReady(bi,bj) = .FALSE.
+        DO ig=1,bomMaxGhostTile
+          bomGhostId(ig,bi,bj) = 0_8
+          bomGhostStatus(ig,bi,bj) = BOM_UNUSED
+          bomGhostSourceRank(ig,bi,bj) = -1
+          bomGhostSourceBi(ig,bi,bj) = 0
+          bomGhostSourceBj(ig,bi,bj) = 0
+          bomGhostX(ig,bi,bj) = 0. _d 0
+          bomGhostY(ig,bi,bj) = 0. _d 0
+        ENDDO
         DO j=1-OLy,sNy+OLy
          DO i=1-OLx,sNx+OLx
           bomGridUWork(i,j,1,bi,bj) = 0. _d 0
@@ -141,6 +172,11 @@ C !LOCAL VARIABLES:
           bomWindNorth(ip,bi,bj)   = 0. _d 0
           bomDriftEast(ip,bi,bj)   = 0. _d 0
           bomDriftNorth(ip,bi,bj)  = 0. _d 0
+          bomSpringEast(ip,bi,bj)  = 0. _d 0
+          bomSpringNorth(ip,bi,bj) = 0. _d 0
+          bomNeighborCount(ip,bi,bj) = 0
+          bomRaftId(ip,bi,bj) = 0_8
+          bomRaftSize(ip,bi,bj) = 0
           DO iDiag=1,BOM_RHS_NDIAG
             bomRhsDiag(iDiag,ip,bi,bj) = 0. _d 0
           ENDDO

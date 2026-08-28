@@ -35,7 +35,7 @@ C     !LOCAL VARIABLES:
       INTEGER bi, bj, ip, iSub, nSub, iDiag
       INTEGER errCount, globalErrCount
       INTEGER statusCandidate
-      INTEGER failStage, failCode, releaseFailCode
+      INTEGER failStage, failCode, releaseFailCode, p3FailPhase
       INTEGER rhsFailCode
       _RL stepStart, dtSub, tSub0, tSub1, dtActive, stageTime0
       _RL x0, y0, xCandidate, yCandidate, ageCandidate
@@ -45,7 +45,7 @@ C     !LOCAL VARIABLES:
       _RL rhsDiagCandidate(BOM_RHS_NDIAG)
       LOGICAL setupValid, boundsValid, releaseValid
       LOGICAL doAdvance, doRefresh, trialValid
-      LOGICAL rhsOwner, rhsValid
+      LOGICAL rhsOwner, rhsValid, ensembleValid
 
 C--   Phase-2 environment publication is independent of particle count.
       IF ( bomMode.EQ.'BOM' ) THEN
@@ -124,6 +124,42 @@ C--   Reject damaged compact state before the first transactional write.
           STOP 'ABNORMAL END: S/R BOM_MAIN'
         ENDIF
 
+        IF ( bomMode.EQ.'BOM' .AND.
+     &       bomSpringLaw.NE.'NONE' ) THEN
+C--       The enabled path is one all-owner transaction.  NONE enters the
+C         accepted per-particle v0.3 path below without a P3 call.
+          p3FailPhase = BOM_P3_PHASE_NONE
+          IF ( bomIntegrator.EQ.'RK2' ) THEN
+            CALL BOM_RK2_SPRING_ENSEMBLE(
+     I           tSub0,tSub1,myIter,iSub+1,
+     O           failStage,p3FailPhase,failCode,ensembleValid,
+     I           myThid)
+          ELSEIF ( bomIntegrator.EQ.'RK4' ) THEN
+            CALL BOM_RK4_SPRING_ENSEMBLE(
+     I           tSub0,tSub1,myIter,iSub+1,
+     O           failStage,p3FailPhase,failCode,ensembleValid,
+     I           myThid)
+          ELSE
+            failStage = BOM_STAGE_NONE
+            p3FailPhase = BOM_P3_PHASE_POSITION
+            failCode = BOM_FAIL_STATE
+            ensembleValid = .FALSE.
+          ENDIF
+          IF ( .NOT.ensembleValid ) THEN
+            _BEGIN_MASTER(myThid)
+            IF ( myProcId.EQ.0 ) THEN
+              WRITE(msgBuf,1001)
+     &             'BOM_MAIN: spring ensemble failure time=',myTime,
+     &             ' iter/sub=',myIter,iSub+1,
+     &             ' stage/phase/code=',
+     &             failStage,p3FailPhase,failCode
+              CALL PRINT_ERROR(msgBuf,myThid)
+            ENDIF
+            _END_MASTER(myThid)
+            CALL ALL_PROC_DIE(0)
+            STOP 'ABNORMAL END: S/R BOM_MAIN'
+          ENDIF
+        ELSE
         errCount = 0
         DO bj=myByLo(myThid),myByHi(myThid)
          DO bi=myBxLo(myThid),myBxHi(myThid)
@@ -318,6 +354,7 @@ C--             Publish all authoritative candidates exactly once.
           CALL ALL_PROC_DIE( 0 )
           STOP 'ABNORMAL END: S/R BOM_MAIN'
         ENDIF
+        ENDIF
 
 C--     No non-owner candidate may enter a state budget or next substep.
         CALL BOM_PARTICLE_EXCHANGE(
@@ -336,6 +373,7 @@ C     checked, the last call above already is this exact budget.
      I       myTime, myIter, 'STEP-END', myThid )
       ENDIF
  1000 FORMAT(A,1PE24.16,A,2I12,A,4I6,A,I20,A,2I6)
+ 1001 FORMAT(A,1PE24.16,A,2I12,A,3I6)
 #endif /* ALLOW_BOM */
 
       RETURN

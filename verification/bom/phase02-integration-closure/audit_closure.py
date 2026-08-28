@@ -34,6 +34,27 @@ P31_ALLOWED_PATHS = {
     "pkg/bom/bom_validate_spring_config.F",
     "verification/bom/phase02-integration-closure/audit_closure.py",
 }
+P33_ALLOWED_PREFIXES = (
+    "verification/bom/phase03-spring-ensemble/",
+)
+P33_ALLOWED_PATHS = {
+    "pkg/bom/BOM.h",
+    "pkg/bom/BOM_GRAPH_SIZE.h",
+    "pkg/bom/BOM_SIZE.h",
+    "pkg/bom/bom_check.F",
+    "pkg/bom/bom_check_state.F",
+    "pkg/bom/bom_ghost_exchange.F",
+    "pkg/bom/bom_init_state.F",
+    "pkg/bom/bom_main.F",
+    "pkg/bom/bom_particle_exchange.F",
+    "pkg/bom/bom_spring_ensemble.F",
+    "pkg/bom/bom_spring_rhs_stage.F",
+    "pkg/bom/bom_spring_stage.F",
+    "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.small",
+    "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.tile-small",
+    "verification/bom/phase01-owner-migration/run_owner_gate.sh",
+    "verification/bom/phase02-integration-closure/audit_closure.py",
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -53,6 +74,8 @@ def scope_rules() -> tuple[str, tuple[str, ...], set[str]]:
         return scope, P2_ALLOWED_PREFIXES, P2_ALLOWED_PATHS
     if scope == "P3.1":
         return scope, P31_ALLOWED_PREFIXES, P31_ALLOWED_PATHS
+    if scope == "P3.3":
+        return scope, P33_ALLOWED_PREFIXES, P33_ALLOWED_PATHS
     raise RuntimeError(f"unsupported closure scope: {scope}")
 
 

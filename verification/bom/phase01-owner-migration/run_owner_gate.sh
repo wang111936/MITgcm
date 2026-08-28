@@ -311,10 +311,19 @@ grep -Fq 'hopCount = MAX(dxTile,dyTile)' "${LOCATE_SOURCE}" \
   || fail 'exactly one MPI_Alltoall count exchange is required'
 [[ "$(grep -c 'CALL MPI_Alltoallv(' "${EXCHANGE_SOURCE}")" -eq 2 ]] \
   || fail 'exactly two MPI_Alltoallv packet exchanges are required'
-grep -Fq 'sendInt(1,packetIndex) = INT(idHi8)' "${EXCHANGE_SOURCE}" \
-  || fail '64-bit ID high-word packing is missing'
-grep -Fq 'sendInt(2,packetIndex) = INT(idLo8' "${EXCHANGE_SOURCE}" \
-  || fail '64-bit ID low-word packing is missing'
+if grep -Fq 'PARAMETER ( bomPacketSchema   = 2 )' "${SIZE_SOURCE}"; then
+  grep -Fq 'sendInt(1,packetIndex) = bomPacketSchema' \
+    "${EXCHANGE_SOURCE}" || fail 'schema-v2 packet marker is missing'
+  grep -Fq 'sendInt(2,packetIndex) = INT(idHi8)' "${EXCHANGE_SOURCE}" \
+    || fail 'schema-v2 64-bit ID high-word packing is missing'
+  grep -Fq 'sendInt(3,packetIndex) = INT(idLo8' "${EXCHANGE_SOURCE}" \
+    || fail 'schema-v2 64-bit ID low-word packing is missing'
+else
+  grep -Fq 'sendInt(1,packetIndex) = INT(idHi8)' "${EXCHANGE_SOURCE}" \
+    || fail '64-bit ID high-word packing is missing'
+  grep -Fq 'sendInt(2,packetIndex) = INT(idLo8' "${EXCHANGE_SOURCE}" \
+    || fail '64-bit ID low-word packing is missing'
+fi
 grep -Fq 'sendReal(1,packetIndex) = planX' "${EXCHANGE_SOURCE}" \
   || fail 'minimal real packet X field is missing'
 grep -Fq 'sendReal(4,packetIndex) = bomAge' "${EXCHANGE_SOURCE}" \
@@ -323,7 +332,8 @@ grep -Fq 'IF ( globalMoveCount.EQ.0 ) RETURN' "${EXCHANGE_SOURCE}" \
   || fail 'bitwise no-movement fast path is missing'
 grep -Fq 'targetCount(bi,bj).GT.bomMaxPartTile' "${EXCHANGE_SOURCE}" \
   || fail 'target tile capacity preflight is missing'
-grep -Fq 'workId(jp,bi,bj).GT.keyId' "${EXCHANGE_SOURCE}" \
+grep -Eq 'workId\(jp,bi,bj\)\.(GT|LE)\.keyId' \
+  "${EXCHANGE_SOURCE}" \
   || fail 'full INTEGER*8 deterministic sort is missing'
 grep -Fq 'PARAMETER ( bomMaxExchange    = bomMaxInitRecords )' \
   "${SIZE_SOURCE}" || fail 'production exchange capacity is below initial limit'

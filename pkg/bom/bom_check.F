@@ -238,12 +238,20 @@ C     pole, where no globally unique positive physical X cutoff exists.
         errCount = errCount + 1
       ENDIF
 
-C--   P3.1 supplies reference/configuration kernels only.  Refuse a live
-C     spring run until the bounded graph and ensemble transaction exist.
+C--   P3.3 activates spring integration.  Connected components and their
+C     schema-3 persistence remain an explicit P3.4 entry gate.
       IF ( bomSpringLaw.NE.'NONE' .AND.
-     &     bomMaxParticles.GT.0 ) THEN
+     &     bomRaftDiagnostics ) THEN
         WRITE(msgBuf,'(A)')
-     &       'BOM_CHECK: spring particle integration starts in P3.3'
+     &       'BOM_CHECK: raft diagnostics start in P3.4'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+      IF ( bomSpringLaw.NE.'NONE' .AND.
+     &     (bomOutputFreq.GT.0. _d 0 .OR.
+     &      bomPickupFreq.GT.0. _d 0) ) THEN
+        WRITE(msgBuf,'(A)')
+     &       'BOM_CHECK: spring schema-3 I/O starts in P3.4'
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF

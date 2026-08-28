@@ -61,7 +61,10 @@ C !LOCAL VARIABLES:
       _RL recvReal(bomPacketReals,bomMaxExchange)
       INTEGER workCount(nSx,nSy)
       INTEGER workStatus(bomMaxPartTile,nSx,nSy)
+      INTEGER workNeighbor(bomMaxPartTile,nSx,nSy)
+      INTEGER workRaftSize(bomMaxPartTile,nSx,nSy)
       INTEGER*8 workId(bomMaxPartTile,nSx,nSy)
+      INTEGER*8 workRaftId(bomMaxPartTile,nSx,nSy)
       _RL workX(bomMaxPartTile,nSx,nSy)
       _RL workY(bomMaxPartTile,nSx,nSy)
       _RL workRelease(bomMaxPartTile,nSx,nSy)
@@ -74,16 +77,21 @@ C !LOCAL VARIABLES:
       _RL workWindNorth(bomMaxPartTile,nSx,nSy)
       _RL workDriftEast(bomMaxPartTile,nSx,nSy)
       _RL workDriftNorth(bomMaxPartTile,nSx,nSy)
+      _RL workSpringEast(bomMaxPartTile,nSx,nSy)
+      _RL workSpringNorth(bomMaxPartTile,nSx,nSy)
       _RL workRhsDiag(
      &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       LOGICAL workRefresh(bomMaxPartTile,nSx,nSy)
       INTEGER*8 idRadix, idHi8, idLo8, recvId, keyId
-      INTEGER keyStatus
+      INTEGER*8 raftHi8, raftLo8, recvRaftId, keyRaftId
+      INTEGER keyStatus, keyNeighbor, keyRaftSize
       _RL keyX, keyY, keyRelease, keyAge, keyI, keyJ
       _RL keyVEast, keyVNorth, keyWindEast, keyWindNorth
       _RL keyDriftEast, keyDriftNorth
+      _RL keySpringEast, keySpringNorth
       _RL keyRhsDiag(BOM_RHS_NDIAG)
       LOGICAL keyRefresh, locateValid, rhsOwner, rhsValid
+      LOGICAL springEastValid, springNorthValid
       _RL rhsX, rhsY, wetWeight, stageCFL
       INTEGER rhsFailStage
 
@@ -253,19 +261,33 @@ C--   Pack remote migrants in destination-rank order.
             packetCursor(rankIndex) = packetIndex
             idHi8 = bomId(ip,bi,bj)/idRadix
             idLo8 = MOD(bomId(ip,bi,bj),idRadix)
-            sendInt(1,packetIndex) = INT(idHi8)
+            sendInt(1,packetIndex) = bomPacketSchema
+            sendInt(2,packetIndex) = INT(idHi8)
             IF ( idLo8.GT.2147483647_8 ) THEN
-              sendInt(2,packetIndex) = INT(idLo8-idRadix)
+              sendInt(3,packetIndex) = INT(idLo8-idRadix)
             ELSE
-              sendInt(2,packetIndex) = INT(idLo8)
+              sendInt(3,packetIndex) = INT(idLo8)
             ENDIF
-            sendInt(3,packetIndex) = bomStatus(ip,bi,bj)
-            sendInt(4,packetIndex) = planBi(ip,bi,bj)
-            sendInt(5,packetIndex) = planBj(ip,bi,bj)
+            sendInt(4,packetIndex) = bomStatus(ip,bi,bj)
+            sendInt(5,packetIndex) = planBi(ip,bi,bj)
+            sendInt(6,packetIndex) = planBj(ip,bi,bj)
+            sendInt(7,packetIndex) =
+     &           bomNeighborCount(ip,bi,bj)
+            raftHi8 = bomRaftId(ip,bi,bj)/idRadix
+            raftLo8 = MOD(bomRaftId(ip,bi,bj),idRadix)
+            sendInt(8,packetIndex) = INT(raftHi8)
+            IF ( raftLo8.GT.2147483647_8 ) THEN
+              sendInt(9,packetIndex) = INT(raftLo8-idRadix)
+            ELSE
+              sendInt(9,packetIndex) = INT(raftLo8)
+            ENDIF
+            sendInt(10,packetIndex) = bomRaftSize(ip,bi,bj)
             sendReal(1,packetIndex) = planX(ip,bi,bj)
             sendReal(2,packetIndex) = planY(ip,bi,bj)
             sendReal(3,packetIndex) = bomReleaseTime(ip,bi,bj)
             sendReal(4,packetIndex) = bomAge(ip,bi,bj)
+            sendReal(5,packetIndex) = bomSpringEast(ip,bi,bj)
+            sendReal(6,packetIndex) = bomSpringNorth(ip,bi,bj)
           ENDIF
         ENDDO
        ENDDO
@@ -327,16 +349,18 @@ C--   Validate packet metadata and final per-tile capacity before commit.
        ENDDO
       ENDDO
       DO packetIndex=1,recvTotal
-        bi = recvInt(4,packetIndex)
-        bj = recvInt(5,packetIndex)
+        bi = recvInt(5,packetIndex)
+        bj = recvInt(6,packetIndex)
         IF ( bi.LT.1 .OR. bi.GT.nSx .OR.
      &       bj.LT.1 .OR. bj.GT.nSy ) THEN
           localErrCount = localErrCount + 1
         ELSE
           targetCount(bi,bj) = targetCount(bi,bj) + 1
         ENDIF
-        idHi8 = INT(recvInt(1,packetIndex),8)
-        idLo8 = INT(recvInt(2,packetIndex),8)
+        IF ( recvInt(1,packetIndex).NE.bomPacketSchema )
+     &       localErrCount = localErrCount+1
+        idHi8 = INT(recvInt(2,packetIndex),8)
+        idLo8 = INT(recvInt(3,packetIndex),8)
         IF ( idLo8.LT.0_8 ) idLo8 = idLo8 + idRadix
         IF ( idHi8.LT.0_8 ) THEN
           localErrCount = localErrCount + 1
@@ -345,13 +369,32 @@ C--   Validate packet metadata and final per-tile capacity before commit.
           recvId = idHi8*idRadix + idLo8
           IF ( recvId.LE.0_8 ) localErrCount=localErrCount+1
         ENDIF
-        IF ( recvInt(3,packetIndex).NE.BOM_ALIVE .AND.
-     &       recvInt(3,packetIndex).NE.BOM_WAITING )
+        IF ( recvInt(4,packetIndex).NE.BOM_ALIVE .AND.
+     &       recvInt(4,packetIndex).NE.BOM_WAITING )
      &       localErrCount = localErrCount + 1
+        IF ( recvInt(7,packetIndex).LT.0 .OR.
+     &       recvInt(7,packetIndex).GT.bomMaxNeighbor )
+     &       localErrCount = localErrCount+1
+        raftHi8 = INT(recvInt(8,packetIndex),8)
+        raftLo8 = INT(recvInt(9,packetIndex),8)
+        IF ( raftLo8.LT.0_8 ) raftLo8=raftLo8+idRadix
+        IF ( raftHi8.LT.0_8 ) THEN
+          recvRaftId = 0_8
+          localErrCount = localErrCount+1
+        ELSE
+          recvRaftId = raftHi8*idRadix+raftLo8
+        ENDIF
+        IF ( (recvRaftId.EQ.0_8 .AND.
+     &        recvInt(10,packetIndex).NE.0) .OR.
+     &       (recvRaftId.GT.0_8 .AND.
+     &        recvInt(10,packetIndex).LT.1) )
+     &       localErrCount = localErrCount+1
         IF ( .NOT.IEEE_IS_FINITE(recvReal(1,packetIndex)) .OR.
      &       .NOT.IEEE_IS_FINITE(recvReal(2,packetIndex)) .OR.
      &       .NOT.IEEE_IS_FINITE(recvReal(3,packetIndex)) .OR.
      &       .NOT.IEEE_IS_FINITE(recvReal(4,packetIndex)) .OR.
+     &       .NOT.IEEE_IS_FINITE(recvReal(5,packetIndex)) .OR.
+     &       .NOT.IEEE_IS_FINITE(recvReal(6,packetIndex)) .OR.
      &       recvReal(3,packetIndex).LT.0. _d 0 .OR.
      &       recvReal(4,packetIndex).LT.0. _d 0 )
      &       localErrCount = localErrCount + 1
@@ -414,6 +457,11 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
           workWindNorth(ip,bi,bj) = 0. _d 0
           workDriftEast(ip,bi,bj) = 0. _d 0
           workDriftNorth(ip,bi,bj) = 0. _d 0
+          workSpringEast(ip,bi,bj) = 0. _d 0
+          workSpringNorth(ip,bi,bj) = 0. _d 0
+          workNeighbor(ip,bi,bj) = 0
+          workRaftId(ip,bi,bj) = 0_8
+          workRaftSize(ip,bi,bj) = 0
           DO iDiag=1,BOM_RHS_NDIAG
             workRhsDiag(iDiag,ip,bi,bj) = 0. _d 0
           ENDDO
@@ -449,6 +497,15 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
      &           bomDriftEast(ip,bi,bj)
             workDriftNorth(rankIndex,jp,slot) =
      &           bomDriftNorth(ip,bi,bj)
+            workSpringEast(rankIndex,jp,slot) =
+     &           bomSpringEast(ip,bi,bj)
+            workSpringNorth(rankIndex,jp,slot) =
+     &           bomSpringNorth(ip,bi,bj)
+            workNeighbor(rankIndex,jp,slot) =
+     &           bomNeighborCount(ip,bi,bj)
+            workRaftId(rankIndex,jp,slot) = bomRaftId(ip,bi,bj)
+            workRaftSize(rankIndex,jp,slot) =
+     &           bomRaftSize(ip,bi,bj)
             DO iDiag=1,BOM_RHS_NDIAG
               workRhsDiag(iDiag,rankIndex,jp,slot) =
      &             bomRhsDiag(iDiag,ip,bi,bj)
@@ -463,19 +520,27 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
       ENDDO
 
       DO packetIndex=1,recvTotal
-        bi = recvInt(4,packetIndex)
-        bj = recvInt(5,packetIndex)
+        bi = recvInt(5,packetIndex)
+        bj = recvInt(6,packetIndex)
         workCount(bi,bj) = workCount(bi,bj) + 1
         slot = workCount(bi,bj)
-        idHi8 = INT(recvInt(1,packetIndex),8)
-        idLo8 = INT(recvInt(2,packetIndex),8)
+        idHi8 = INT(recvInt(2,packetIndex),8)
+        idLo8 = INT(recvInt(3,packetIndex),8)
         IF ( idLo8.LT.0_8 ) idLo8 = idLo8 + idRadix
         workId(slot,bi,bj) = idHi8*idRadix + idLo8
-        workStatus(slot,bi,bj) = recvInt(3,packetIndex)
+        workStatus(slot,bi,bj) = recvInt(4,packetIndex)
         workX(slot,bi,bj) = recvReal(1,packetIndex)
         workY(slot,bi,bj) = recvReal(2,packetIndex)
         workRelease(slot,bi,bj) = recvReal(3,packetIndex)
         workAge(slot,bi,bj) = recvReal(4,packetIndex)
+        workSpringEast(slot,bi,bj) = recvReal(5,packetIndex)
+        workSpringNorth(slot,bi,bj) = recvReal(6,packetIndex)
+        workNeighbor(slot,bi,bj) = recvInt(7,packetIndex)
+        raftHi8 = INT(recvInt(8,packetIndex),8)
+        raftLo8 = INT(recvInt(9,packetIndex),8)
+        IF ( raftLo8.LT.0_8 ) raftLo8=raftLo8+idRadix
+        workRaftId(slot,bi,bj) = raftHi8*idRadix+raftLo8
+        workRaftSize(slot,bi,bj) = recvInt(10,packetIndex)
         workRefresh(slot,bi,bj) = .TRUE.
       ENDDO
 
@@ -497,12 +562,18 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
           keyWindNorth = workWindNorth(ip,bi,bj)
           keyDriftEast = workDriftEast(ip,bi,bj)
           keyDriftNorth = workDriftNorth(ip,bi,bj)
+          keySpringEast = workSpringEast(ip,bi,bj)
+          keySpringNorth = workSpringNorth(ip,bi,bj)
+          keyNeighbor = workNeighbor(ip,bi,bj)
+          keyRaftId = workRaftId(ip,bi,bj)
+          keyRaftSize = workRaftSize(ip,bi,bj)
           DO iDiag=1,BOM_RHS_NDIAG
             keyRhsDiag(iDiag) = workRhsDiag(iDiag,ip,bi,bj)
           ENDDO
           keyRefresh = workRefresh(ip,bi,bj)
           jp = ip - 1
-          DO WHILE ( jp.GE.1 .AND. workId(jp,bi,bj).GT.keyId )
+          DO WHILE ( jp.GE.1 )
+            IF ( workId(jp,bi,bj).LE.keyId ) GOTO 110
             workId(jp+1,bi,bj) = workId(jp,bi,bj)
             workStatus(jp+1,bi,bj) = workStatus(jp,bi,bj)
             workX(jp+1,bi,bj) = workX(jp,bi,bj)
@@ -517,6 +588,13 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
             workWindNorth(jp+1,bi,bj) = workWindNorth(jp,bi,bj)
             workDriftEast(jp+1,bi,bj) = workDriftEast(jp,bi,bj)
             workDriftNorth(jp+1,bi,bj) = workDriftNorth(jp,bi,bj)
+            workSpringEast(jp+1,bi,bj) =
+     &           workSpringEast(jp,bi,bj)
+            workSpringNorth(jp+1,bi,bj) =
+     &           workSpringNorth(jp,bi,bj)
+            workNeighbor(jp+1,bi,bj) = workNeighbor(jp,bi,bj)
+            workRaftId(jp+1,bi,bj) = workRaftId(jp,bi,bj)
+            workRaftSize(jp+1,bi,bj) = workRaftSize(jp,bi,bj)
             DO iDiag=1,BOM_RHS_NDIAG
               workRhsDiag(iDiag,jp+1,bi,bj) =
      &             workRhsDiag(iDiag,jp,bi,bj)
@@ -524,6 +602,7 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
             workRefresh(jp+1,bi,bj) = workRefresh(jp,bi,bj)
             jp = jp - 1
           ENDDO
+  110     CONTINUE
           workId(jp+1,bi,bj) = keyId
           workStatus(jp+1,bi,bj) = keyStatus
           workX(jp+1,bi,bj) = keyX
@@ -538,6 +617,11 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
           workWindNorth(jp+1,bi,bj) = keyWindNorth
           workDriftEast(jp+1,bi,bj) = keyDriftEast
           workDriftNorth(jp+1,bi,bj) = keyDriftNorth
+          workSpringEast(jp+1,bi,bj) = keySpringEast
+          workSpringNorth(jp+1,bi,bj) = keySpringNorth
+          workNeighbor(jp+1,bi,bj) = keyNeighbor
+          workRaftId(jp+1,bi,bj) = keyRaftId
+          workRaftSize(jp+1,bi,bj) = keyRaftSize
           DO iDiag=1,BOM_RHS_NDIAG
             workRhsDiag(iDiag,jp+1,bi,bj) = keyRhsDiag(iDiag)
           ENDDO
@@ -565,6 +649,27 @@ C--   Refresh only moved records; retained records remain bitwise intact.
      O             wetWeight, stageCFL,
      O             rhsOwner, rhsValid, rhsFailCode, rhsFailStage,
      I             myThid )
+              IF ( rhsValid ) THEN
+                IF ( bomSpringLaw.NE.'NONE' ) THEN
+                  CALL BOM_SAFE_ADD_RL(
+     I                 workRhsDiag(BOM_RHS_DRIFT_E,ip,bi,bj),
+     I                 workSpringEast(ip,bi,bj),
+     O                 keyDriftEast,springEastValid)
+                  CALL BOM_SAFE_ADD_RL(
+     I                 workRhsDiag(BOM_RHS_DRIFT_N,ip,bi,bj),
+     I                 workSpringNorth(ip,bi,bj),
+     O                 keyDriftNorth,springNorthValid)
+                  rhsValid = springEastValid.AND.springNorthValid
+                  IF ( rhsValid ) THEN
+                    workRhsDiag(BOM_RHS_DRIFT_E,ip,bi,bj) =
+     &                   keyDriftEast
+                    workRhsDiag(BOM_RHS_DRIFT_N,ip,bi,bj) =
+     &                   keyDriftNorth
+                  ELSE
+                    rhsFailCode = BOM_FAIL_NONFINITE
+                  ENDIF
+                ENDIF
+              ENDIF
               IF ( rhsValid ) THEN
                 workVEast(ip,bi,bj) =
      &               workRhsDiag(BOM_RHS_VBASE_E,ip,bi,bj)
@@ -638,6 +743,11 @@ C--   The only authoritative topology write in this routine.
           bomWindNorth(ip,bi,bj) = workWindNorth(ip,bi,bj)
           bomDriftEast(ip,bi,bj) = workDriftEast(ip,bi,bj)
           bomDriftNorth(ip,bi,bj) = workDriftNorth(ip,bi,bj)
+          bomSpringEast(ip,bi,bj) = workSpringEast(ip,bi,bj)
+          bomSpringNorth(ip,bi,bj) = workSpringNorth(ip,bi,bj)
+          bomNeighborCount(ip,bi,bj) = workNeighbor(ip,bi,bj)
+          bomRaftId(ip,bi,bj) = workRaftId(ip,bi,bj)
+          bomRaftSize(ip,bi,bj) = workRaftSize(ip,bi,bj)
           DO iDiag=1,BOM_RHS_NDIAG
             bomRhsDiag(iDiag,ip,bi,bj) =
      &           workRhsDiag(iDiag,ip,bi,bj)
