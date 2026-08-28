@@ -8,7 +8,8 @@ C !INTERFACE:
       SUBROUTINE BOM_READPARMS( myThid )
 
 C !DESCRIPTION:
-C     Set the Phase-1.5 defaults and read the pkg/bom namelists.
+C     Set the accepted defaults, including inactive Phase-3 springs, and
+C     read the pkg/bom namelists.
 C     Return without reading data.bom when useBOM is false.
 
 C !USES:
@@ -33,7 +34,7 @@ C !LOCAL VARIABLES:
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
      &       bomSeed, bomMaxParticles, bomInitialIter,
-     &       bomInitialFile
+     &       bomInitialFile, bomSpringLaw, bomNeighborPolicy
       NAMELIST /BOM_PARM02/
      &       bomLeewayWindCoeff, bomWindSource,
      &       bomStokesSource, bomWetWeightMin, bomAdvCFL,
@@ -44,7 +45,11 @@ C !LOCAL VARIABLES:
      &       bomStokesRepCycle, bomStokesInScale,
      &       bomStokesFilePrec,
      &       bomMaxHop, bomInitGlobalLimit,
-     &       bomCheckEverySubstep
+     &       bomCheckEverySubstep,
+     &       bomSpringL, bomHookeK, bomSpringA,
+     &       bomSpringDelta, bomNeighborCutoff,
+     &       bomPairDistanceMin, bomSpringCFL,
+     &       bomRaftDiagnostics
 
       IF ( .NOT.useBOM ) THEN
 C-    pkg BOM is not used; report an unexpected data.bom if present.
@@ -71,6 +76,8 @@ C--   Safe Phase-1.5 defaults retain an inactive state and inactive output.
       bomWindSource       = 'NONE'
       bomStokesSource     = 'NONE'
       bomCurrentPolicy    = 'UNSET'
+      bomSpringLaw        = 'NONE'
+      bomNeighborPolicy   = 'NONE'
       bomAlpha            = 0. _d 0
       bomTauDays          = 0. _d 0
       bomTau              = 0. _d 0
@@ -83,11 +90,19 @@ C--   Safe Phase-1.5 defaults retain an inactive state and inactive output.
       bomStokesRepCycle   = 0. _d 0
       bomStokesInScale    = 1. _d 0
       bomStokesFilePrec   = 64
+      bomSpringL          = 0. _d 0
+      bomHookeK           = 0. _d 0
+      bomSpringA          = 0. _d 0
+      bomSpringDelta      = 0. _d 0
+      bomNeighborCutoff   = 0. _d 0
+      bomPairDistanceMin  = 0. _d 0
+      bomSpringCFL        = 0.5 _d 0
       bomWetWeightMin     = 0.5 _d 0
       bomAdvCFL           = 0.5 _d 0
       bomMaxHop            = 8
       bomInitGlobalLimit   = bomMaxInitRecords
       bomCheckEverySubstep = .TRUE.
+      bomRaftDiagnostics   = .FALSE.
 
       WRITE(msgBuf,'(A)') 'BOM_READPARMS: opening data.bom'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,

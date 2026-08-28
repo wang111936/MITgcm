@@ -1,0 +1,71 @@
+{
+  "fixtures": [
+    {
+      "name": "line-even",
+      "geometry": "cartesian",
+      "k": 2,
+      "particles": [
+        {"id": 101, "x": 0.0, "y": 0.0},
+        {"id": 305, "x": 2.0, "y": 0.0},
+        {"id": 502, "x": 5.0, "y": 0.0},
+        {"id": 900, "x": 9.0, "y": 0.0}
+      ]
+    },
+    {
+      "name": "square-clamp",
+      "geometry": "cartesian",
+      "k": 10,
+      "particles": [
+        {"id": 7000000000001, "x": 0.0, "y": 0.0},
+        {"id": 17, "x": 1.0, "y": 0.0},
+        {"id": 333, "x": 0.0, "y": 1.0},
+        {"id": 91, "x": 1.0, "y": 1.0}
+      ]
+    },
+    {
+      "name": "distance-tie",
+      "geometry": "cartesian",
+      "k": 2,
+      "particles": [
+        {"id": 500, "x": 0.0, "y": 0.0},
+        {"id": 400, "x": 0.0, "y": -1.0},
+        {"id": 300, "x": 1.0, "y": 0.0},
+        {"id": 200, "x": 0.0, "y": 1.0},
+        {"id": 100, "x": -1.0, "y": 0.0}
+      ]
+    },
+    {
+      "name": "periodic-x",
+      "geometry": "cartesian",
+      "x_period": 360.0,
+      "k": 1,
+      "particles": [
+        {"id": 42, "x": 359.0, "y": 0.0},
+        {"id": 9001, "x": 1.0, "y": 0.0},
+        {"id": 1234567890123, "x": 175.0, "y": 0.0}
+      ]
+    },
+    {
+      "name": "spherical",
+      "geometry": "spherical",
+      "x_period": 360.0,
+      "radius": 6370000.0,
+      "k": 2,
+      "particles": [
+        {"id": 800, "x": 150.0, "y": 20.0},
+        {"id": 20, "x": 150.5, "y": 20.0},
+        {"id": 60, "x": 150.0, "y": 20.5},
+        {"id": 4000000000009, "x": 150.5, "y": 20.5}
+      ]
+    },
+    {
+      "name": "single-reject",
+      "geometry": "cartesian",
+      "k": 1,
+      "expect_reject": true,
+      "particles": [
+        {"id": 1, "x": 0.0, "y": 0.0}
+      ]
+    }
+  ]
+}
