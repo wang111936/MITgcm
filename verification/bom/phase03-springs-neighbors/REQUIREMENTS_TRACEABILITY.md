@@ -1,6 +1,6 @@
 # Phase 3 requirements traceability
 
-Status: **P3.3 EVIDENCE RECORDED; P3.4 FUNCTIONAL CANDIDATE; P3.5 PENDING**
+Status: **P3.4 EVIDENCE RECORDED; P3.5 PENDING**
 
 Baseline: `MITGCM-BOM-v0.3` at `332a406e958e5005f60267c187fada1f74319fc3`
 
@@ -25,10 +25,11 @@ P3.3 evidence anchors: complete predecessor functional head
 accepted P3.2 18/18 and accepted P3.1 34/34. See `P3.3_CLOSEOUT.md` and
 `../phase03-spring-ensemble/TEST_RESULTS.md`.
 
-P3.4 development evidence covers deterministic FINAL components, exact raft
-ID/size, schema-3 Hooke/eBOMB continuous/restart for serial/MPI2/MPI4, bitwise
-cross-decomposition canonical records and a 14-case corruption matrix. The
-immutable clean-head and predecessor evidence anchors remain to be recorded in
+P3.4 evidence anchors: functional head
+`718bf351de9b896a4a496a0a9d582808006e2acd` with direct gate 42/42; unified
+P3 predecessor-verification head `990feb6ee3367a7ff679860faa27654de144497a`
+with P3.3 34/34, P3.2 18/18 and P3.1 34/34; complete Phase-2 verification
+head `eeb5f0705a0e6dcad62bd058809faf4b763232cd` with 390/390. See
 `P3.4_CLOSEOUT.md` and `../phase03-components-schema3/TEST_RESULTS.md`.
 
 ## 1. Forward map
@@ -48,10 +49,10 @@ immutable clean-head and predecessor evidence anchors remain to be recorded in
 | P3-R11 | Add spring velocity to Phase 2 final drift/native rates and enforce combined advective plus spring stability guards | ensemble stage RHS | P3-I01, P3-I03, P3-N06 | P3.3 | verified at P3.3 |
 | P3-R12 | Advance all interacting particles from synchronous RK stage snapshots and commit/rollback the complete substep atomically | `BOM_RK2_SPRING_ENSEMBLE`, `BOM_RK4_SPRING_ENSEMBLE` | P3-I01, P3-I02, P3-N06 | P3.3 | verified at P3.3 |
 | P3-R13 | Keep owner identity fixed during stages and migrate the complete accepted Phase 3 record only after substep commit | ensemble driver, `BOM_PARTICLE_EXCHANGE` | B09, P3-M01, P3-I02 | P3.3 | verified at P3.3 with migration packet schema 2 |
-| P3-R14 | Compute deterministic FINAL connected components with raft ID equal to the minimum global ID and exact size | `BOM_COMPONENTS_FINAL` | P3-RF01, P3-RF02, B17 | P3.4 | functional candidate: RF01/RF02/N07 and 1/2/4-rank canonical records PASS; immutable evidence pending |
-| P3-R15 | Preserve the schema-2 core while transactionally writing/reading required schema-3 sidecars and rejecting corruption | trajectory/pickup schema-3 owners | P3-P01--P3-P04 | P3.4 | functional candidate: P01--P04 Hooke/eBOMB restart and corruption matrix PASS; immutable evidence pending |
-| P3-R16 | Preserve bitwise 1/2/4-rank results for graph, spring velocity, RK state and raft fields after ID sorting | ghost/ensemble/component paths | B09, B17 | P3.3/P3.4 | P3.3 dynamics and P3.4 raft/schema canonical records are bitwise 1/2/4-rank PASS; immutable P3.4 evidence pending |
-| P3-R17 | Fail closed on pair, cell, ghost, neighbor, component and disk capacity/corruption with no partial publication | all P3 transactional paths | P3-N03--P3-N10 | P3.1--P3.4 | component candidate rollback and schema-3 pre-publication corruption rejection PASS; immutable P3.4 evidence pending |
+| P3-R14 | Compute deterministic FINAL connected components with raft ID equal to the minimum global ID and exact size | `BOM_COMPONENTS_FINAL` | P3-RF01, P3-RF02, B17 | P3.4 | verified: RF01/RF02/N07 and bitwise 1/2/4-rank canonical records |
+| P3-R15 | Preserve the schema-2 core while transactionally writing/reading required schema-3 sidecars and rejecting corruption | trajectory/pickup schema-3 owners | P3-P01--P3-P04 | P3.4 | verified: P01--P04 Hooke/eBOMB 1/2/4-rank restart and 14-case corruption matrix |
+| P3-R16 | Preserve bitwise 1/2/4-rank results for graph, spring velocity, RK state and raft fields after ID sorting | ghost/ensemble/component paths | B09, B17 | P3.3/P3.4 | verified through P3.4: dynamics, raft and canonical schema records are bitwise 1/2/4-rank equal |
+| P3-R17 | Fail closed on pair, cell, ghost, neighbor, component and disk capacity/corruption with no partial publication | all P3 transactional paths | P3-N03--P3-N10 | P3.1--P3.4 | verified through P3.4: component rollback plus signature/sidecar/rebuild rejection before publication |
 | P3-R18 | Expose work/communication counters, pass fixed-density local scaling bounds and the full predecessor matrix, with no unconditional O(N-squared) production path | counters and closure driver | P3-X01, P3-X02, P3-G99 | P3.5 | P3.3 structural no-gather and complete 390/390 predecessor PASS; fixed-density performance/P3-G99 wait for P3.5 |
 
 ## 2. Reverse implementation map
