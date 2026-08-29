@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 4 biology, land and events
 
-Status: **P4.1 LOCALLY COMPLETE; P4.2 NOT STARTED**
+Status: **P4.2 LOCALLY COMPLETE; P4.3 NOT STARTED**
 
 Phase 4 adds temperature/nutrient-driven Brooks amount, distinct terminal
 events, deterministic births, reusable compact owner slots, event diagnostics
@@ -31,6 +31,9 @@ release is MITGCM-BOM-v0.5.
   executable document/scope/reference audit.
 - [P4.1 closeout](P4.1_CLOSEOUT.md) records the accepted field/Brooks scope,
   exact 31/31 direct gate and exact 538/538 predecessor replay.
+- [P4.2 closeout](P4.2_CLOSEOUT.md) records the accepted boundary/terminal/
+  free-stack scope, exact 18/18 direct gate, P4.1 31/31 replay and exact
+  538/538 predecessor replay.
 
 ## Work packages
 
@@ -38,7 +41,7 @@ release is MITGCM-BOM-v0.5.
 |---|---|---|---|
 | P4.0 | source/design/interface/test freeze | 15/15 document/scope audit; no production diff | locally complete |
 | P4.1 | parameters/codes, accepted T/N endpoints, stateless Brooks | P4-Z01/C01/E01/E02/B01 and B12; exact 538 predecessor | locally complete |
-| P4.2 | boundary scratch, terminal state machine, compact-tail free stack | P4-L01/F01/T01, B11 and death/free-stack B13 | not started |
+| P4.2 | boundary scratch, terminal state machine, compact-tail free stack | P4-L01/F01/T01, B11 and death/free-stack B13 | locally complete |
 | P4.3 | Philox, retry, global birth order/IDs, packet schema 3, graph integration | P4-RNG01/BR01/ID01/M01, B13/B14/B17 | not started |
 | P4.4 | schema 4, event shards, diagnostics and pickup | P4-S01/EV01, B15/B18 | not started |
 | P4.5 | capacity and full integration closeout | B19, P4-G99 and independent exit audit | not started |
@@ -50,6 +53,9 @@ predecessor gates.
 
 ## Compatibility boundary
 
+- BOM is an independent MITgcm package with its own state, integration,
+  migration and I/O; `FLT+BOM` names only a coexistence compatibility
+  regression and creates no FLT runtime dependency.
 - P4 switches default off and must preserve the exact v0.4 path.
 - LEEW remains non-biological schema 1.
 - BOM without springs/P4 remains schema 2.
@@ -62,14 +68,15 @@ predecessor gates.
 
 ## Unique next production task
 
-After P4.1 is reviewed and integrated, the only next production package is
-P4.2:
+After P4.2 is reviewed and integrated, the only next production package is
+P4.3:
 
-1. add the frozen wet/dry/outside boundary classifier;
-2. preserve last accepted wet and attempted terminal positions in RK scratch;
-3. add immutable terminal plans and the all-or-nothing event transaction;
-4. add compact-tail deletion/allocation and deterministic free-stack rebuild;
-5. close P4-L01/F01/T01, B11 and the death/free-stack portion of B13.
+1. add the frozen Philox4x32-10 oracle and retry-key implementation;
+2. place/retry wet children without partial parent mutation;
+3. globally order parents by exact ID and assign contiguous child IDs;
+4. add complete parent/S/birth owner packet schema 3;
+5. rebuild the candidate post-event graph/components atomically;
+6. close P4-RNG01/BR01/ID01/M01 and the remaining B13/B14/B17 rows.
 
-P4.2 must not add Philox births/global child IDs, event files or schema 4;
-those remain P4.3/P4.4 work.
+P4.3 must not add event files, schema 4 trajectory/pickup or final Phase 4
+capacity closure; those remain P4.4/P4.5 work.

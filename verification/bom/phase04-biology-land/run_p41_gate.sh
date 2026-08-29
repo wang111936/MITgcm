@@ -15,6 +15,7 @@ readonly EXP2_CODE="${REPO_ROOT}/verification/exp2/code"
 readonly EXPECTED_ROWS=31
 readonly EXPECTED_SOURCE_HEAD="${MITGCM_BOM_EXPECTED_HEAD:-}"
 readonly REQUIRE_CLEAN="${MITGCM_BOM_REQUIRE_CLEAN:-0}"
+readonly SCOPE_MODE="${MITGCM_BOM_SCOPE_MODE:-p41}"
 
 fail() { printf 'P4.1 GATE FAIL: %s\n' "$*" >&2; exit 1; }
 log() { printf '[P4.1] %s\n' "$*"; }
@@ -37,6 +38,8 @@ git -C "${REPO_ROOT}" status --porcelain=v1 \
   > "${RUN_ROOT}/git-status-before.txt"
 [[ "${REQUIRE_CLEAN}" == 0 || "${REQUIRE_CLEAN}" == 1 ]] \
   || fail 'MITGCM_BOM_REQUIRE_CLEAN must be 0 or 1'
+[[ "${SCOPE_MODE}" == p41 || "${SCOPE_MODE}" == p42 ]] \
+  || fail 'MITGCM_BOM_SCOPE_MODE must be p41 or p42'
 if [[ -n "${EXPECTED_SOURCE_HEAD}" \
    && "${source_head}" != "${EXPECTED_SOURCE_HEAD}" ]]; then
   fail "source head ${source_head}, expected ${EXPECTED_SOURCE_HEAD}"
@@ -96,7 +99,7 @@ PYTHONPYCACHEPREFIX="${BUILD_ROOT}/pycache" \
 record_pass p41-driver-audit 'bash, shellcheck and Python compile checks'
 
 source_scope_audit() {
-  local calls
+  local calls biology_calls
   calls="$(grep -Rni 'CALL BOM_TRY_BUILD_BIO_ENDPOINTS' \
     "${REPO_ROOT}/pkg/bom" --include='*.F' || true)"
   [[ "$(printf '%s\n' "${calls}" | grep -c 'bom_build_endpoints.F')" -eq 1 ]] \
@@ -107,15 +110,26 @@ source_scope_audit() {
     "${REPO_ROOT}/pkg/bom/bom_interp_bio_pair.F"; then
     fail 'P4.1 stateless kernels mutate owner state'
   fi
-  [[ -z "$(grep -Rni 'CALL BOM_BIOLOGY_PLAN' \
-    "${REPO_ROOT}/pkg/bom" --include='*.F' || true)" ]] \
-    || fail 'P4.1 biology plan entered the live owner path'
+  biology_calls="$(grep -Rni 'CALL BOM_BIOLOGY_PLAN' \
+    "${REPO_ROOT}/pkg/bom" --include='*.F' || true)"
+  if [[ "${SCOPE_MODE}" == p41 ]]; then
+    [[ -z "${biology_calls}" ]] \
+      || fail 'P4.1 biology plan entered the live owner path'
+  else
+    [[ "$(printf '%s\n' "${biology_calls}" \
+      | grep -c 'bom_terminal_plan.F')" -eq 1 ]] \
+      || fail 'P4.2 replay lacks the unique event biology caller'
+    if grep -RniE 'random_number|CALL BOM_(PHILOX|BIRTH_|BIRTH_ORDER)' \
+      "${REPO_ROOT}/pkg/bom" --include='*.F'; then
+      fail 'P4.2 replay leaks P4.3 RNG/birth scope'
+    fi
+  fi
   if grep -niE 'bomIntegrator|bomSpringLaw' \
     "${REPO_ROOT}/pkg/bom/bom_brooks.F"; then
     fail 'stateless biology plan depends on movement/spring selection'
   fi
   record_pass p41-z01-source \
-    'P4-off has no T/N call; plans have no live or RK/spring dependency'
+    "P4-off and stateless kernels preserved under ${SCOPE_MODE} scope"
 }
 
 build_case() {
@@ -134,6 +148,9 @@ build_case() {
     cp "${CASE_DIR}/code/bom_verify_p41_endpoints.F" "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_p41_interp.F" "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_p41_brooks.F" "${mods_dir}/"
+    if [[ "${SCOPE_MODE}" == p42 ]]; then
+      cp "${CASE_DIR}/code/bom_verify_p42_core.F" "${mods_dir}/"
+    fi
   fi
   args=("${REPO_ROOT}/tools/genmake2" "-rootdir=${REPO_ROOT}" \
     "-mods=${mods_dir}" "-of=${OPTFILE}" -ieee -devel)

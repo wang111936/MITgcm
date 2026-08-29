@@ -66,7 +66,7 @@ CEOP
       PARAMETER ( bomMaxGhostTile   = bomMaxInitRecords )
       PARAMETER ( bomMaxExchange    = bomMaxInitRecords )
       PARAMETER ( bomMaxNeighbor    = bomMaxInitRecords )
-      PARAMETER ( bomMaxEventBuffer = 1 )
+      PARAMETER ( bomMaxEventBuffer = bomMaxInitRecords )
       PARAMETER ( bomPacketSchema   = 2 )
       PARAMETER ( bomPacketInts     = 10 )
       PARAMETER ( bomPacketReals    = 6 )

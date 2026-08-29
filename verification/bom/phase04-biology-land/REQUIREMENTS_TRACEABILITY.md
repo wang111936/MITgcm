@@ -1,6 +1,6 @@
 # Phase 4 requirements traceability
 
-Status: **P4.1 LOCALLY VERIFIED; P4.2--P4.5 REMAIN FROZEN**
+Status: **P4.2 LOCALLY VERIFIED; P4.3--P4.5 REMAIN FROZEN**
 
 Baseline: MITGCM-BOM-v0.4 at
 70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a
@@ -12,16 +12,16 @@ mean a production feature is implemented or tested.
 
 | ID | Requirement | Intended production owner | Required evidence | Package | Current state |
 |---|---|---|---|---|---|
-| P4-R01 | Preserve the exact v0.4 path, schemas, arithmetic and collectives when P4 switches are off | BOM_READPARMS, BOM_CHECK, existing BOM_MAIN dispatch | P4-Z01 plus exact 538-row predecessor gate | P4.1--P4.5 | P4.1 focus verified; remains cumulative |
+| P4-R01 | Preserve the exact v0.4 path, schemas, arithmetic and collectives when P4 switches are off | BOM_READPARMS, BOM_CHECK, existing BOM_MAIN dispatch | P4-Z01 plus exact 538-row predecessor gate | P4.1--P4.5 | P4.2 focus verified; remains cumulative |
 | P4-R02 | Validate biology/land/source parameters, units and appended stable codes without renumbering 0--25 | BOM_READPARMS, BOM_CHECK, BOM.h | P4-C01 and configuration negatives | P4.1 | verified at P4.1 |
 | P4-R03 | Publish complete accepted OLD/NEW T/N endpoints transactionally with exact source time and validity | BOM_BUILD_BIO_ENDPOINTS and source providers | P4-E01, source rollback, MPI4 | P4.1 | verified at P4.1 |
 | P4-R04 | Sample T/N at exact completed-substep time with common wet weights and explicit missing policy | BOM_INTERP_BIO_TIME | P4-E02, STOP/NO_GROWTH negatives | P4.1 | verified at P4.1 |
 | P4-R05 | Evaluate finite SI Brooks temperature/nutrient factors and strict amount thresholds | BOM_BROOKS_RATE, BOM_BIOLOGY_PLAN | P4-B01 and B12 analytical rows | P4.1 | verified at P4.1 |
-| P4-R06 | Classify wet, dry and outside attempts without relabelling numerical failures | BOM_CLASSIFY_BOUNDARY | P4-L01, B11 and failure injection | P4.2 | frozen |
-| P4-R07 | Prevent dry/exterior publication and retain last accepted wet plus attempted event position | RK boundary scratch and event planner | B11 serial/MPI, stage cases | P4.2 | frozen |
-| P4-R08 | Keep every owner/event mutation outside RK stages and rollback the complete event phase on failure | BOM_EVENT_TRANSACTION | P4-T01, spring/non-spring rollback | P4.2--P4.4 | frozen |
-| P4-R09 | Implement distinct death/beached/outside transitions and event records | BOM_TERMINAL_PLAN, event buffer | B11, death B13 and B18 | P4.2/P4.4 | frozen |
-| P4-R10 | Preserve compact owner prefixes while providing O(1) deletion/allocation and deterministic free-tail reconstruction | BOM_FREE_INIT, BOM_FREE/ALLOC/REMOVE | P4-F01 and free-list B13 | P4.2 | frozen |
+| P4-R06 | Classify wet, dry and outside attempts without relabelling numerical failures | BOM_CLASSIFY_BOUNDARY | P4-L01, B11 and failure injection | P4.2 | verified at P4.2 |
+| P4-R07 | Prevent dry/exterior publication and retain last accepted wet plus attempted event position | RK boundary scratch and event planner | B11 serial/MPI, stage cases | P4.2 | verified at P4.2 |
+| P4-R08 | Keep every owner/event mutation outside RK stages and rollback the complete event phase on failure | BOM_EVENT_TRANSACTION | P4-T01, spring/non-spring rollback | P4.2--P4.4 | P4.2 transaction portion verified; remains cumulative |
+| P4-R09 | Implement distinct death/beached/outside transitions and event records | BOM_TERMINAL_PLAN, event buffer | B11, death B13 and B18 | P4.2/P4.4 | P4.2 transition/buffer portion verified; persistence remains |
+| P4-R10 | Preserve compact owner prefixes while providing O(1) deletion/allocation and deterministic free-tail reconstruction | BOM_FREE_INIT, BOM_FREE/ALLOC/REMOVE | P4-F01 and free-list B13 | P4.2 | verified at P4.2 |
 | P4-R11 | Generate exact portable Philox words and angles solely from the frozen counter key and retry | BOM_PHILOX4X32, BOM_BIRTH_ANGLE | P4-RNG01, locked word fixtures, B14 | P4.3 | frozen |
 | P4-R12 | Retry wet placement deterministically, cancel after the bound and restore parent Sbefore | BOM_BIRTH_PLACE | P4-BR01, B13/B14 land/outside cases | P4.3 | frozen |
 | P4-R13 | Globally sort accepted parents by exact ID and assign contiguous decomposition-independent child IDs | BOM_BIRTH_ORDER, BOM_BIRTH_IDS | P4-ID01, B13/B14/B17 | P4.3 | frozen |
@@ -30,7 +30,7 @@ mean a production feature is implemented or tested.
 | P4-R16 | Preserve released core/P3 bytes while transactionally writing and validating the required P4 sidecar and event schema | schema-4 output/event owners | P4-S01, corruption matrix | P4.4 | frozen |
 | P4-R17 | Restart same-decomposition runs bitwise with P4 owners, counters, T/N brackets, event buffers and schedules | schema-4 pickup owners | B15 continuous/split serial/MPI | P4.4 | frozen |
 | P4-R18 | Close live/event/ID/free-stack/mass diagnostics exactly once per successful substep | BOM_EVENT_BUDGET and diagnostics | B18 plus failure rollback | P4.4 | frozen |
-| P4-R19 | Produce bitwise-equivalent canonical biology, births, terminal events, IDs and records in serial/MPI2/MPI4 | all P4 collective paths | B14, B17 and schema/event comparisons | P4.1--P4.5 | frozen |
+| P4-R19 | Produce bitwise-equivalent canonical biology, births, terminal events, IDs and records in serial/MPI2/MPI4 | all P4 collective paths | B14, B17 and schema/event comparisons | P4.1--P4.5 | P4.2 serial/MPI4 focus verified; remains cumulative |
 | P4-R20 | Close Phase 4 only with all direct gates, exact v0.4 predecessor matrix, independent audit and no Phase 5/6 scope leakage | P4-G99 and exit-audit drivers | B11--B15, B17--B19, P4-G99 | P4.5 | frozen |
 
 ## 2. Reverse implementation map

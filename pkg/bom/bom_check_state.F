@@ -36,6 +36,7 @@ C     !LOCAL VARIABLES:
       INTEGER nTile, nSafe
       INTEGER localErrCount, globalErrCount
       INTEGER localOwnerCount, globalOwnerCount
+      INTEGER expectedLiveCount
       INTEGER localIdCount, globalIdCount
       INTEGER idCounts(nPx*nPy)
       INTEGER idDispls(nPx*nPy)
@@ -61,6 +62,9 @@ CEOP
       localIdCount = 0
       mpiErrCount = 0
       idRadix = 4294967296_8
+      expectedLiveCount = bomNPartExpected
+      IF ( bomUseLand .OR. bomUseBiology )
+     &     expectedLiveCount=bomNPartLiveExpected
       DO ip=1,bomMaxInitRecords
         idHiLocal(ip) = 0
         idLoLocal(ip) = 0
@@ -90,6 +94,10 @@ CEOP
         CALL PRINT_ERROR( msgBuf, myThid )
         localErrCount = localErrCount + 1
       ENDIF
+      IF ( expectedLiveCount.LT.0 .OR.
+     &     expectedLiveCount.GT.bomInitGlobalLimit .OR.
+     &     expectedLiveCount.GT.bomMaxInitRecords )
+     &     localErrCount=localErrCount+1
       IF ( .NOT.bomFieldsReady ) THEN
         WRITE(msgBuf,'(A,A,A)')
      &       'BOM_CHECK_STATE: context=', checkContext,
@@ -312,13 +320,13 @@ C--         Compact tails retain the authoritative UNUSED/id=0 rule.
       globalOwnerCount = localOwnerCount
       CALL GLOBAL_SUM_INT( globalErrCount, myThid )
       CALL GLOBAL_SUM_INT( globalOwnerCount, myThid )
-      IF ( globalOwnerCount.NE.bomNPartExpected ) THEN
+      IF ( globalOwnerCount.NE.expectedLiveCount ) THEN
         _BEGIN_MASTER(myThid)
         IF ( myProcId.EQ.0 ) THEN
           WRITE(msgBuf,'(A,A,A,2I12)')
      &         'BOM_CHECK_STATE: context=', checkContext,
      &         ' owner/expected mismatch=',
-     &         globalOwnerCount, bomNPartExpected
+     &         globalOwnerCount, expectedLiveCount
           CALL PRINT_ERROR( msgBuf, myThid )
         ENDIF
         _END_MASTER(myThid)
@@ -393,7 +401,7 @@ C--   Gather exact integer words after all local bounds are trusted.
       ENDIF
 
       IF ( mpiErrCount.EQ.0 ) THEN
-        IF ( globalIdCount.NE.bomNPartExpected ) THEN
+        IF ( globalIdCount.NE.expectedLiveCount ) THEN
           mpiErrCount = mpiErrCount + 1
         ELSE
           CALL BOM_SORT_ID_WORDS(

@@ -921,6 +921,7 @@ C--   One commit publishes the fully validated scratch transaction.
        ENDDO
       ENDDO
       bomNPartExpected = storedExpected
+      bomNPartLiveExpected = storedExpected
       bomNextOutputTime = storedNext
       bomOutputScheduleReady = .TRUE.
       IF ( activeSchema.EQ.bomPickupSchema2 ) THEN

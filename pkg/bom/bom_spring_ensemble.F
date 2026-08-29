@@ -78,7 +78,13 @@ CEOP
       _RL age0(bomMaxOwnerRecord), ageFinal(bomMaxOwnerRecord)
       _RL activeStart(bomMaxOwnerRecord)
       _RL xWork(bomMaxOwnerRecord), yWork(bomMaxOwnerRecord)
+      _RL acceptedX(bomMaxOwnerRecord),acceptedY(bomMaxOwnerRecord)
       _RL xNext(bomMaxOwnerRecord), yNext(bomMaxOwnerRecord)
+      _RL terminalAttemptX(bomMaxOwnerRecord)
+      _RL terminalAttemptY(bomMaxOwnerRecord)
+      INTEGER terminalType(bomMaxOwnerRecord)
+      INTEGER terminalStage(bomMaxOwnerRecord)
+      LOGICAL terminalReady(bomMaxOwnerRecord)
       _RL finalRateX(bomMaxOwnerRecord)
       _RL finalRateY(bomMaxOwnerRecord)
       _RL finalI(bomMaxOwnerRecord), finalJ(bomMaxOwnerRecord)
@@ -129,6 +135,13 @@ CEOP
             age0(nOwner) = bomAge(ip,bi,bj)
             xWork(nOwner) = bomX(ip,bi,bj)
             yWork(nOwner) = bomY(ip,bi,bj)
+            acceptedX(nOwner) = bomX(ip,bi,bj)
+            acceptedY(nOwner) = bomY(ip,bi,bj)
+            terminalType(nOwner) = BOM_EVENT_NONE
+            terminalStage(nOwner) = BOM_STAGE_NONE
+            terminalAttemptX(nOwner) = 0. _d 0
+            terminalAttemptY(nOwner) = 0. _d 0
+            terminalReady(nOwner) = .FALSE.
           ENDIF
         ENDDO
        ENDDO
@@ -224,7 +237,8 @@ C--   Globally synchronized release intervals remain scratch until commit.
         ENDIF
         activeLocal = 0
         DO owner=1,nOwner
-          IF ( statusFinal(owner).EQ.BOM_ALIVE .AND.
+          IF ( .NOT.terminalReady(owner) .AND.
+     &         statusFinal(owner).EQ.BOM_ALIVE .AND.
      &         activeStart(owner).LE.currentTime ) THEN
             statusStage(owner) = BOM_ALIVE
             activeLocal = activeLocal+1
@@ -247,6 +261,9 @@ C--   Globally synchronized release intervals remain scratch until commit.
           CALL BOM_SPRING_RK_INTERVAL(
      I         integratorOrder,nOwner,ownerId,statusStage,
      I         xWork,yWork,ownerBi,ownerBj,
+     I         acceptedX,acceptedY,
+     U         terminalType,terminalStage,
+     U         terminalAttemptX,terminalAttemptY,terminalReady,
      I         currentTime,intervalDt,mySubstep,
      U         epochCounter,
      O         xNext,yNext,
@@ -264,7 +281,10 @@ C--   Globally synchronized release intervals remain scratch until commit.
             RETURN
           ENDIF
           DO owner=1,nOwner
-            IF ( statusStage(owner).EQ.BOM_ALIVE ) THEN
+            IF ( terminalReady(owner) ) THEN
+              xWork(owner)=acceptedX(owner)
+              yWork(owner)=acceptedY(owner)
+            ELSEIF ( statusStage(owner).EQ.BOM_ALIVE ) THEN
               xWork(owner) = xNext(owner)
               yWork(owner) = yNext(owner)
             ENDIF
@@ -275,11 +295,20 @@ C--   Globally synchronized release intervals remain scratch until commit.
 
 C--   FINAL graph, spring and base RHS use accepted trial positions.
       DO owner=1,nOwner
-        statusStage(owner) = statusFinal(owner)
+        IF ( terminalReady(owner) ) THEN
+          statusStage(owner)=BOM_WAITING
+          xWork(owner)=acceptedX(owner)
+          yWork(owner)=acceptedY(owner)
+        ELSE
+          statusStage(owner) = statusFinal(owner)
+        ENDIF
       ENDDO
       failStage = BOM_STAGE_FINAL
       CALL BOM_VALIDATE_SPRING_POSITIONS(
      I     nOwner,statusStage,xWork,yWork,ownerBi,ownerBj,
+     I     acceptedX,acceptedY,
+     U     terminalType,terminalStage,
+     U     terminalAttemptX,terminalAttemptY,terminalReady,
      I     BOM_STAGE_FINAL,
      O     finalFail,finalPhase,globalValid,myThid)
       IF ( .NOT.globalValid ) THEN
@@ -365,28 +394,39 @@ C--   The only authoritative owner and P3 diagnostic publication.
           bomY(ip,bi,bj) = yWork(owner)
           bomStatus(ip,bi,bj) = statusFinal(owner)
           bomAge(ip,bi,bj) = ageFinal(owner)
-          bomI(ip,bi,bj) = finalI(owner)
-          bomJ(ip,bi,bj) = finalJ(owner)
-          bomVEast(ip,bi,bj) =
+          IF ( .NOT.terminalReady(owner) ) THEN
+            bomI(ip,bi,bj) = finalI(owner)
+            bomJ(ip,bi,bj) = finalJ(owner)
+            bomVEast(ip,bi,bj) =
      &         finalDiag(BOM_RHS_VBASE_E,owner)
-          bomVNorth(ip,bi,bj) =
+            bomVNorth(ip,bi,bj) =
      &         finalDiag(BOM_RHS_VBASE_N,owner)
-          bomWindEast(ip,bi,bj) =
+            bomWindEast(ip,bi,bj) =
      &         finalDiag(BOM_RHS_VW_E,owner)
-          bomWindNorth(ip,bi,bj) =
+            bomWindNorth(ip,bi,bj) =
      &         finalDiag(BOM_RHS_VW_N,owner)
-          bomDriftEast(ip,bi,bj) =
+            bomDriftEast(ip,bi,bj) =
      &         finalDiag(BOM_RHS_DRIFT_E,owner)
-          bomDriftNorth(ip,bi,bj) =
+            bomDriftNorth(ip,bi,bj) =
      &         finalDiag(BOM_RHS_DRIFT_N,owner)
-          bomSpringEast(ip,bi,bj) = finalSpringEast(owner)
-          bomSpringNorth(ip,bi,bj) = finalSpringNorth(owner)
-          bomNeighborCount(ip,bi,bj) = finalNeighbor(owner)
-          bomRaftId(ip,bi,bj) = finalRaftId(owner)
-          bomRaftSize(ip,bi,bj) = finalRaftSize(owner)
-          DO iDiag=1,BOM_RHS_NDIAG
-            bomRhsDiag(iDiag,ip,bi,bj) = finalDiag(iDiag,owner)
-          ENDDO
+            bomSpringEast(ip,bi,bj) = finalSpringEast(owner)
+            bomSpringNorth(ip,bi,bj) = finalSpringNorth(owner)
+            bomNeighborCount(ip,bi,bj) = finalNeighbor(owner)
+            bomRaftId(ip,bi,bj) = finalRaftId(owner)
+            bomRaftSize(ip,bi,bj) = finalRaftSize(owner)
+            DO iDiag=1,BOM_RHS_NDIAG
+              bomRhsDiag(iDiag,ip,bi,bj) = finalDiag(iDiag,owner)
+            ENDDO
+          ELSE
+            bomTerminalType(ip,bi,bj)=terminalType(owner)
+            bomTerminalStage(ip,bi,bj)=terminalStage(owner)
+            bomTerminalId(ip,bi,bj)=ownerId(owner)
+            bomTerminalAcceptedX(ip,bi,bj)=acceptedX(owner)
+            bomTerminalAcceptedY(ip,bi,bj)=acceptedY(owner)
+            bomTerminalAttemptX(ip,bi,bj)=terminalAttemptX(owner)
+            bomTerminalAttemptY(ip,bi,bj)=terminalAttemptY(owner)
+            bomTerminalReady(ip,bi,bj)=.TRUE.
+          ENDIF
         ENDIF
       ENDDO
       bomP3OwnerRecords = maxOwnerRecords
@@ -418,6 +458,9 @@ C !INTERFACE:
       SUBROUTINE BOM_SPRING_RK_INTERVAL(
      I                 integratorOrder, nOwner, ownerId, ownerStatus,
      I                 x0, y0, ownerBi, ownerBj,
+     I                 acceptedX,acceptedY,
+     U                 terminalType,terminalStage,
+     U                 terminalAttemptX,terminalAttemptY,terminalReady,
      I                 stageTime0, deltaT, ghostSubstep,
      U                 epochCounter,
      O                 xOut, yOut,
@@ -446,6 +489,12 @@ C     the same interval X0 and previously accepted complete K arrays.
       INTEGER ownerStatus(bomMaxOwnerRecord)
       INTEGER ownerBi(bomMaxOwnerRecord), ownerBj(bomMaxOwnerRecord)
       _RL x0(bomMaxOwnerRecord), y0(bomMaxOwnerRecord)
+      _RL acceptedX(bomMaxOwnerRecord),acceptedY(bomMaxOwnerRecord)
+      _RL terminalAttemptX(bomMaxOwnerRecord)
+      _RL terminalAttemptY(bomMaxOwnerRecord)
+      INTEGER terminalType(bomMaxOwnerRecord)
+      INTEGER terminalStage(bomMaxOwnerRecord)
+      LOGICAL terminalReady(bomMaxOwnerRecord)
       _RL stageTime0, deltaT
       _RL xOut(bomMaxOwnerRecord), yOut(bomMaxOwnerRecord)
       INTEGER*8 maxOwnerRecords, maxGhostRecords
@@ -494,7 +543,11 @@ CEOP
 C--   K1.
       failStage = BOM_STAGE_K1
       CALL BOM_VALIDATE_SPRING_POSITIONS(
-     I     nOwner,ownerStatus,x0,y0,ownerBi,ownerBj,BOM_STAGE_K1,
+     I     nOwner,ownerStatus,x0,y0,ownerBi,ownerBj,
+     I     acceptedX,acceptedY,
+     U     terminalType,terminalStage,
+     U     terminalAttemptX,terminalAttemptY,terminalReady,
+     I     BOM_STAGE_K1,
      O     stageFail,stagePhase,globalValid,myThid)
       IF ( .NOT.globalValid ) GOTO 900
       epochCounter = epochCounter+1
@@ -561,6 +614,9 @@ C--   K2 uses X0 + dt*K1/2 for both integrators.
       ENDIF
       CALL BOM_VALIDATE_SPRING_POSITIONS(
      I     nOwner,ownerStatus,xStage,yStage,ownerBi,ownerBj,
+     I     acceptedX,acceptedY,
+     U     terminalType,terminalStage,
+     U     terminalAttemptX,terminalAttemptY,terminalReady,
      I     BOM_STAGE_K2,
      O     stageFail,stagePhase,globalValid,myThid)
       IF ( .NOT.globalValid ) GOTO 900
@@ -645,6 +701,9 @@ C--     RK4 K3.
         ENDIF
         CALL BOM_VALIDATE_SPRING_POSITIONS(
      I       nOwner,ownerStatus,xStage,yStage,ownerBi,ownerBj,
+     I       acceptedX,acceptedY,
+     U       terminalType,terminalStage,
+     U       terminalAttemptX,terminalAttemptY,terminalReady,
      I       BOM_STAGE_K3,
      O       stageFail,stagePhase,globalValid,myThid)
         IF ( .NOT.globalValid ) GOTO 900
@@ -712,6 +771,9 @@ C--     RK4 K4.
         ENDIF
         CALL BOM_VALIDATE_SPRING_POSITIONS(
      I       nOwner,ownerStatus,xStage,yStage,ownerBi,ownerBj,
+     I       acceptedX,acceptedY,
+     U       terminalType,terminalStage,
+     U       terminalAttemptX,terminalAttemptY,terminalReady,
      I       BOM_STAGE_K4,
      O       stageFail,stagePhase,globalValid,myThid)
         IF ( .NOT.globalValid ) GOTO 900
@@ -783,6 +845,9 @@ C--     RK4 K4.
       failStage = BOM_STAGE_FINAL
       CALL BOM_VALIDATE_SPRING_POSITIONS(
      I     nOwner,ownerStatus,xOut,yOut,ownerBi,ownerBj,
+     I     acceptedX,acceptedY,
+     U     terminalType,terminalStage,
+     U     terminalAttemptX,terminalAttemptY,terminalReady,
      I     BOM_STAGE_FINAL,
      O     stageFail,stagePhase,globalValid,myThid)
       IF ( .NOT.globalValid ) GOTO 900
@@ -801,7 +866,10 @@ C--     RK4 K4.
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       SUBROUTINE BOM_VALIDATE_SPRING_POSITIONS(
      I                 nOwner, ownerStatus, ownerX, ownerY,
-     I                 ownerBi, ownerBj, rhsStage,
+     I                 ownerBi, ownerBj, acceptedX, acceptedY,
+     U                 terminalType,terminalStage,
+     U                 terminalAttemptX,terminalAttemptY,terminalReady,
+     I                 rhsStage,
      O                 failCode, p3FailPhase, isValid,
      I                 myThid )
       USE, INTRINSIC :: IEEE_ARITHMETIC,
@@ -816,11 +884,19 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       INTEGER ownerStatus(bomMaxOwnerRecord)
       INTEGER ownerBi(bomMaxOwnerRecord), ownerBj(bomMaxOwnerRecord)
       _RL ownerX(bomMaxOwnerRecord), ownerY(bomMaxOwnerRecord)
+      _RL acceptedX(bomMaxOwnerRecord),acceptedY(bomMaxOwnerRecord)
+      _RL terminalAttemptX(bomMaxOwnerRecord)
+      _RL terminalAttemptY(bomMaxOwnerRecord)
+      INTEGER terminalType(bomMaxOwnerRecord)
+      INTEGER terminalStage(bomMaxOwnerRecord)
+      LOGICAL terminalReady(bomMaxOwnerRecord)
       INTEGER failCode, p3FailPhase
       LOGICAL isValid
       INTEGER owner, localFail, localPhase, globalFail, globalPhase
-      _RL xMap, ix, jy
-      LOGICAL isOwner, hasStencil, globalValid
+      INTEGER boundaryType,boundaryFail,p4FailPhase
+      _RL xMap, ix, jy,attemptX,attemptY
+      LOGICAL isOwner,hasStencil,globalValid,boundaryValid
+      LOGICAL isTerminal
 
       localFail = BOM_FAIL_NONE
       localPhase = BOM_P3_PHASE_NONE
@@ -843,6 +919,28 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
      &             ownerBj(owner).GT.nSy ) THEN
             localFail = BOM_FAIL_OWNER
             localPhase = BOM_P3_PHASE_POSITION
+          ELSEIF ( bomUseLand ) THEN
+            CALL BOM_TRY_STAGE_BOUNDARY(
+     I           ownerX(owner),ownerY(owner),
+     I           ownerBi(owner),ownerBj(owner),rhsStage,
+     O           boundaryType,attemptX,attemptY,isTerminal,
+     O           boundaryFail,p4FailPhase,boundaryValid,
+     I           myThid)
+            IF ( .NOT.boundaryValid ) THEN
+              localFail=boundaryFail
+              localPhase=BOM_P3_PHASE_POSITION
+            ELSEIF ( isTerminal ) THEN
+              IF ( .NOT.terminalReady(owner) ) THEN
+                terminalType(owner)=boundaryType
+                terminalStage(owner)=rhsStage
+                terminalAttemptX(owner)=attemptX
+                terminalAttemptY(owner)=attemptY
+                terminalReady(owner)=.TRUE.
+              ENDIF
+              ownerStatus(owner)=BOM_WAITING
+              ownerX(owner)=acceptedX(owner)
+              ownerY(owner)=acceptedY(owner)
+            ENDIF
           ELSE
             CALL BOM_MAP_XY2IJLOCAL(
      I           ownerX(owner),ownerY(owner),
