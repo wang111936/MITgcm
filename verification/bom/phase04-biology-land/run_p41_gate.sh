@@ -110,8 +110,12 @@ source_scope_audit() {
   [[ -z "$(grep -Rni 'CALL BOM_BIOLOGY_PLAN' \
     "${REPO_ROOT}/pkg/bom" --include='*.F' || true)" ]] \
     || fail 'P4.1 biology plan entered the live owner path'
+  if grep -niE 'bomIntegrator|bomSpringLaw' \
+    "${REPO_ROOT}/pkg/bom/bom_brooks.F"; then
+    fail 'stateless biology plan depends on movement/spring selection'
+  fi
   record_pass p41-z01-source \
-    'P4-disabled path has no T/N builder call; plans have no live caller'
+    'P4-off has no T/N call; plans have no live or RK/spring dependency'
 }
 
 build_case() {

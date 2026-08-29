@@ -18,6 +18,7 @@ EXPECTED_GROUPS = {
     "p31-reference": 34,
     "phase2": 390,
 }
+P4_RELEASE_BASELINE = "70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a"
 ALLOWED_PREFIXES = (
     "pkg/bom/",
     "verification/bom/phase03-",
@@ -58,19 +59,29 @@ def main() -> int:
     expected_head = sys.argv[3]
     mode = sys.argv[4]
     expected_total = int(sys.argv[5])
-    require(mode in {"candidate", "final"}, f"invalid mode: {mode}")
+    require(mode in {"candidate", "final", "predecessor"},
+            f"invalid mode: {mode}")
     require(git(repo, "rev-parse", "HEAD") == expected_head, "head mismatch")
     require(git(repo, "status", "--porcelain=v1") == "", "dirty worktree")
-    require(git(repo, "tag", "-l", "MITGCM-BOM-v0.4") == "", "v0.4 exists")
+    if mode != "predecessor":
+        require(git(repo, "tag", "-l", "MITGCM-BOM-v0.4") == "",
+                "v0.4 exists")
 
-    baseline = git(repo, "rev-parse", "MITGCM-BOM-v0.3^{commit}")
+    if mode == "predecessor":
+        baseline = git(repo, "rev-parse", P4_RELEASE_BASELINE)
+        allowed_prefixes = ALLOWED_PREFIXES + (
+            "verification/bom/phase04-",
+        )
+    else:
+        baseline = git(repo, "rev-parse", "MITGCM-BOM-v0.3^{commit}")
+        allowed_prefixes = ALLOWED_PREFIXES
     changed = git(repo, "diff", "--name-only", f"{baseline}...{expected_head}").splitlines()
     require(changed, "Phase 3 diff is empty")
     for path in changed:
         lowered = path.lower()
         require("skrips" not in lowered and "codex" not in lowered,
                 f"forbidden project term: {path}")
-        require(path in ALLOWED_PATHS or path.startswith(ALLOWED_PREFIXES),
+        require(path in ALLOWED_PATHS or path.startswith(allowed_prefixes),
                 f"path outside Phase 3 scope: {path}")
 
     row_audit = read_tsv(evidence / "row-audit.tsv")
@@ -127,7 +138,12 @@ def main() -> int:
 
     manifest_files = sorted((evidence / "native-manifests").glob("*.sha256"))
     require(len(manifest_files) == len(EXPECTED_GROUPS), "native manifests missing")
-    marker = "P3-G99 FINAL AUDIT PASS" if mode == "final" else "P3-G99 CANDIDATE AUDIT PASS"
+    markers = {
+        "candidate": "P3-G99 CANDIDATE AUDIT PASS",
+        "final": "P3-G99 FINAL AUDIT PASS",
+        "predecessor": "P3-G99 PREDECESSOR AUDIT PASS",
+    }
+    marker = markers[mode]
     print(f"{marker}: head={expected_head} rows={expected_total} files={len(changed)}")
     return 0
 

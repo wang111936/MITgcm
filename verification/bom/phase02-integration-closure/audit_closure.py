@@ -72,6 +72,19 @@ P35_ALLOWED_PATHS = {
     "verification/bom/phase03-reference-laws/run_reference_law_gate.sh",
     "verification/bom/phase03-spring-ensemble/run_spring_ensemble_gate.sh",
 }
+P41_BASELINE = "70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a"
+P41_ALLOWED_PREFIXES = (
+    "pkg/bom/",
+    "verification/bom/phase04-biology-land/",
+)
+P41_ALLOWED_PATHS = {
+    "doc/phys_pkgs/MITGCM-BOM/PHASE_RECORDS/PHASE-04.md",
+    "doc/phys_pkgs/MITGCM-BOM/PROJECT_STATUS.md",
+    "verification/bom/README.md",
+    "verification/bom/phase02-integration-closure/audit_closure.py",
+    "verification/bom/phase03-integration-closure/audit_p3_g99.py",
+    "verification/bom/phase03-integration-closure/run_p3_g99.sh",
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -85,16 +98,18 @@ def git(repo: Path, *args: str) -> str:
     ).strip()
 
 
-def scope_rules() -> tuple[str, tuple[str, ...], set[str]]:
+def scope_rules() -> tuple[str, tuple[str, ...], set[str], str | None]:
     scope = os.environ.get("MITGCM_BOM_CLOSURE_SCOPE", "P2.5")
     if scope == "P2.5":
-        return scope, P2_ALLOWED_PREFIXES, P2_ALLOWED_PATHS
+        return scope, P2_ALLOWED_PREFIXES, P2_ALLOWED_PATHS, None
     if scope == "P3.1":
-        return scope, P31_ALLOWED_PREFIXES, P31_ALLOWED_PATHS
+        return scope, P31_ALLOWED_PREFIXES, P31_ALLOWED_PATHS, None
     if scope == "P3.3":
-        return scope, P33_ALLOWED_PREFIXES, P33_ALLOWED_PATHS
+        return scope, P33_ALLOWED_PREFIXES, P33_ALLOWED_PATHS, None
     if scope == "P3.5":
-        return scope, P35_ALLOWED_PREFIXES, P35_ALLOWED_PATHS
+        return scope, P35_ALLOWED_PREFIXES, P35_ALLOWED_PATHS, None
+    if scope == "P4.1":
+        return scope, P41_ALLOWED_PREFIXES, P41_ALLOWED_PATHS, P41_BASELINE
     raise RuntimeError(f"unsupported closure scope: {scope}")
 
 
@@ -106,13 +121,18 @@ def main() -> None:
     parser.add_argument("expected_total", type=int)
     args = parser.parse_args()
 
-    scope, allowed_prefixes, allowed_paths = scope_rules()
+    scope, allowed_prefixes, allowed_paths, replay_baseline = scope_rules()
     head = git(args.repo, "rev-parse", "HEAD")
     require(head == args.expected_head, f"head mismatch: {head}")
     require(git(args.repo, "status", "--porcelain=v1") == "",
             "functional head worktree is not clean")
-    parent = git(args.repo, "rev-parse", "HEAD^")
-    changed = git(args.repo, "diff", "--name-only", parent, head).splitlines()
+    if replay_baseline is None:
+        baseline = git(args.repo, "rev-parse", "HEAD^")
+        diff_range = (baseline, head)
+    else:
+        baseline = git(args.repo, "rev-parse", replay_baseline)
+        diff_range = (f"{baseline}...{head}",)
+    changed = git(args.repo, "diff", "--name-only", *diff_range).splitlines()
     require(changed, "functional commit has no changed files")
     for path in changed:
         lowered = path.lower()

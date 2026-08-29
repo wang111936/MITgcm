@@ -20,7 +20,8 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       INTEGER nFail, globalFail, failCode
       INTEGER savedTry, savedTracer, savedPrec
       _RL savedKN, savedTMin, savedTMax, savedS0, savedSMin
-      _RL savedSMax, savedL, savedPeriod, savedScale, savedRate
+      _RL savedSMax, savedL, savedStart, savedPeriod, savedRep
+      _RL savedScale, savedRate
       LOGICAL configValid, savedLand
 
       nFail = 0
@@ -92,7 +93,9 @@ C--   Save the accepted configuration and exercise the stateless negatives.
       savedSMin = bomSMin
       savedSMax = bomSMax
       savedL = bomSpringL
+      savedStart = bomNStartTime
       savedPeriod = bomNPeriod
+      savedRep = bomNRepCycle
       savedScale = bomNInScale
       savedTry = bomBirthMaxTry
       savedTracer = bomNTracerIndex
@@ -147,6 +150,17 @@ C--   FILES is valid only with complete positive timing/precision metadata.
       CALL BOM_VERIFY_P41_ASSERT(
      &     configValid .AND. failCode.EQ.BOM_FAIL_NONE,
      &     'valid THETA/FILES configuration', nFail, myThid )
+      bomNFile = ' '
+      CALL BOM_VERIFY_P41_REJECT( 'missing FILES path', nFail, myThid )
+      bomNFile = 'fixture'
+      bomNStartTime = IEEE_VALUE(bomNStartTime,IEEE_QUIET_NAN)
+      CALL BOM_VERIFY_P41_REJECT(
+     &     'nonfinite FILES start', nFail, myThid )
+      bomNStartTime = 0. _d 0
+      bomNRepCycle = 2500. _d 0
+      CALL BOM_VERIFY_P41_REJECT(
+     &     'nonintegral FILES cycle', nFail, myThid )
+      bomNRepCycle = 2400. _d 0
       bomNPeriod = 0. _d 0
       CALL BOM_VERIFY_P41_REJECT( 'bad FILES period', nFail, myThid )
       bomNPeriod = 1200. _d 0
@@ -170,7 +184,9 @@ C--   FILES is valid only with complete positive timing/precision metadata.
       bomSMin = savedSMin
       bomSMax = savedSMax
       bomSpringL = savedL
+      bomNStartTime = savedStart
       bomNPeriod = savedPeriod
+      bomNRepCycle = savedRep
       bomNInScale = savedScale
       bomBirthMaxTry = savedTry
       bomNTracerIndex = savedTracer

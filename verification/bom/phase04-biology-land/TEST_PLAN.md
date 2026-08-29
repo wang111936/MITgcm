@@ -1,9 +1,10 @@
 # MITGCM-BOM Phase 4 test plan
 
-Status: **FROZEN AT P4.0**
+Status: **P4.1 EXECUTED; P4.2--P4.5 FROZEN**
 
-P4.0 runs only the document/scope audit. All compiled/runtime rows below are
-future obligations of P4.1--P4.5 and may not be reported as executed by P4.0.
+P4.0 ran only the document/scope audit.  P4.1 now has accepted direct and
+predecessor evidence recorded in `P4.1_CLOSEOUT.md`; P4.2--P4.5 rows remain
+future obligations and may not be reported as executed.
 
 ## 1. Common evidence rules
 
