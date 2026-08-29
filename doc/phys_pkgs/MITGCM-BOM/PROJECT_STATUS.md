@@ -9,29 +9,31 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/phase3-exit-audit` |
-| 当前阶段 PR | PR #30/#31 已顺序以 merge commit 集成；退出记录 PR 待创建 |
-| 当前阶段 | Phase 3：非线性弹簧和分布式邻居（退出记录与发布收尾） |
-| 当前工作包 | final P3-G99 538/538 与独立退出审计 PASS；记录集成和 release-head 复验待完成 |
-| 下一工作包 | 合并退出记录，复跑 final 538/538 与 exit audit，发布并核验 `MITGCM-BOM-v0.4` |
+| 当前任务分支 | `MITGCM-BOM/p4.0-interface-freeze` |
+| 当前阶段 PR | Phase 3 PR #30--#32 已集成；P4.0 仅本地开发，尚未创建 PR |
+| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.0 设计冻结） |
+| 当前工作包 | P4.0 本地完成：冻结提交 `88214b7de`，仓库外文档/范围/参考审计 15/15 PASS |
+| 下一工作包 | P4.0 独立文档/范围审计通过并集成后，开始 P4.1 T/N accepted endpoints 与 Brooks stateless kernel |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取 [Phase 3 阶段记录](PHASE_RECORDS/PHASE-03.md) 和
-   `phase03-springs-neighbors/PHASE3_EXIT_AUDIT.md`；
-2. 核对 PR #30/#31 merge commits `286d1ad59`、`e9eabb041` 和 package
-   heads `38fd1824f`、`4c669cf98` 的顺序祖先关系；
-3. 核对 `e9eabb0418` 上 final P3-G99 538/538 与独立 exit audit 的仓库外
-   evidence roots、row audit、manifest 和 independent-log 哈希；
-4. 推送并审查 `MITGCM-BOM/phase3-exit-audit`，以 merge commit 集成；
-5. 在退出记录 merge commit 上重跑 final P3-G99 538/538 与单独 exit audit；
-6. 两项精确头复验通过后创建并推送 annotated tag `MITGCM-BOM-v0.4`；
-7. 核验本地/远端 tag object、peeled commit、development head 和洁净状态；
-8. 仅在全部核验通过后进入 Phase 4；保持 Ubuntu 22.04、GNU Fortran
-   11.4、OpenMPI 4.1.2 和 Julia 1.10.12 为本地准入基线。
+1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md)、
+   `verification/bom/phase04-biology-land/P4.0_DESIGN_AUDIT.md` 和四份
+   冻结文档；
+2. 核对 branch 包含 immutable freeze
+   `88214b7dee0816ec197691014261a356b7210614` 及其审计账本；
+3. 重跑仓库外 `P4.0_doc_audit.py`，要求精确头 15/15、九个 Markdown
+   allowlist、`pkg/bom`/`model` 和 executable test 零差异；
+4. 核对锁定 Julia checkout 仍洁净且七份文件哈希匹配；
+5. 保持 P4.0 分支不创建 v0.5；
+6. 未经明确授权不推送/创建 PR/合并；
+7. P4.0 集成后从 merge commit 创建
+   `MITGCM-BOM/p4.1-biology-fields`；
+8. P4.1 仅实现 inactive 参数/稳定码、T/N accepted endpoints 和 Brooks
+   stateless/plan，并重跑 exact 538-row predecessor gate。
 
 开始前执行：
 
@@ -49,8 +51,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 0 参考与骨架 | 完成 | v0.1 | PR #1—#6 已集成；P0.5 门禁通过；`MITGCM-BOM-v0.1` 已发布 | [Phase 0](PHASE_RECORDS/PHASE-00.md) |
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
-| Phase 3 弹簧与邻居 | 进行中 | v0.4 | P3.0--P3.3 已集成；P3.4/P3.5 本地完成；候选 538/538；最终集成/退出待执行 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
-| Phase 4 生物与陆地 | 未开始 | v0.5 | 等待 Phase 3 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-4生物过程和陆地) |
+| Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
+| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.0 源码/接口/测试冻结进行中；尚未修改生产 Fortran | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
@@ -290,14 +292,38 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - P2-R01--P2-R18 全部关闭，独立退出审计 PASS、无开放 finding；目标
   服务器 HPC 仍归 Phase 5，不阻塞 P3.0。
 
+### Phase 3 集成、退出与 v0.4 发布
+
+- P3.0--P3.5 通过 PR #26--#31 按依赖顺序以 merge commit 集成；
+- PR #30/P3.4 merge commit 为
+  `286d1ad59dcc826839a3f53a08172c3bf7ea0a73`，PR #31/P3.5 为
+  `e9eabb0418f0119c747bce3ec13092641f664bfc`；
+- Phase 3 退出记录 PR #32 以 merge commit
+  `70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a` 集成；
+- release-head P3-G99 通过 538/538，证据根为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/`
+  `p3-g99-final-70c02a277e-attempt01`；
+- row audit 与 aggregate manifest SHA-256 分别为
+  `14bb14aadf48382e169a325d0bd435f1a7f02f36eec0c8e9a3a36ca5ed8f98f2`
+  和
+  `89a19cda62556e6c30fb537f2be20527ec218fbe8caa9797d9e4ffda2b302b48`；
+- release-head 独立退出审计 PASS，manifest SHA-256 为
+  `6c8281b0761008491128771f8be8b8e7fe9539312eeeceec48c567ef487240d0`；
+- annotated tag `MITGCM-BOM-v0.4` tag object 为
+  `67ac22063a4860e30c504624f1530f853d29f1a2`，peel 到
+  `70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a`，本地/远端均已核验；
+- P3-R01--P3-R18 全部关闭；Phase 5 目标服务器扩展和 Phase 6 一般网格
+  没有被提前宣称。
+
 ## 4. 未决问题与风险
 
 | ID | 风险 | 当前处理 | 阻塞阶段 |
 |---|---|---|---|
 | R-001 | 上游 Julia 提交没有根级 Manifest | 固定重建环境与校验和；B16 fixed-step golden 已通过，保留上游限制记录 | 已裁决，不阻塞 |
 | R-002 | 论文方程与旧 Julia 行为可能不完全一致 | `PAPER2024` 与 `JULIA` 分离实现并通过逐分量/轨迹门禁 | 已关闭 |
-| R-003 | 分布式弹簧邻居复杂度高 | 先建立小规模 gather oracle，再实现 cell-linked list | Phase 3 |
+| R-003 | 分布式弹簧邻居复杂度高 | P3 已用 cell-linked list、ghost 和计数门禁关闭；目标服务器扩展留 Phase 5 | 已关闭 |
 | R-004 | 目标服务器工具链尚未确定 | 本地 GNU/MPI 为基线，服务器 optfile 在 Phase 5 单独建立 | Phase 5 |
+| R-005 | 参考 Julia 出生/陆地行为不满足 MPI 与事件闭合 | P4.0 冻结 Philox、父 ID 全局排序、last-wet 和事务 event 语义 | Phase 4 |
 | R-005 | 一般网格迁移不能直接继承 FLT | Phase 6 后置并建立专门拓扑测试 | Phase 6 |
 | R-006 | GitHub 仓库当前关闭 Issues | 暂用阶段分支、提交和本状态账本记录；启用 Issues 后补建阶段 Issue | 不阻塞源码开发 |
 | R-007 | 固定 Julia 提交的自带测试调用不存在的函数；默认场失败时只警告 | 不修改参考源码；保存失败证据，另建 BOM 解析场和 smoke/golden 测试 | Phase 0/2 |
@@ -918,6 +944,68 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 审计时本地/远端均无 `MITGCM-BOM-v0.4`，未涉及 SKRIPS；
 - 下一任务是合并退出记录 PR，在新的 release head 重跑 final 538/538 和
   exit audit，随后创建、推送并 peel 核验 annotated v0.4 tag。
+
+### 2026-08-29：Phase 3 退出记录集成、release-head 复验与 v0.4
+
+- Phase 3 退出记录 PR #32 已以 merge commit
+  `70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a` 合并到
+  `MITGCM-BOM/development`；
+- 该 release head 上 P3-G99 再次通过 538/538；evidence root 为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/`
+  `p3-g99-final-70c02a277e-attempt01`；
+- row audit、aggregate manifest 和 independent audit log SHA-256 分别为
+  `14bb14aadf48382e169a325d0bd435f1a7f02f36eec0c8e9a3a36ca5ed8f98f2`、
+  `89a19cda62556e6c30fb537f2be20527ec218fbe8caa9797d9e4ffda2b302b48`
+  和
+  `de2b86d41dbe0a4dee885c1af44040cdbfce7f5d3ad27b5aef32dad74af60981`；
+- 同一头独立退出审计 PASS；evidence root 为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/phase3-exit-audit/`
+  `phase3-exit-70c02a277e-attempt01`，manifest 为
+  `6c8281b0761008491128771f8be8b8e7fe9539312eeeceec48c567ef487240d0`；
+- annotated tag `MITGCM-BOM-v0.4` 已创建并推送；tag object
+  `67ac22063a4860e30c504624f1530f853d29f1a2` 精确 peel 到 release head；
+- development、本地/远端 tag 和工作树均完成一致性核验，Phase 3 正式完成。
+
+### 2026-08-29：Phase 4 准入与 P4.0 冻结候选
+
+- 从 v0.4 peeled commit 创建本地分支
+  `MITGCM-BOM/p4.0-interface-freeze`；
+- 只读审计锁定 Julia 的 growth-death、control、land、main、
+  rafts-clumps 与 Project/Manifest，checkout 洁净且固定在
+  `156557359185e4413ce82829f3ed26a4eb8c6283`；
+- 确认 Brooks 公式可作为对照，但全局 RNG、adaptive callback、只增不复用
+  slot、容量截断、land 与 death 合并等行为禁止照搬；
+- P4 冻结 accepted T/N endpoints、显式温度端点/N clamp、严格阈值、
+  compact-tail free stack、last-wet terminal scratch、Philox4x32-10、
+  父 ID 全局出生排序、packet schema 3、container/pickup schema 4 和事件预算；
+- 建立 P4-A--P4-L、P4-D001--P4-D028、P4-R01--P4-R20 与
+  B11--B15/B17--B19/P4-G99 工作包矩阵；
+- P4.0 只允许冻结 Markdown；不修改生产 Fortran、测试 driver、input、
+  locked reference 或生成证据；
+- P4.0 审计完成前不推送、不创建 PR、不合并、不创建 v0.5；
+- P4.0 集成后的唯一生产任务是 P4.1 T/N accepted endpoints 与 Brooks
+  stateless/plan，不提前改变 owner 数或实现出生/事件 I/O。
+
+### 2026-08-29：P4.0 不可变冻结与独立审计完成
+
+- 不可变冻结提交为
+  `88214b7dee0816ec197691014261a356b7210614`，tree 为
+  `c157d254aa68e643fd6c30ca405577fd26bdbc94`，作者为
+  `WangYuLin <wang111936@outlook.com>`；
+- 相对 v0.4 精确改变八个 Markdown，共 1810 insertions、63 deletions；
+  `pkg/bom`、`model`、executable test、input、reference 和生成证据
+  均无差异；
+- 仓库外只读审计核对 changed-path、Markdown、生产零差异、diff whitespace、
+  项目隔离、P4-R01--R20、P4-D001--D028、P4-A--L、测试 ID、核心契约、
+  链接、v0.4 tag/peel、Julia commit/洁净状态与七份哈希，最终
+  `P4.0_DOC_AUDIT PASS 15/15`；
+- 初次审计器只登记 14 项且全部通过，但测试计划要求独立生产/测试零差异
+  断言；仅修复仓库外审计器后在同一 immutable commit 重跑 15/15，冻结
+  仓库内容未变；
+- P4.0 标记本地完成，无开放 design/scope finding；尚未推送、未创建 PR、
+  未合并，也未创建 v0.5；
+- P4.0 经明确授权集成后，唯一生产任务为 P4.1 T/N accepted endpoints、
+  exact-time sampling、missing policy 与 Brooks stateless/plan。
 
 ## 6. 每次会话结束时必须更新
 
