@@ -1,7 +1,6 @@
 # MITGCM-BOM Phase 4 biology, land and events
 
-Status: **P4.0 INTERFACE FREEZE IN PROGRESS; PRODUCTION IMPLEMENTATION NOT
-STARTED**
+Status: **P4.0 LOCALLY COMPLETE; PRODUCTION IMPLEMENTATION NOT STARTED**
 
 Phase 4 adds temperature/nutrient-driven Brooks amount, distinct terminal
 events, deterministic births, reusable compact owner slots, event diagnostics
@@ -28,14 +27,14 @@ release is MITGCM-BOM-v0.5.
 - [requirements traceability](REQUIREMENTS_TRACEABILITY.md) maps
   P4-R01--P4-R20 to production owners and executable evidence;
 - [test plan](TEST_PLAN.md) freezes B11--B15/B17--B19 and P4-G99 gates;
-- P4.0_DESIGN_AUDIT.md will record the immutable executable document/scope
-  audit after the freeze commit exists.
+- [P4.0 design audit](P4.0_DESIGN_AUDIT.md) records the immutable 15/15
+  executable document/scope/reference audit.
 
 ## Work packages
 
 | Package | Scope | Required closeout | State |
 |---|---|---|---|
-| P4.0 | source/design/interface/test freeze | 15/15 document/scope audit; no production diff | in progress |
+| P4.0 | source/design/interface/test freeze | 15/15 document/scope audit; no production diff | locally complete |
 | P4.1 | parameters/codes, accepted T/N endpoints, stateless Brooks | P4-Z01/C01/E01/E02/B01 and B12; exact 538 predecessor | not started |
 | P4.2 | boundary scratch, terminal state machine, compact-tail free stack | P4-L01/F01/T01, B11 and death/free-stack B13 | not started |
 | P4.3 | Philox, retry, global birth order/IDs, packet schema 3, graph integration | P4-RNG01/BR01/ID01/M01, B13/B14/B17 | not started |

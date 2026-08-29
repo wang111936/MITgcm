@@ -86,7 +86,7 @@ S<Smin、S>Smax 事件。出生成功时父/子设 S0；全部湿点重试失败
 
 | 工作包 | 内容 | 状态 | 退出门禁 |
 |---|---|---|---|
-| P4.0 | 源码审计、接口/编号/schema/RNG/测试冻结 | 进行中 | 文档/范围审计 15/15；生产 diff 为零 |
+| P4.0 | 源码审计、接口/编号/schema/RNG/测试冻结 | 本地完成 | 文档/范围审计 15/15；生产 diff 为零 |
 | P4.1 | 参数/稳定码、T/N 端点、Brooks stateless kernel | 未开始 | P4-Z01/C01/E01/E02/B01、B12、前序 538 |
 | P4.2 | boundary scratch、terminal state machine、compact-tail free stack | 未开始 | P4-L01/F01/T01、B11、B13 death/free |
 | P4.3 | Philox、重试、全局出生 ID、packet schema 3、graph integration | 未开始 | P4-RNG01/BR01/ID01/M01、B13/B14/B17 |
@@ -119,9 +119,11 @@ RNG、出生 ID、容量、迁移、schema 4、restart、诊断、MPI 与最终�
 - EXCH2、cubed-sphere、LLC 和一般网格归 Phase 6；
 - Phase 4 不向海洋动量、温度或营养盐反馈。
 
-## 7. P4.0 完成条件
+## 7. P4.0 完成结果
 
-P4.0 只有同时满足以下条件才可标记完成：
+不可变冻结提交
+`88214b7dee0816ec197691014261a356b7210614`（tree
+`c157d254aa68e643fd6c30ca405577fd26bdbc94`）满足：
 
 1. branch 精确基于 v0.4 peeled commit；
 2. 锁定 Julia 提交与七份文件哈希复核通过；
@@ -129,12 +131,14 @@ P4.0 只有同时满足以下条件才可标记完成：
 4. P4-D001--P4-D028、P4-R01--P4-R20 顺序完整；
 5. B11--B15、B17--B19 与 P4-G99 均已登记；
 6. 所有相对链接有效；
-7. 仅 allowlist Markdown 发生变化；
+7. 仅八个 allowlist Markdown 发生变化；
 8. pkg/bom、model、测试 driver、input、reference 和生成证据 diff 为零；
-9. 外部只读审计返回 15/15；
+9. 仓库外只读审计返回 `P4.0_DOC_AUDIT PASS 15/15`；
 10. 项目状态把 P4.1 标为唯一下一生产任务。
 
 P4.0 不运行或宣称任何已实现的 Phase 4 Fortran 功能测试。
+详细证据见
+[P4.0 design audit](../../../../verification/bom/phase04-biology-land/P4.0_DESIGN_AUDIT.md)。
 
 ## 8. 当前恢复点
 

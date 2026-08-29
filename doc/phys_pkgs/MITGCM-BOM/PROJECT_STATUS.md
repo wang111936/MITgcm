@@ -12,7 +12,7 @@
 | 当前任务分支 | `MITGCM-BOM/p4.0-interface-freeze` |
 | 当前阶段 PR | Phase 3 PR #30--#32 已集成；P4.0 仅本地开发，尚未创建 PR |
 | 当前阶段 | Phase 4：生物过程、陆地与事件（P4.0 设计冻结） |
-| 当前工作包 | P4.0：源码差异、T/N、Brooks、状态机/free stack、确定性出生、schema 4 与测试冻结 |
+| 当前工作包 | P4.0 本地完成：冻结提交 `88214b7de`，仓库外文档/范围/参考审计 15/15 PASS |
 | 下一工作包 | P4.0 独立文档/范围审计通过并集成后，开始 P4.1 T/N accepted endpoints 与 Brooks stateless kernel |
 | 当前阻塞 | 无 |
 
@@ -20,19 +20,20 @@
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md) 和
-   `verification/bom/phase04-biology-land/` 下四份冻结文档；
-2. 核对 v0.4 tag object `67ac22063a4860e30c504624f1530f853d29f1a2`
-   peel 到 `70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a`；
-3. 核对锁定 Julia checkout 为洁净 detached commit
-   `156557359185e4413ce82829f3ed26a4eb8c6283` 且 P4 相关源码哈希匹配；
-4. 完成 P4-R01--P4-R20、P4-D001--P4-D028、P4-A--P4-L 和
-   B11--B15/B17--B19/P4-G99 的只读审计；
-5. 确认相对链接、Markdown allowlist、`pkg/bom`/`model` 零差异和
-   项目隔离扫描通过；
-6. 把 P4.0 immutable commit 与审计结果写入 P4.0_DESIGN_AUDIT.md；
-7. 在 P4.0 精确头重跑 15/15 文档/范围审计并保持工作树洁净；
-8. 未经明确授权不推送/创建 PR/合并；P4.0 集成后才创建 P4.1 分支。
+1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md)、
+   `verification/bom/phase04-biology-land/P4.0_DESIGN_AUDIT.md` 和四份
+   冻结文档；
+2. 核对 branch 包含 immutable freeze
+   `88214b7dee0816ec197691014261a356b7210614` 及其审计账本；
+3. 重跑仓库外 `P4.0_doc_audit.py`，要求精确头 15/15、九个 Markdown
+   allowlist、`pkg/bom`/`model` 和 executable test 零差异；
+4. 核对锁定 Julia checkout 仍洁净且七份文件哈希匹配；
+5. 保持 P4.0 分支不创建 v0.5；
+6. 未经明确授权不推送/创建 PR/合并；
+7. P4.0 集成后从 merge commit 创建
+   `MITGCM-BOM/p4.1-biology-fields`；
+8. P4.1 仅实现 inactive 参数/稳定码、T/N accepted endpoints 和 Brooks
+   stateless/plan，并重跑 exact 538-row predecessor gate。
 
 开始前执行：
 
@@ -984,6 +985,27 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - P4.0 审计完成前不推送、不创建 PR、不合并、不创建 v0.5；
 - P4.0 集成后的唯一生产任务是 P4.1 T/N accepted endpoints 与 Brooks
   stateless/plan，不提前改变 owner 数或实现出生/事件 I/O。
+
+### 2026-08-29：P4.0 不可变冻结与独立审计完成
+
+- 不可变冻结提交为
+  `88214b7dee0816ec197691014261a356b7210614`，tree 为
+  `c157d254aa68e643fd6c30ca405577fd26bdbc94`，作者为
+  `WangYuLin <wang111936@outlook.com>`；
+- 相对 v0.4 精确改变八个 Markdown，共 1810 insertions、63 deletions；
+  `pkg/bom`、`model`、executable test、input、reference 和生成证据
+  均无差异；
+- 仓库外只读审计核对 changed-path、Markdown、生产零差异、diff whitespace、
+  项目隔离、P4-R01--R20、P4-D001--D028、P4-A--L、测试 ID、核心契约、
+  链接、v0.4 tag/peel、Julia commit/洁净状态与七份哈希，最终
+  `P4.0_DOC_AUDIT PASS 15/15`；
+- 初次审计器只登记 14 项且全部通过，但测试计划要求独立生产/测试零差异
+  断言；仅修复仓库外审计器后在同一 immutable commit 重跑 15/15，冻结
+  仓库内容未变；
+- P4.0 标记本地完成，无开放 design/scope finding；尚未推送、未创建 PR、
+  未合并，也未创建 v0.5；
+- P4.0 经明确授权集成后，唯一生产任务为 P4.1 T/N accepted endpoints、
+  exact-time sampling、missing policy 与 Brooks stateless/plan。
 
 ## 6. 每次会话结束时必须更新
 
