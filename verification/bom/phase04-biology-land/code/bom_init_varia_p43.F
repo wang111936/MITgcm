@@ -25,6 +25,8 @@ CEOP
         CALL BOM_VERIFY_P43_RNG( myThid )
       ELSEIF ( the_run_name.EQ.'P43-BIRTH' ) THEN
         CALL BOM_VERIFY_P43_BIRTH( myThid )
+      ELSEIF ( the_run_name.EQ.'P43-EVENT' ) THEN
+        CALL BOM_VERIFY_P43_EVENT( myThid )
       ENDIF
 #endif
 
