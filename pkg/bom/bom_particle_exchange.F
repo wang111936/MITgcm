@@ -61,9 +61,11 @@ C !LOCAL VARIABLES:
       _RL recvReal(bomPacketReals,bomMaxExchange)
       INTEGER workCount(nSx,nSy)
       INTEGER workStatus(bomMaxPartTile,nSx,nSy)
+      INTEGER workBirthCount(bomMaxPartTile,nSx,nSy)
       INTEGER workNeighbor(bomMaxPartTile,nSx,nSy)
       INTEGER workRaftSize(bomMaxPartTile,nSx,nSy)
       INTEGER*8 workId(bomMaxPartTile,nSx,nSy)
+      INTEGER*8 workParentId(bomMaxPartTile,nSx,nSy)
       INTEGER*8 workRaftId(bomMaxPartTile,nSx,nSy)
       _RL workX(bomMaxPartTile,nSx,nSy)
       _RL workY(bomMaxPartTile,nSx,nSy)
@@ -77,17 +79,20 @@ C !LOCAL VARIABLES:
       _RL workWindNorth(bomMaxPartTile,nSx,nSy)
       _RL workDriftEast(bomMaxPartTile,nSx,nSy)
       _RL workDriftNorth(bomMaxPartTile,nSx,nSy)
+      _RL workS(bomMaxPartTile,nSx,nSy)
       _RL workSpringEast(bomMaxPartTile,nSx,nSy)
       _RL workSpringNorth(bomMaxPartTile,nSx,nSy)
       _RL workRhsDiag(
      &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       LOGICAL workRefresh(bomMaxPartTile,nSx,nSy)
       INTEGER*8 idRadix, idHi8, idLo8, recvId, keyId
+      INTEGER*8 keyParentId
       INTEGER*8 raftHi8, raftLo8, recvRaftId, keyRaftId
-      INTEGER keyStatus, keyNeighbor, keyRaftSize
+      INTEGER keyStatus, keyBirthCount, keyNeighbor, keyRaftSize
       _RL keyX, keyY, keyRelease, keyAge, keyI, keyJ
       _RL keyVEast, keyVNorth, keyWindEast, keyWindNorth
       _RL keyDriftEast, keyDriftNorth
+      _RL keyS
       _RL keySpringEast, keySpringNorth
       _RL keyRhsDiag(BOM_RHS_NDIAG)
       LOGICAL keyRefresh, locateValid, rhsOwner, rhsValid
@@ -444,7 +449,9 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
         workCount(bi,bj) = 0
         DO ip=1,bomMaxPartTile
           workId(ip,bi,bj) = 0_8
+          workParentId(ip,bi,bj) = 0_8
           workStatus(ip,bi,bj) = BOM_UNUSED
+          workBirthCount(ip,bi,bj) = 0
           workX(ip,bi,bj) = 0. _d 0
           workY(ip,bi,bj) = 0. _d 0
           workRelease(ip,bi,bj) = 0. _d 0
@@ -457,6 +464,7 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
           workWindNorth(ip,bi,bj) = 0. _d 0
           workDriftEast(ip,bi,bj) = 0. _d 0
           workDriftNorth(ip,bi,bj) = 0. _d 0
+          workS(ip,bi,bj) = 0. _d 0
           workSpringEast(ip,bi,bj) = 0. _d 0
           workSpringNorth(ip,bi,bj) = 0. _d 0
           workNeighbor(ip,bi,bj) = 0
@@ -479,7 +487,11 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
             workCount(jp,slot) = workCount(jp,slot) + 1
             rankIndex = workCount(jp,slot)
             workId(rankIndex,jp,slot) = bomId(ip,bi,bj)
+            workParentId(rankIndex,jp,slot) =
+     &           bomParentId(ip,bi,bj)
             workStatus(rankIndex,jp,slot) = bomStatus(ip,bi,bj)
+            workBirthCount(rankIndex,jp,slot) =
+     &           bomBirthCount(ip,bi,bj)
             workX(rankIndex,jp,slot) = planX(ip,bi,bj)
             workY(rankIndex,jp,slot) = planY(ip,bi,bj)
             workRelease(rankIndex,jp,slot) =
@@ -497,6 +509,7 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
      &           bomDriftEast(ip,bi,bj)
             workDriftNorth(rankIndex,jp,slot) =
      &           bomDriftNorth(ip,bi,bj)
+            workS(rankIndex,jp,slot) = bomS(ip,bi,bj)
             workSpringEast(rankIndex,jp,slot) =
      &           bomSpringEast(ip,bi,bj)
             workSpringNorth(rankIndex,jp,slot) =
@@ -528,7 +541,13 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
         idLo8 = INT(recvInt(3,packetIndex),8)
         IF ( idLo8.LT.0_8 ) idLo8 = idLo8 + idRadix
         workId(slot,bi,bj) = idHi8*idRadix + idLo8
+C--     Schema 2 has no biology sidecar.  P4.2 permits remote migration only
+C       for land-only tracking, whose initial parent/count/S defaults are
+C       reproduced here.  Schema 3 will carry the complete state in P4.3.
+        workParentId(slot,bi,bj) = 0_8
         workStatus(slot,bi,bj) = recvInt(4,packetIndex)
+        workBirthCount(slot,bi,bj) = 0
+        workS(slot,bi,bj) = bomS0
         workX(slot,bi,bj) = recvReal(1,packetIndex)
         workY(slot,bi,bj) = recvReal(2,packetIndex)
         workRelease(slot,bi,bj) = recvReal(3,packetIndex)
@@ -549,7 +568,9 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
        DO bi=1,nSx
         DO ip=2,workCount(bi,bj)
           keyId = workId(ip,bi,bj)
+          keyParentId = workParentId(ip,bi,bj)
           keyStatus = workStatus(ip,bi,bj)
+          keyBirthCount = workBirthCount(ip,bi,bj)
           keyX = workX(ip,bi,bj)
           keyY = workY(ip,bi,bj)
           keyRelease = workRelease(ip,bi,bj)
@@ -562,6 +583,7 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
           keyWindNorth = workWindNorth(ip,bi,bj)
           keyDriftEast = workDriftEast(ip,bi,bj)
           keyDriftNorth = workDriftNorth(ip,bi,bj)
+          keyS = workS(ip,bi,bj)
           keySpringEast = workSpringEast(ip,bi,bj)
           keySpringNorth = workSpringNorth(ip,bi,bj)
           keyNeighbor = workNeighbor(ip,bi,bj)
@@ -575,7 +597,10 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
           DO WHILE ( jp.GE.1 )
             IF ( workId(jp,bi,bj).LE.keyId ) GOTO 110
             workId(jp+1,bi,bj) = workId(jp,bi,bj)
+            workParentId(jp+1,bi,bj) = workParentId(jp,bi,bj)
             workStatus(jp+1,bi,bj) = workStatus(jp,bi,bj)
+            workBirthCount(jp+1,bi,bj) =
+     &           workBirthCount(jp,bi,bj)
             workX(jp+1,bi,bj) = workX(jp,bi,bj)
             workY(jp+1,bi,bj) = workY(jp,bi,bj)
             workRelease(jp+1,bi,bj) = workRelease(jp,bi,bj)
@@ -588,6 +613,7 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
             workWindNorth(jp+1,bi,bj) = workWindNorth(jp,bi,bj)
             workDriftEast(jp+1,bi,bj) = workDriftEast(jp,bi,bj)
             workDriftNorth(jp+1,bi,bj) = workDriftNorth(jp,bi,bj)
+            workS(jp+1,bi,bj) = workS(jp,bi,bj)
             workSpringEast(jp+1,bi,bj) =
      &           workSpringEast(jp,bi,bj)
             workSpringNorth(jp+1,bi,bj) =
@@ -604,7 +630,9 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
           ENDDO
   110     CONTINUE
           workId(jp+1,bi,bj) = keyId
+          workParentId(jp+1,bi,bj) = keyParentId
           workStatus(jp+1,bi,bj) = keyStatus
+          workBirthCount(jp+1,bi,bj) = keyBirthCount
           workX(jp+1,bi,bj) = keyX
           workY(jp+1,bi,bj) = keyY
           workRelease(jp+1,bi,bj) = keyRelease
@@ -617,6 +645,7 @@ C--   Deterministic insertion sort by full positive INTEGER*8 ID.
           workWindNorth(jp+1,bi,bj) = keyWindNorth
           workDriftEast(jp+1,bi,bj) = keyDriftEast
           workDriftNorth(jp+1,bi,bj) = keyDriftNorth
+          workS(jp+1,bi,bj) = keyS
           workSpringEast(jp+1,bi,bj) = keySpringEast
           workSpringNorth(jp+1,bi,bj) = keySpringNorth
           workNeighbor(jp+1,bi,bj) = keyNeighbor
@@ -730,7 +759,9 @@ C--   The only authoritative topology write in this routine.
         bomNPartTile(bi,bj) = workCount(bi,bj)
         DO ip=1,bomMaxPartTile
           bomId(ip,bi,bj) = workId(ip,bi,bj)
+          bomParentId(ip,bi,bj) = workParentId(ip,bi,bj)
           bomStatus(ip,bi,bj) = workStatus(ip,bi,bj)
+          bomBirthCount(ip,bi,bj) = workBirthCount(ip,bi,bj)
           bomX(ip,bi,bj) = workX(ip,bi,bj)
           bomY(ip,bi,bj) = workY(ip,bi,bj)
           bomReleaseTime(ip,bi,bj) = workRelease(ip,bi,bj)
@@ -743,6 +774,7 @@ C--   The only authoritative topology write in this routine.
           bomWindNorth(ip,bi,bj) = workWindNorth(ip,bi,bj)
           bomDriftEast(ip,bi,bj) = workDriftEast(ip,bi,bj)
           bomDriftNorth(ip,bi,bj) = workDriftNorth(ip,bi,bj)
+          bomS(ip,bi,bj) = workS(ip,bi,bj)
           bomSpringEast(ip,bi,bj) = workSpringEast(ip,bi,bj)
           bomSpringNorth(ip,bi,bj) = workSpringNorth(ip,bi,bj)
           bomNeighborCount(ip,bi,bj) = workNeighbor(ip,bi,bj)

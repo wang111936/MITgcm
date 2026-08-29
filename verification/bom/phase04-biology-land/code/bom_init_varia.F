@@ -7,7 +7,7 @@ C !INTERFACE:
       SUBROUTINE BOM_INIT_VARIA( myThid )
 
 C !DESCRIPTION:
-C     Test-only P4.1 direct-gate dispatcher.
+C     Test-only Phase-4 direct-gate dispatcher.
 
       IMPLICIT NONE
 #include "SIZE.h"
@@ -27,6 +27,11 @@ CEOP
         CALL BOM_VERIFY_P41_BROOKS( myThid )
       ELSEIF ( the_run_name.EQ.'P41-FILES' ) THEN
         CALL BOM_VERIFY_P41_ENDPOINTS( .TRUE., myThid )
+      ELSEIF ( the_run_name.EQ.'P42-CORE' ) THEN
+        CALL BOM_VERIFY_P42_BOUNDARY( myThid )
+        CALL BOM_VERIFY_P42_FREE_STACK( myThid )
+        CALL BOM_VERIFY_P42_TRANSACTION( myThid )
+        CALL BOM_VERIFY_P42_RK_BOUNDARY( myThid )
       ENDIF
 #endif
 

@@ -269,6 +269,17 @@ C     immutable event plans only; later work packages own their commit.
       PARAMETER ( BOM_EVENT_OUTSIDE      = 4 )
       PARAMETER ( BOM_EVENT_BIRTH_CANCEL = 5 )
 
+C--   Internal boundary-classification values.  These are deliberately
+C     separate from persistent status and event codes.
+      INTEGER BOM_BOUNDARY_FATAL
+      INTEGER BOM_BOUNDARY_WET
+      INTEGER BOM_BOUNDARY_BEACHED
+      INTEGER BOM_BOUNDARY_OUTSIDE
+      PARAMETER ( BOM_BOUNDARY_FATAL   = 0 )
+      PARAMETER ( BOM_BOUNDARY_WET     = 1 )
+      PARAMETER ( BOM_BOUNDARY_BEACHED = 2 )
+      PARAMETER ( BOM_BOUNDARY_OUTSIDE = 3 )
+
       INTEGER BOM_P4_PHASE_NONE
       INTEGER BOM_P4_PHASE_ENDPOINT
       INTEGER BOM_P4_PHASE_BOUNDARY
@@ -356,14 +367,28 @@ C     in the particle-stage wrapper introduced in P2.4.
 
 C--   Valid owner records occupy slots 1:bomNPartTile on each tile.
 C     bomNPartExpected is the immutable successful initial owner budget.
+C     bomNPartLiveExpected is the current global compact-owner budget.
       INTEGER bomNPartTile(nSx,nSy)
       INTEGER bomStatus(bomMaxPartTile,nSx,nSy)
+      INTEGER bomBirthCount(bomMaxPartTile,nSx,nSy)
+      INTEGER bomFreeCount(nSx,nSy)
+      INTEGER bomFreeStack(bomMaxPartTile,nSx,nSy)
       INTEGER bomNPartExpected
+      INTEGER bomNPartLiveExpected
       COMMON /BOM_STATE_I/
-     &       bomNPartTile, bomStatus, bomNPartExpected
+     &       bomNPartTile, bomStatus, bomBirthCount,
+     &       bomFreeCount, bomFreeStack, bomNPartExpected,
+     &       bomNPartLiveExpected
 
       INTEGER*8 bomId(bomMaxPartTile,nSx,nSy)
-      COMMON /BOM_STATE_I8/ bomId
+      INTEGER*8 bomParentId(bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_STATE_I8/ bomId, bomParentId
+
+      INTEGER*8 bomFreeRebuildOps
+      INTEGER*8 bomFreeRemoveOps
+      INTEGER*8 bomFreeAllocOps
+      COMMON /BOM_P4_FREE_I8/
+     &       bomFreeRebuildOps, bomFreeRemoveOps, bomFreeAllocOps
 
       _RL bomX(bomMaxPartTile,nSx,nSy)
       _RL bomY(bomMaxPartTile,nSx,nSy)
@@ -377,10 +402,89 @@ C     bomNPartExpected is the immutable successful initial owner budget.
       _RL bomWindNorth(bomMaxPartTile,nSx,nSy)
       _RL bomDriftEast(bomMaxPartTile,nSx,nSy)
       _RL bomDriftNorth(bomMaxPartTile,nSx,nSy)
+      _RL bomS(bomMaxPartTile,nSx,nSy)
       COMMON /BOM_STATE_R/
      &       bomX, bomY, bomReleaseTime, bomAge, bomI, bomJ,
      &       bomVEast, bomVNorth, bomWindEast, bomWindNorth,
-     &       bomDriftEast, bomDriftNorth
+     &       bomDriftEast, bomDriftNorth, bomS
+
+C--   Boundary candidates remain scratch until the post-migration event
+C     transaction binds the exact ID and commits every terminal together.
+      INTEGER bomTerminalType(bomMaxPartTile,nSx,nSy)
+      INTEGER bomTerminalStage(bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_P4_TERMINAL_I/
+     &       bomTerminalType, bomTerminalStage
+
+      INTEGER*8 bomTerminalId(bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_P4_TERMINAL_I8/ bomTerminalId
+
+      _RL bomTerminalAcceptedX(bomMaxPartTile,nSx,nSy)
+      _RL bomTerminalAcceptedY(bomMaxPartTile,nSx,nSy)
+      _RL bomTerminalAttemptX(bomMaxPartTile,nSx,nSy)
+      _RL bomTerminalAttemptY(bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_P4_TERMINAL_R/
+     &       bomTerminalAcceptedX, bomTerminalAcceptedY,
+     &       bomTerminalAttemptX, bomTerminalAttemptY
+
+      LOGICAL bomTerminalReady(bomMaxPartTile,nSx,nSy)
+      COMMON /BOM_P4_TERMINAL_L/ bomTerminalReady
+
+C--   Accepted in-memory event records.  P4.2 fills terminal records only;
+C     P4.4 owns shard I/O and pickup persistence.
+      INTEGER bomEventBufferCount
+      INTEGER bomEventTypeBuffer(bomMaxEventBuffer)
+      INTEGER bomEventStageBuffer(bomMaxEventBuffer)
+      INTEGER bomEventOldStatusBuffer(bomMaxEventBuffer)
+      INTEGER bomEventNewStatusBuffer(bomMaxEventBuffer)
+      INTEGER bomEventIterBuffer(bomMaxEventBuffer)
+      INTEGER bomEventSubstepBuffer(bomMaxEventBuffer)
+      INTEGER bomEventSourceRankBuffer(bomMaxEventBuffer)
+      INTEGER bomEventSourceBiBuffer(bomMaxEventBuffer)
+      INTEGER bomEventSourceBjBuffer(bomMaxEventBuffer)
+      INTEGER bomEventDestRankBuffer(bomMaxEventBuffer)
+      INTEGER bomEventDestBiBuffer(bomMaxEventBuffer)
+      INTEGER bomEventDestBjBuffer(bomMaxEventBuffer)
+      INTEGER bomEventRetryBuffer(bomMaxEventBuffer)
+      COMMON /BOM_P4_EVENT_I/
+     &       bomEventBufferCount, bomEventTypeBuffer,
+     &       bomEventStageBuffer, bomEventOldStatusBuffer,
+     &       bomEventNewStatusBuffer, bomEventIterBuffer,
+     &       bomEventSubstepBuffer, bomEventSourceRankBuffer,
+     &       bomEventSourceBiBuffer, bomEventSourceBjBuffer,
+     &       bomEventDestRankBuffer, bomEventDestBiBuffer,
+     &       bomEventDestBjBuffer, bomEventRetryBuffer
+
+      INTEGER*8 bomNextId
+      INTEGER*8 bomEventTimeIndex
+      INTEGER*8 bomBirthEvents
+      INTEGER*8 bomDeathEvents
+      INTEGER*8 bomBeachEvents
+      INTEGER*8 bomOutsideEvents
+      INTEGER*8 bomCancelEvents
+      INTEGER*8 bomEventIndexBuffer(bomMaxEventBuffer)
+      INTEGER*8 bomEventSubjectIdBuffer(bomMaxEventBuffer)
+      INTEGER*8 bomEventParentIdBuffer(bomMaxEventBuffer)
+      INTEGER*8 bomEventChildIdBuffer(bomMaxEventBuffer)
+      COMMON /BOM_P4_EVENT_I8/
+     &       bomNextId, bomEventTimeIndex,
+     &       bomBirthEvents, bomDeathEvents, bomBeachEvents,
+     &       bomOutsideEvents, bomCancelEvents,
+     &       bomEventIndexBuffer, bomEventSubjectIdBuffer,
+     &       bomEventParentIdBuffer, bomEventChildIdBuffer
+
+      _RL bomEventTimeBuffer(bomMaxEventBuffer)
+      _RL bomEventAcceptedXBuffer(bomMaxEventBuffer)
+      _RL bomEventAcceptedYBuffer(bomMaxEventBuffer)
+      _RL bomEventAttemptXBuffer(bomMaxEventBuffer)
+      _RL bomEventAttemptYBuffer(bomMaxEventBuffer)
+      _RL bomEventSBeforeBuffer(bomMaxEventBuffer)
+      _RL bomEventSTrialBuffer(bomMaxEventBuffer)
+      _RL bomEventSAfterBuffer(bomMaxEventBuffer)
+      COMMON /BOM_P4_EVENT_R/
+     &       bomEventTimeBuffer, bomEventAcceptedXBuffer,
+     &       bomEventAcceptedYBuffer, bomEventAttemptXBuffer,
+     &       bomEventAttemptYBuffer, bomEventSBeforeBuffer,
+     &       bomEventSTrialBuffer, bomEventSAfterBuffer
 
 C--   Phase-2 accepted final-position diagnostic vector.  P2.5 persists all
 C     components in versioned BOM trajectory and pickup schema-2 records.

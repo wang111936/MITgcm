@@ -43,13 +43,14 @@ C !LOCAL VARIABLES:
       INTEGER nAliveLocal, nAliveGlobal
       INTEGER nWaitingLocal, nWaitingGlobal
       INTEGER nFoundLocal, statusValue
-      INTEGER errCount, globalErrCount, idError, k
+      INTEGER errCount, globalErrCount, idError, k, freeFailCode
       INTEGER metaFilePrec, metaNDims, metaNFlds, metaNTimRec
       INTEGER metaDimList(3,3), metaNRecords, metaFileIter, prefixLen
       INTEGER*8 dataFileBytes, expectedFileBytes
       _RL ix, jy, ownerIx, ownerJy
       _RL metaTimList(1), metaMissingValue
       LOGICAL isLocal, isWet, recordValid, headerFinite, ownerWet
+      LOGICAL freeValid
       LOGICAL useCurrentDir, dataFileExists
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       CHARACTER*(MAX_LEN_MBUF) metaSimulation, metaTitle
@@ -481,6 +482,7 @@ C     INTEGER*8 so the check remains safe beyond the P1.1 verification cap.
 
       _BEGIN_MASTER(myThid)
       bomNPartExpected = nInput
+      bomNPartLiveExpected = nInput
       IF ( myProcId.EQ.0 ) THEN
         WRITE(msgBuf,'(A,4(A,I8))')
      &       'BOM_READ_INITIAL: complete',
@@ -493,6 +495,22 @@ C     INTEGER*8 so the check remains safe beyond the P1.1 verification cap.
       ENDIF
       _END_MASTER(myThid)
       _BARRIER
+
+C--   The compact-tail free stack is derived only after the complete
+C     initial owner transaction has succeeded.
+      errCount = 0
+      DO bj=myByLo(myThid),myByHi(myThid)
+       DO bi=myBxLo(myThid),myBxHi(myThid)
+        CALL BOM_FREE_INIT(bi,bj,freeFailCode,freeValid)
+        IF ( .NOT.freeValid ) errCount=errCount+1
+       ENDDO
+      ENDDO
+      globalErrCount = errCount
+      CALL GLOBAL_SUM_INT(globalErrCount,myThid)
+      IF ( globalErrCount.GT.0 ) THEN
+        CALL ALL_PROC_DIE(0)
+        STOP 'ABNORMAL END: BOM_READ_INITIAL FREE STACK'
+      ENDIF
  1000 FORMAT(A,I20,A,I6,A,2I4,A,I3,A,2F24.16,
      &       A,2F24.16,A,2F24.16)
 #endif

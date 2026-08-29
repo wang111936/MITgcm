@@ -52,9 +52,10 @@ C       overflow when xx is a very large but finite equivalent longitude.
      &       ABS(xResid).GT.HUGE(xResid) .OR.
      &       xLoResid.NE.xLoResid .OR.
      &       ABS(xLoResid).GT.HUGE(xLoResid) ) RETURN
-        xDelta = xResid - xLoResid
+        xDelta = MOD(xResid-xLoResid,bomMapXPeriod)
         IF ( xDelta.NE.xDelta .OR.
      &       ABS(xDelta).GT.HUGE(xDelta) ) RETURN
+        IF ( xDelta.LT.0. _d 0 ) xDelta=xDelta+bomMapXPeriod
         xMap = bomMapXLo + xDelta
         IF ( xMap.NE.xMap .OR. ABS(xMap).GT.HUGE(xMap) ) THEN
           xMap = xx

@@ -27,7 +27,7 @@ CEOP
 C !LOCAL VARIABLES:
       INTEGER bi, bj, i, j, ip, ig, iEnd, iSource, iComponent
       INTEGER iOwner
-      INTEGER iDiag
+      INTEGER iDiag, iEvent
 
       _BEGIN_MASTER(myThid)
       bomFieldsReady = .FALSE.
@@ -36,6 +36,18 @@ C !LOCAL VARIABLES:
       bomFieldIter = 0
       bomWindFieldIter = 0
       bomNPartExpected = 0
+      bomNPartLiveExpected = 0
+      bomFreeRebuildOps = 0_8
+      bomFreeRemoveOps = 0_8
+      bomFreeAllocOps = 0_8
+      bomNextId = 1_8
+      bomEventTimeIndex = 0_8
+      bomBirthEvents = 0_8
+      bomDeathEvents = 0_8
+      bomBeachEvents = 0_8
+      bomOutsideEvents = 0_8
+      bomCancelEvents = 0_8
+      bomEventBufferCount = 0
       bomNextOutputTime = 0. _d 0
       bomOutputScheduleReady = .FALSE.
       bomEnvReady = .FALSE.
@@ -94,9 +106,37 @@ C !LOCAL VARIABLES:
         bomCouplerStokesIter(iComponent) = 0
         bomCouplerStokesReady(iComponent) = .FALSE.
       ENDDO
+      DO iEvent=1,bomMaxEventBuffer
+        bomEventTypeBuffer(iEvent) = BOM_EVENT_NONE
+        bomEventStageBuffer(iEvent) = BOM_STAGE_NONE
+        bomEventOldStatusBuffer(iEvent) = BOM_UNUSED
+        bomEventNewStatusBuffer(iEvent) = BOM_UNUSED
+        bomEventIterBuffer(iEvent) = 0
+        bomEventSubstepBuffer(iEvent) = 0
+        bomEventSourceRankBuffer(iEvent) = -1
+        bomEventSourceBiBuffer(iEvent) = 0
+        bomEventSourceBjBuffer(iEvent) = 0
+        bomEventDestRankBuffer(iEvent) = -1
+        bomEventDestBiBuffer(iEvent) = 0
+        bomEventDestBjBuffer(iEvent) = 0
+        bomEventRetryBuffer(iEvent) = 0
+        bomEventIndexBuffer(iEvent) = 0_8
+        bomEventSubjectIdBuffer(iEvent) = 0_8
+        bomEventParentIdBuffer(iEvent) = 0_8
+        bomEventChildIdBuffer(iEvent) = 0_8
+        bomEventTimeBuffer(iEvent) = 0. _d 0
+        bomEventAcceptedXBuffer(iEvent) = 0. _d 0
+        bomEventAcceptedYBuffer(iEvent) = 0. _d 0
+        bomEventAttemptXBuffer(iEvent) = 0. _d 0
+        bomEventAttemptYBuffer(iEvent) = 0. _d 0
+        bomEventSBeforeBuffer(iEvent) = 0. _d 0
+        bomEventSTrialBuffer(iEvent) = 0. _d 0
+        bomEventSAfterBuffer(iEvent) = 0. _d 0
+      ENDDO
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = 0
+        bomFreeCount(bi,bj) = bomMaxPartTile
         bomNGhostTile(bi,bj) = 0
         bomGhostReady(bi,bj) = .FALSE.
         DO ig=1,bomMaxGhostTile
@@ -183,8 +223,11 @@ C !LOCAL VARIABLES:
          ENDDO
         ENDDO
         DO ip=1,bomMaxPartTile
+          bomFreeStack(ip,bi,bj) = bomMaxPartTile-ip+1
           bomId(ip,bi,bj)          = 0
+          bomParentId(ip,bi,bj)    = 0_8
           bomStatus(ip,bi,bj)      = BOM_UNUSED
+          bomBirthCount(ip,bi,bj)  = 0
           bomX(ip,bi,bj)           = 0. _d 0
           bomY(ip,bi,bj)           = 0. _d 0
           bomReleaseTime(ip,bi,bj) = 0. _d 0
@@ -197,11 +240,20 @@ C !LOCAL VARIABLES:
           bomWindNorth(ip,bi,bj)   = 0. _d 0
           bomDriftEast(ip,bi,bj)   = 0. _d 0
           bomDriftNorth(ip,bi,bj)  = 0. _d 0
+          bomS(ip,bi,bj)           = 0. _d 0
           bomSpringEast(ip,bi,bj)  = 0. _d 0
           bomSpringNorth(ip,bi,bj) = 0. _d 0
           bomNeighborCount(ip,bi,bj) = 0
           bomRaftId(ip,bi,bj) = 0_8
           bomRaftSize(ip,bi,bj) = 0
+          bomTerminalType(ip,bi,bj) = BOM_EVENT_NONE
+          bomTerminalStage(ip,bi,bj) = BOM_STAGE_NONE
+          bomTerminalId(ip,bi,bj) = 0_8
+          bomTerminalAcceptedX(ip,bi,bj) = 0. _d 0
+          bomTerminalAcceptedY(ip,bi,bj) = 0. _d 0
+          bomTerminalAttemptX(ip,bi,bj) = 0. _d 0
+          bomTerminalAttemptY(ip,bi,bj) = 0. _d 0
+          bomTerminalReady(ip,bi,bj) = .FALSE.
           DO iDiag=1,BOM_RHS_NDIAG
             bomRhsDiag(iDiag,ip,bi,bj) = 0. _d 0
           ENDDO

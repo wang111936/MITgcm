@@ -46,14 +46,20 @@ C !LOCAL VARIABLES:
       muCandidate = 0. _d 0
       mortCandidate = 0. _d 0
 
-C--   Inactive controls must not select a field source or land path.
+C--   Biology-disabled land tracking is the P4.2 production subset.  It
+C     remains BOM-only and fail-closes persistence until schema 4 arrives.
       IF ( .NOT.bomUseBiology ) THEN
-        IF ( bomUseLand ) localValid = .FALSE.
         IF ( bomTempSource.NE.'NONE' ) localValid = .FALSE.
         IF ( bomNSource.NE.'NONE' ) localValid = .FALSE.
         IF ( bomBiologyMissingPolicy.NE.'STOP' .AND.
      &       bomBiologyMissingPolicy.NE.'NO_GROWTH' )
      &       localValid = .FALSE.
+        IF ( bomUseLand ) THEN
+          IF ( bomMode.NE.'BOM' ) localValid = .FALSE.
+          IF ( bomOutputFreq.NE.0. _d 0 .OR.
+     &         bomPickupFreq.NE.0. _d 0 ) localValid = .FALSE.
+          IF ( nIter0.NE.bomInitialIter ) localValid = .FALSE.
+        ENDIF
         IF ( localValid ) THEN
           failCode = BOM_FAIL_NONE
           configValid = .TRUE.
