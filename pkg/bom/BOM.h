@@ -15,15 +15,22 @@ CEOP
       CHARACTER*12 bomCurrentPolicy
       CHARACTER*8  bomSpringLaw
       CHARACTER*8  bomNeighborPolicy
+      CHARACTER*8  bomTempSource
+      CHARACTER*8  bomNSource
+      CHARACTER*12 bomBiologyMissingPolicy
       CHARACTER*(MAX_LEN_FNAM) bomInitialFile
       CHARACTER*(MAX_LEN_FNAM) bomUStokesFile
       CHARACTER*(MAX_LEN_FNAM) bomVStokesFile
+      CHARACTER*(MAX_LEN_FNAM) bomNFile
+      CHARACTER*(MAX_LEN_FNAM) bomEventFile
       COMMON /BOM_PARM_C/
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomWindSource, bomStokesSource,
      &       bomCurrentPolicy, bomSpringLaw,
-     &       bomNeighborPolicy, bomInitialFile,
-     &       bomUStokesFile, bomVStokesFile
+     &       bomNeighborPolicy, bomTempSource, bomNSource,
+     &       bomBiologyMissingPolicy, bomInitialFile,
+     &       bomUStokesFile, bomVStokesFile,
+     &       bomNFile, bomEventFile
 
       _RL bomDeltaTTarget
       _RL bomOutputFreq
@@ -47,6 +54,20 @@ CEOP
       _RL bomNeighborCutoff
       _RL bomPairDistanceMin
       _RL bomSpringCFL
+      _RL bomMuMaxDay
+      _RL bomMortDay
+      _RL bomMuMax
+      _RL bomMort
+      _RL bomKN
+      _RL bomTMin
+      _RL bomTMax
+      _RL bomS0
+      _RL bomSMin
+      _RL bomSMax
+      _RL bomNStartTime
+      _RL bomNPeriod
+      _RL bomNRepCycle
+      _RL bomNInScale
       COMMON /BOM_PARM_R/
      &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
      &       bomLeewayWindCoeff, bomWetWeightMin, bomAdvCFL,
@@ -55,7 +76,12 @@ CEOP
      &       bomStokesRepCycle, bomStokesInScale,
      &       bomSpringL, bomHookeK, bomSpringA,
      &       bomSpringDelta, bomNeighborCutoff,
-     &       bomPairDistanceMin, bomSpringCFL
+     &       bomPairDistanceMin, bomSpringCFL,
+     &       bomMuMaxDay, bomMortDay, bomMuMax, bomMort,
+     &       bomKN, bomTMin, bomTMax,
+     &       bomS0, bomSMin, bomSMax,
+     &       bomNStartTime, bomNPeriod,
+     &       bomNRepCycle, bomNInScale
 
       INTEGER bomSeed
       INTEGER bomMaxParticles
@@ -63,15 +89,22 @@ CEOP
       INTEGER bomInitGlobalLimit
       INTEGER bomInitialIter
       INTEGER bomStokesFilePrec
+      INTEGER bomBirthMaxTry
+      INTEGER bomNTracerIndex
+      INTEGER bomNFilePrec
       COMMON /BOM_PARM_I/
      &       bomSeed, bomMaxParticles, bomMaxHop,
      &       bomInitGlobalLimit, bomInitialIter,
-     &       bomStokesFilePrec
+     &       bomStokesFilePrec, bomBirthMaxTry,
+     &       bomNTracerIndex, bomNFilePrec
 
       LOGICAL bomCheckEverySubstep
       LOGICAL bomRaftDiagnostics
+      LOGICAL bomUseBiology
+      LOGICAL bomUseLand
       COMMON /BOM_PARM_L/
-     &       bomCheckEverySubstep, bomRaftDiagnostics
+     &       bomCheckEverySubstep, bomRaftDiagnostics,
+     &       bomUseBiology, bomUseLand
 
 C--   P1.5 trajectory schedule.  The next time is advanced only after a
 C     complete post-migration output event.
@@ -126,6 +159,18 @@ C     failure in one trial is retained; numeric codes must not be reused.
       INTEGER BOM_FAIL_SPRING_CFL
       INTEGER BOM_FAIL_COMPONENT
       INTEGER BOM_FAIL_PICKUP_SCHEMA3
+      INTEGER BOM_FAIL_BIOLOGY_CONFIG
+      INTEGER BOM_FAIL_BIOLOGY_FIELD
+      INTEGER BOM_FAIL_BROOKS
+      INTEGER BOM_FAIL_BOUNDARY_EVENT
+      INTEGER BOM_FAIL_EVENT_CAPACITY
+      INTEGER BOM_FAIL_EVENT_TRANSACTION
+      INTEGER BOM_FAIL_BIRTH_CAPACITY
+      INTEGER BOM_FAIL_BIRTH_RNG
+      INTEGER BOM_FAIL_BIRTH_ID
+      INTEGER BOM_FAIL_PICKUP_SCHEMA4
+      INTEGER BOM_FAIL_EVENT_IO
+      INTEGER BOM_FAIL_EVENT_BUDGET
       PARAMETER ( BOM_FAIL_NONE      = 0 )
       PARAMETER ( BOM_FAIL_MAP       = 1 )
       PARAMETER ( BOM_FAIL_OWNER     = 2 )
@@ -152,6 +197,18 @@ C     failure in one trial is retained; numeric codes must not be reused.
       PARAMETER ( BOM_FAIL_SPRING_CFL       = 23 )
       PARAMETER ( BOM_FAIL_COMPONENT        = 24 )
       PARAMETER ( BOM_FAIL_PICKUP_SCHEMA3   = 25 )
+      PARAMETER ( BOM_FAIL_BIOLOGY_CONFIG   = 26 )
+      PARAMETER ( BOM_FAIL_BIOLOGY_FIELD    = 27 )
+      PARAMETER ( BOM_FAIL_BROOKS           = 28 )
+      PARAMETER ( BOM_FAIL_BOUNDARY_EVENT   = 29 )
+      PARAMETER ( BOM_FAIL_EVENT_CAPACITY   = 30 )
+      PARAMETER ( BOM_FAIL_EVENT_TRANSACTION= 31 )
+      PARAMETER ( BOM_FAIL_BIRTH_CAPACITY   = 32 )
+      PARAMETER ( BOM_FAIL_BIRTH_RNG        = 33 )
+      PARAMETER ( BOM_FAIL_BIRTH_ID         = 34 )
+      PARAMETER ( BOM_FAIL_PICKUP_SCHEMA4   = 35 )
+      PARAMETER ( BOM_FAIL_EVENT_IO         = 36 )
+      PARAMETER ( BOM_FAIL_EVENT_BUDGET     = 37 )
 
 C--   Stable Runge--Kutta diagnostic stage values.  FINAL is the
 C     accepted-position refresh, not an additional integration stage.
@@ -196,6 +253,46 @@ C     changing the accepted Runge--Kutta stage numbering above.
       PARAMETER ( BOM_P3_PHASE_NATIVE_RATE = 7 )
       PARAMETER ( BOM_P3_PHASE_COMPONENT   = 8 )
       PARAMETER ( BOM_P3_PHASE_SCHEMA3     = 9 )
+
+C--   Stable Phase-4 event and operation-phase values.  P4.1 produces
+C     immutable event plans only; later work packages own their commit.
+      INTEGER BOM_EVENT_NONE
+      INTEGER BOM_EVENT_BIRTH
+      INTEGER BOM_EVENT_DEAD_BIO
+      INTEGER BOM_EVENT_BEACHED
+      INTEGER BOM_EVENT_OUTSIDE
+      INTEGER BOM_EVENT_BIRTH_CANCEL
+      PARAMETER ( BOM_EVENT_NONE         = 0 )
+      PARAMETER ( BOM_EVENT_BIRTH        = 1 )
+      PARAMETER ( BOM_EVENT_DEAD_BIO     = 2 )
+      PARAMETER ( BOM_EVENT_BEACHED      = 3 )
+      PARAMETER ( BOM_EVENT_OUTSIDE      = 4 )
+      PARAMETER ( BOM_EVENT_BIRTH_CANCEL = 5 )
+
+      INTEGER BOM_P4_PHASE_NONE
+      INTEGER BOM_P4_PHASE_ENDPOINT
+      INTEGER BOM_P4_PHASE_BOUNDARY
+      INTEGER BOM_P4_PHASE_BIOLOGY
+      INTEGER BOM_P4_PHASE_TERMINAL
+      INTEGER BOM_P4_PHASE_BIRTH_ORDER
+      INTEGER BOM_P4_PHASE_BIRTH_PLACE
+      INTEGER BOM_P4_PHASE_CAPACITY
+      INTEGER BOM_P4_PHASE_GRAPH
+      INTEGER BOM_P4_PHASE_SCHEMA4
+      INTEGER BOM_P4_PHASE_EVENT_IO
+      INTEGER BOM_P4_PHASE_BUDGET
+      PARAMETER ( BOM_P4_PHASE_NONE        = 0 )
+      PARAMETER ( BOM_P4_PHASE_ENDPOINT    = 1 )
+      PARAMETER ( BOM_P4_PHASE_BOUNDARY    = 2 )
+      PARAMETER ( BOM_P4_PHASE_BIOLOGY     = 3 )
+      PARAMETER ( BOM_P4_PHASE_TERMINAL    = 4 )
+      PARAMETER ( BOM_P4_PHASE_BIRTH_ORDER = 5 )
+      PARAMETER ( BOM_P4_PHASE_BIRTH_PLACE = 6 )
+      PARAMETER ( BOM_P4_PHASE_CAPACITY    = 7 )
+      PARAMETER ( BOM_P4_PHASE_GRAPH       = 8 )
+      PARAMETER ( BOM_P4_PHASE_SCHEMA4     = 9 )
+      PARAMETER ( BOM_P4_PHASE_EVENT_IO    = 10 )
+      PARAMETER ( BOM_P4_PHASE_BUDGET      = 11 )
 
 C--   Stable stateless Phase-2 RHS diagnostic-vector indices.  Every entry
 C     is an SI physical component; native coordinate-rate conversion remains

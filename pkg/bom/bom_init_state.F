@@ -41,6 +41,7 @@ C !LOCAL VARIABLES:
       bomEnvReady = .FALSE.
       bomGradReady = .FALSE.
       bomMetricReady = .FALSE.
+      bomBioReady = .FALSE.
       bomGhostStage = BOM_STAGE_NONE
       bomGhostEpoch = 0
       bomGhostSubstep = 0
@@ -79,6 +80,14 @@ C !LOCAL VARIABLES:
         bomEnvIter(iEnd) = 0
         bomEnvTimeScratch(iEnd) = 0. _d 0
         bomEnvIterScratch(iEnd) = 0
+        bomBioTime(iEnd) = 0. _d 0
+        bomBioIter(iEnd) = 0
+        bomBioTempSource(iEnd) = BOM_BIO_TEMP_NONE
+        bomBioNSource(iEnd) = BOM_BIO_N_NONE
+        bomBioTimeScratch(iEnd) = 0. _d 0
+        bomBioIterScratch(iEnd) = 0
+        bomBioTempSourceScratch(iEnd) = BOM_BIO_TEMP_NONE
+        bomBioNSourceScratch(iEnd) = BOM_BIO_N_NONE
       ENDDO
       DO iComponent=1,BOM_COUPLER_NCOMP
         bomCouplerStokesTime(iComponent) = 0. _d 0

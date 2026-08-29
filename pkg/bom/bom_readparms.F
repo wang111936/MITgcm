@@ -9,7 +9,7 @@ C !INTERFACE:
 
 C !DESCRIPTION:
 C     Set the accepted defaults, including inactive Phase-3 springs, and
-C     read the pkg/bom namelists.
+C     inactive Phase-4 biology/land controls, and read the pkg/bom namelists.
 C     Return without reading data.bom when useBOM is false.
 
 C !USES:
@@ -50,6 +50,16 @@ C !LOCAL VARIABLES:
      &       bomSpringDelta, bomNeighborCutoff,
      &       bomPairDistanceMin, bomSpringCFL,
      &       bomRaftDiagnostics
+      NAMELIST /BOM_PARM03/
+     &       bomUseBiology, bomUseLand,
+     &       bomTempSource, bomNSource,
+     &       bomBiologyMissingPolicy,
+     &       bomMuMaxDay, bomMortDay, bomKN,
+     &       bomTMin, bomTMax, bomS0, bomSMin, bomSMax,
+     &       bomBirthMaxTry, bomNTracerIndex,
+     &       bomNFile, bomNStartTime, bomNPeriod,
+     &       bomNRepCycle, bomNInScale, bomNFilePrec,
+     &       bomEventFile
 
       IF ( .NOT.useBOM ) THEN
 C-    pkg BOM is not used; report an unexpected data.bom if present.
@@ -103,6 +113,30 @@ C--   Safe Phase-1.5 defaults retain an inactive state and inactive output.
       bomInitGlobalLimit   = bomMaxInitRecords
       bomCheckEverySubstep = .TRUE.
       bomRaftDiagnostics   = .FALSE.
+      bomUseBiology        = .FALSE.
+      bomUseLand           = .FALSE.
+      bomTempSource        = 'NONE'
+      bomNSource           = 'NONE'
+      bomBiologyMissingPolicy = 'STOP'
+      bomNFile             = ' '
+      bomEventFile         = ' '
+      bomMuMaxDay          = 0. _d 0
+      bomMortDay           = 0. _d 0
+      bomMuMax             = 0. _d 0
+      bomMort              = 0. _d 0
+      bomKN                = 0. _d 0
+      bomTMin              = 0. _d 0
+      bomTMax              = 0. _d 0
+      bomS0                = 0. _d 0
+      bomSMin              = 0. _d 0
+      bomSMax              = 0. _d 0
+      bomNStartTime        = 0. _d 0
+      bomNPeriod           = 0. _d 0
+      bomNRepCycle         = 0. _d 0
+      bomNInScale          = 0. _d 0
+      bomBirthMaxTry       = 0
+      bomNTracerIndex      = 0
+      bomNFilePrec         = 0
 
       WRITE(msgBuf,'(A)') 'BOM_READPARMS: opening data.bom'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -117,6 +151,14 @@ C--   Safe Phase-1.5 defaults retain an inactive state and inactive output.
       IF ( iErr.GT.0 ) THEN
         WRITE(msgBuf,'(A,I8)')
      &       'BOM_READPARMS: invalid BOM_PARM02, IOSTAT=', iErr
+        CALL PRINT_ERROR( msgBuf, myThid )
+        CALL ALL_PROC_DIE( 0 )
+        STOP 'ABNORMAL END: S/R BOM_READPARMS'
+      ENDIF
+      READ(UNIT=iUnit,NML=BOM_PARM03,IOSTAT=iErr)
+      IF ( iErr.GT.0 ) THEN
+        WRITE(msgBuf,'(A,I8)')
+     &       'BOM_READPARMS: invalid BOM_PARM03, IOSTAT=', iErr
         CALL PRINT_ERROR( msgBuf, myThid )
         CALL ALL_PROC_DIE( 0 )
         STOP 'ABNORMAL END: S/R BOM_READPARMS'

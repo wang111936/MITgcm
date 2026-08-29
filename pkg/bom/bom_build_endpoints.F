@@ -42,6 +42,13 @@ C !LOCAL VARIABLES:
      &         ' iter/stage/code=', targetIter, failStage, failCode,
      &         ' wind/Stokes=', bomWindSource, bomStokesSource
           CALL PRINT_ERROR( msgBuf, myThid )
+          IF ( bomUseBiology ) THEN
+            WRITE(msgBuf,'(A,3A)')
+     &           'BOM_BUILD_ENDPOINTS: biology T/N/policy=',
+     &           bomTempSource, bomNSource,
+     &           bomBiologyMissingPolicy
+            CALL PRINT_ERROR( msgBuf, myThid )
+          ENDIF
         ENDIF
         _END_MASTER(myThid)
         CALL ALL_PROC_DIE( 0 )
@@ -97,6 +104,7 @@ C !LOCAL VARIABLES:
       LOGICAL isNear, compareValid, wetPoint, fieldInvalid
       LOGICAL windProviderValid, stokesProviderValid
       LOGICAL derivativeValid
+      LOGICAL bioBuildValid
 
       failCode = BOM_FAIL_NONE
       failStage = BOM_STAGE_NONE
@@ -398,6 +406,20 @@ C--   Validate every source and endpoint before accepted-state writes.
         RETURN
       ENDIF
 
+C--   Build P4.1 scalar scratch before any accepted physical publication.
+C     The disabled path executes no T/N provider, exchange or arithmetic.
+      IF ( bomUseBiology ) THEN
+        CALL BOM_TRY_BUILD_BIO_ENDPOINTS(
+     I       targetTime, targetIter, initialize,
+     O       failCode, bioBuildValid,
+     I       myThid )
+        IF ( .NOT.bioBuildValid ) THEN
+          failCode = BOM_FAIL_BIOLOGY_FIELD
+          failStage = BOM_STAGE_FIELD_NEW
+          RETURN
+        ENDIF
+      ENDIF
+
 C--   Derive every endpoint in scratch before either state is published.
       CALL BOM_TRY_BUILD_DERIVATIVES(
      I     .TRUE.,
@@ -413,6 +435,7 @@ C--   No failure remains: withdraw readiness, copy, then publish metadata.
       bomEnvReady = .FALSE.
       bomGradReady = .FALSE.
       bomMetricReady = .FALSE.
+      IF ( bomUseBiology ) bomBioReady = .FALSE.
       _END_MASTER(myThid)
       _BARRIER
       DO bj=myByLo(myThid),myByHi(myThid)
@@ -442,6 +465,16 @@ C--   No failure remains: withdraw readiness, copy, then publish metadata.
      &           bomGradValidScratch(i,j,iEnd,iSource,bi,bj)
            ENDDO
           ENDDO
+          IF ( bomUseBiology ) THEN
+           DO iEnd=1,BOM_ENV_NEND
+            bomBioTemp(i,j,iEnd,bi,bj) =
+     &           bomBioTempScratch(i,j,iEnd,bi,bj)
+            bomBioN(i,j,iEnd,bi,bj) =
+     &           bomBioNScratch(i,j,iEnd,bi,bj)
+            bomBioValid(i,j,iEnd,bi,bj) =
+     &           bomBioValidScratch(i,j,iEnd,bi,bj)
+           ENDDO
+          ENDIF
          ENDDO
         ENDDO
        ENDDO
@@ -451,10 +484,18 @@ C--   No failure remains: withdraw readiness, copy, then publish metadata.
       DO iEnd=1,BOM_ENV_NEND
         bomEnvTime(iEnd) = bomEnvTimeScratch(iEnd)
         bomEnvIter(iEnd) = bomEnvIterScratch(iEnd)
+        IF ( bomUseBiology ) THEN
+          bomBioTime(iEnd) = bomBioTimeScratch(iEnd)
+          bomBioIter(iEnd) = bomBioIterScratch(iEnd)
+          bomBioTempSource(iEnd) =
+     &         bomBioTempSourceScratch(iEnd)
+          bomBioNSource(iEnd) = bomBioNSourceScratch(iEnd)
+        ENDIF
       ENDDO
       bomEnvReady = .TRUE.
       bomGradReady = .TRUE.
       bomMetricReady = .TRUE.
+      IF ( bomUseBiology ) bomBioReady = .TRUE.
       _END_MASTER(myThid)
       _BARRIER
       failCode = BOM_FAIL_NONE
