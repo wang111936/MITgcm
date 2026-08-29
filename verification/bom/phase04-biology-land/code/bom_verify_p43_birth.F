@@ -51,6 +51,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       _RL globalX(bomMaxEventBuffer),globalY(bomMaxEventBuffer)
       _RS savedMask(1-OLx:sNx+OLx,1-OLy:sNy+OLy)
       LOGICAL isValid,locateValid,savedPeriodic
+      LOGICAL savedCartesian,savedSpherical
       INTEGER*8 orderedParent(4)
       DATA orderedParent / 40_8,10_8,30_8,20_8 /
 
@@ -159,6 +160,25 @@ C       allocating an ID.
      &       .NOT.isValid .AND. failCode.EQ.BOM_FAIL_NONFINITE .AND.
      &       p4Phase.EQ.BOM_P4_PHASE_BIRTH_PLACE,
      &       'P4-BR01 nonfinite fatal',nFail,myThid)
+
+C--     The spherical midpoint metric fails closed near its polar limit.
+        savedCartesian=usingCartesianGrid
+        savedSpherical=usingSphericalPolarGrid
+        usingCartesianGrid=.FALSE.
+        usingSphericalPolarGrid=.TRUE.
+        bomSpringL=1. _d -3
+        CALL BOM_BIRTH_PLACE(
+     I       0. _d 0,90. _d 0,bi,bj,parentId,0,eventIndex,
+     O       childX,childY,childI,childJ,firstX,firstY,
+     O       placementWord,angle,attemptUsed,eventType,
+     O       destRank,destBi,destBj,failCode,p4Phase,isValid,
+     I       myThid)
+        CALL BOM_VERIFY_P43_ASSERT(
+     &       .NOT.isValid .AND. failCode.EQ.BOM_FAIL_METRIC,
+     &       'P4-BR01 spherical metric limit',nFail,myThid)
+        usingCartesianGrid=savedCartesian
+        usingSphericalPolarGrid=savedSpherical
+        bomSpringL=900. _d 0
 
 C--     Serial exercises a nonperiodic outside retry and periodic seam.
         IF ( nRank.EQ.1 ) THEN

@@ -13,6 +13,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #ifdef ALLOW_BOM
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER ip,jp,bi,bj,nFail,globalFail,failCode,p4Phase
+      INTEGER seedIndex
       INTEGER failRank,failBi,failBj,failSlot,newSlot,seedFail
       INTEGER foundLocal,foundGlobal,eventLocal,eventGlobal
       INTEGER ownerRank,ownerBi,ownerBj,hop,nBefore,eventBefore
@@ -21,7 +22,7 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
       INTEGER*8 deathBefore,freeRemoveBefore,freeAllocBefore
       _RL xOwner,yOwner,sBefore
       LOGICAL isValid,locateValid,seedValid,eventValid
-      LOGICAL foundParent(4),foundChild(4),sidecarValid
+      LOGICAL foundParent(4),foundChild(4),sidecarValid,reverseSeed
       _RL xFix(4),yFix(4)
       DATA xFix / -100. _d 0, 100. _d 0,
      &             -100. _d 0, 100. _d 0 /
@@ -35,6 +36,7 @@ C--   M01: force one complete biology owner across a rank/tile boundary.
       CALL BOM_INIT_STATE(myThid)
       CALL BOM_VERIFY_P43_EVENT_CONFIG(
      I     0. _d 0,deltaTClock,.FALSE.,myThid)
+      CALL BOM_VERIFY_P43_PACKET(myThid,nFail)
       bomMaxParticles=1
       CALL BOM_LOCATE_OWNER(
      I     -1500. _d 0,-500. _d 0,1,1,
@@ -81,7 +83,10 @@ C--   B14/B17: four decomposition-invariant parents all give birth.
       CALL BOM_VERIFY_P43_EVENT_CONFIG(
      I     0. _d 0,deltaTClock,.TRUE.,myThid)
       bomMaxParticles=16
-      DO jp=1,4
+      reverseSeed=the_run_name.EQ.'P43-EVENT-PERM'
+      DO seedIndex=1,4
+        jp=seedIndex
+        IF ( reverseSeed ) jp=5-seedIndex
         CALL BOM_LOCATE_OWNER(
      I       xFix(jp),yFix(jp),1,1,
      O       xOwner,yOwner,ownerRank,ownerBi,ownerBj,
@@ -199,12 +204,29 @@ C--   Both early and post-graph failures preserve authoritative state.
           ENDDO
           WRITE(msgBuf,1000) bomId(ip,bi,bj),
      &         bomParentId(ip,bi,bj),bomBirthCount(ip,bi,bj),
-     &         bomS(ip,bi,bj),bomRaftId(ip,bi,bj),
+     &         bomS(ip,bi,bj),bomX(ip,bi,bj),bomY(ip,bi,bj),
+     &         bomReleaseTime(ip,bi,bj),bomRaftId(ip,bi,bj),
      &         bomRaftSize(ip,bi,bj),bomNeighborCount(ip,bi,bj)
           CALL PRINT_MESSAGE(msgBuf,standardMessageUnit,
      &                       SQUEEZE_RIGHT,myThid)
         ENDDO
        ENDDO
+      ENDDO
+      DO ip=1,bomEventBufferCount
+        WRITE(msgBuf,1001) bomEventTypeBuffer(ip),
+     &       bomEventSubjectIdBuffer(ip),bomEventParentIdBuffer(ip),
+     &       bomEventChildIdBuffer(ip),bomEventRetryBuffer(ip),
+     &       bomEventIndexBuffer(ip)
+        CALL PRINT_MESSAGE(msgBuf,standardMessageUnit,
+     &                     SQUEEZE_RIGHT,myThid)
+        WRITE(msgBuf,1002) bomEventSubjectIdBuffer(ip),
+     &       bomEventTimeBuffer(ip),
+     &       bomEventAttemptXBuffer(ip),bomEventAttemptYBuffer(ip),
+     &       bomEventAcceptedXBuffer(ip),bomEventAcceptedYBuffer(ip),
+     &       bomEventSBeforeBuffer(ip),bomEventSTrialBuffer(ip),
+     &       bomEventSAfterBuffer(ip)
+        CALL PRINT_MESSAGE(msgBuf,standardMessageUnit,
+     &                     SQUEEZE_RIGHT,myThid)
       ENDDO
       DO jp=1,4
         foundLocal=0
@@ -311,8 +333,9 @@ C--   Mixed death/cancel: no child ID, parent S/count unchanged on cancel.
       ENDIF
       _END_MASTER(myThid)
       CALL BOM_INIT_STATE(myThid)
- 1000 FORMAT('P43-CANON ',I20,1X,I20,1X,I6,1X,1PE24.16,
-     &       1X,I20,1X,I6,1X,I6)
+ 1000 FORMAT('P43-CANON ',2I21,I7,4(1X,1PE24.16),I21,2I7)
+ 1001 FORMAT('P43-EVENT-I ',I7,3I21,I7,I21)
+ 1002 FORMAT('P43-EVENT-R ',I21,8(1X,1PE24.16))
 #endif
       RETURN
       END

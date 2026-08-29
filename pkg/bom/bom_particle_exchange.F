@@ -16,8 +16,6 @@ C     No owner array is replaced until global plan, capacity, packet, and
 C     target-owner refresh checks have all succeeded.
 
 C !USES:
-      USE, INTRINSIC :: IEEE_ARITHMETIC,
-     &     ONLY: IEEE_IS_FINITE
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
@@ -99,6 +97,7 @@ C !LOCAL VARIABLES:
       _RL keySpringEast, keySpringNorth
       _RL keyRhsDiag(BOM_RHS_NDIAG)
       LOGICAL keyRefresh, locateValid, rhsOwner, rhsValid
+      LOGICAL packetValid
       LOGICAL springEastValid, springNorthValid
       _RL rhsX, rhsY, wetWeight, stageCFL
       INTEGER rhsFailStage
@@ -389,83 +388,16 @@ C--   Validate packet metadata and final per-tile capacity before commit.
       DO packetIndex=1,recvTotal
         packetOffsetI=packetIntsActive*(packetIndex-1)
         packetOffsetR=packetRealsActive*(packetIndex-1)
-        bi = recvInt(packetOffsetI+5)
-        bj = recvInt(packetOffsetI+6)
-        IF ( bi.LT.1 .OR. bi.GT.nSx .OR.
-     &       bj.LT.1 .OR. bj.GT.nSy ) THEN
-          localErrCount = localErrCount + 1
-        ELSE
+        CALL BOM_OWNER_PACKET_VALIDATE(
+     I       recvInt(packetOffsetI+1),packetIntsActive,
+     I       recvReal(packetOffsetR+1),packetRealsActive,
+     I       packetSchemaActive,
+     O       recvId,recvParentId,recvRaftId,bi,bj,packetValid,
+     I       myThid )
+        IF ( packetValid ) THEN
           targetCount(bi,bj) = targetCount(bi,bj) + 1
-        ENDIF
-        IF ( recvInt(packetOffsetI+1).NE.packetSchemaActive )
-     &       localErrCount = localErrCount+1
-        idHi8 = INT(recvInt(packetOffsetI+2),8)
-        idLo8 = INT(recvInt(packetOffsetI+3),8)
-        IF ( idLo8.LT.0_8 ) idLo8 = idLo8 + idRadix
-        IF ( idHi8.LT.0_8 ) THEN
+        ELSE
           localErrCount = localErrCount + 1
-          recvId = 0_8
-        ELSE
-          recvId = idHi8*idRadix + idLo8
-          IF ( recvId.LE.0_8 ) localErrCount=localErrCount+1
-        ENDIF
-        IF ( recvInt(packetOffsetI+4).NE.BOM_ALIVE .AND.
-     &       recvInt(packetOffsetI+4).NE.BOM_WAITING )
-     &       localErrCount = localErrCount + 1
-        IF ( recvInt(packetOffsetI+7).LT.0 .OR.
-     &       recvInt(packetOffsetI+7).GT.bomMaxNeighbor )
-     &       localErrCount = localErrCount+1
-        raftHi8 = INT(recvInt(packetOffsetI+8),8)
-        raftLo8 = INT(recvInt(packetOffsetI+9),8)
-        IF ( raftLo8.LT.0_8 ) raftLo8=raftLo8+idRadix
-        IF ( raftHi8.LT.0_8 ) THEN
-          recvRaftId = 0_8
-          localErrCount = localErrCount+1
-        ELSE
-          recvRaftId = raftHi8*idRadix+raftLo8
-        ENDIF
-        IF ( (recvRaftId.EQ.0_8 .AND.
-     &        recvInt(packetOffsetI+10).NE.0) .OR.
-     &       (recvRaftId.GT.0_8 .AND.
-     &        recvInt(packetOffsetI+10).LT.1) )
-     &       localErrCount = localErrCount+1
-        IF ( .NOT.IEEE_IS_FINITE(recvReal(packetOffsetR+1)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(packetOffsetR+2)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(packetOffsetR+3)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(packetOffsetR+4)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(packetOffsetR+5)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(packetOffsetR+6)) .OR.
-     &       recvReal(packetOffsetR+3).LT.0. _d 0 .OR.
-     &       recvReal(packetOffsetR+4).LT.0. _d 0 )
-     &       localErrCount = localErrCount + 1
-        IF ( bomUseBiology ) THEN
-          parentHi8=INT(recvInt(packetOffsetI+11),8)
-          parentLo8=INT(recvInt(packetOffsetI+12),8)
-          IF ( parentLo8.LT.0_8 ) parentLo8=parentLo8+idRadix
-          IF ( parentHi8.LT.0_8 ) THEN
-            recvParentId=0_8
-            localErrCount=localErrCount+1
-          ELSE
-            recvParentId=parentHi8*idRadix+parentLo8
-          ENDIF
-          IF ( recvParentId.EQ.recvId .OR.
-     &         recvInt(packetOffsetI+13).LT.0 .OR.
-     &         .NOT.IEEE_IS_FINITE(recvReal(packetOffsetR+7)) )
-     &         localErrCount=localErrCount+1
-        ENDIF
-        IF ( bi.GE.1 .AND. bi.LE.nSx .AND.
-     &       bj.GE.1 .AND. bj.LE.nSy ) THEN
-          CALL BOM_LOCATE_OWNER(
-     I         recvReal(packetOffsetR+1),
-     I         recvReal(packetOffsetR+2),
-     I         bi, bj,
-     O         keyX, keyY, rankIndex, ip, jp, slot, locateValid,
-     I         myThid )
-          IF ( .NOT.locateValid .OR. rankIndex.NE.myProcId .OR.
-     &         ip.NE.bi .OR. jp.NE.bj .OR. slot.NE.0 .OR.
-     &         keyX.NE.recvReal(packetOffsetR+1) .OR.
-     &         keyY.NE.recvReal(packetOffsetR+2) )
-     &         localErrCount = localErrCount + 1
         ENDIF
       ENDDO
       DO bj=1,nSy

@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 4 biology, land and events
 
-Status: **P4.2 LOCALLY COMPLETE; P4.3 NOT STARTED**
+Status: **P4.3 LOCALLY COMPLETE; P4.4 NOT STARTED**
 
 Phase 4 adds temperature/nutrient-driven Brooks amount, distinct terminal
 events, deterministic births, reusable compact owner slots, event diagnostics
@@ -34,6 +34,9 @@ release is MITGCM-BOM-v0.5.
 - [P4.2 closeout](P4.2_CLOSEOUT.md) records the accepted boundary/terminal/
   free-stack scope, exact 18/18 direct gate, P4.1 31/31 replay and exact
   538/538 predecessor replay.
+- [P4.3 closeout](P4.3_CLOSEOUT.md) records exact Philox/retry/global-ID,
+  packet schema 3 and atomic post-event graph integration, the 26/26 direct
+  gate and all accepted predecessor replays.
 
 ## Work packages
 
@@ -42,7 +45,7 @@ release is MITGCM-BOM-v0.5.
 | P4.0 | source/design/interface/test freeze | 15/15 document/scope audit; no production diff | locally complete |
 | P4.1 | parameters/codes, accepted T/N endpoints, stateless Brooks | P4-Z01/C01/E01/E02/B01 and B12; exact 538 predecessor | locally complete |
 | P4.2 | boundary scratch, terminal state machine, compact-tail free stack | P4-L01/F01/T01, B11 and death/free-stack B13 | locally complete |
-| P4.3 | Philox, retry, global birth order/IDs, packet schema 3, graph integration | P4-RNG01/BR01/ID01/M01, B13/B14/B17 | not started |
+| P4.3 | Philox, retry, global birth order/IDs, packet schema 3, graph integration | P4-RNG01/BR01/ID01/M01, B13/B14/B17 | locally complete |
 | P4.4 | schema 4, event shards, diagnostics and pickup | P4-S01/EV01, B15/B18 | not started |
 | P4.5 | capacity and full integration closeout | B19, P4-G99 and independent exit audit | not started |
 
@@ -68,15 +71,14 @@ predecessor gates.
 
 ## Unique next production task
 
-After P4.2 is reviewed and integrated, the only next production package is
-P4.3:
+After P4.3 is reviewed and integrated, the only next production package is
+P4.4:
 
-1. add the frozen Philox4x32-10 oracle and retry-key implementation;
-2. place/retry wet children without partial parent mutation;
-3. globally order parents by exact ID and assign contiguous child IDs;
-4. add complete parent/S/birth owner packet schema 3;
-5. rebuild the candidate post-event graph/components atomically;
-6. close P4-RNG01/BR01/ID01/M01 and the remaining B13/B14/B17 rows.
+1. preserve schema-2 core and conditional P3 sidecar bytes;
+2. add the frozen schema-4 P4 trajectory sidecar and event shards;
+3. publish diagnostics/event flushes transactionally;
+4. add same-decomposition schema-4 pickup/restart;
+5. close P4-S01/P4-EV01 and B15/B18.
 
-P4.3 must not add event files, schema 4 trajectory/pickup or final Phase 4
-capacity closure; those remain P4.4/P4.5 work.
+P4.4 must not claim the final B19 capacity matrix, P4-G99, Phase 4 exit or
+target-server scaling; those remain P4.5/Phase 5 work.

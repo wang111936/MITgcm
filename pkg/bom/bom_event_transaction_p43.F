@@ -42,7 +42,7 @@ C     commit.  Collectives carry bounded event metadata, never live owners.
       INTEGER localFailSlot,orderFail,orderPhase,orderRank
       INTEGER orderBi,orderBj,orderSlot,freeFailCode,newSlot
       INTEGER birthEvent,birthDestRank,birthDestBi,birthDestBj
-      INTEGER birthAttempt,birthFail,birthPhase,ordinal
+      INTEGER birthFail,birthPhase,ordinal
       INTEGER bioFail,bioPhase,eventType,bioSlot,newStatus
       INTEGER graphFail,graphPhase,graphEpoch
       INTEGER componentFail,componentIterations,maximumComponent
@@ -136,7 +136,7 @@ C     commit.  Collectives carry bounded event metadata, never live owners.
       LOGICAL pointValid,interpValid,missingGrowth,planValid
       LOGICAL slotClear,freeValid,orderValid,birthValid
       LOGICAL rhsOwner,rhsValid,graphValid,componentValid
-      LOGICAL doGraph,found
+      LOGICAL doGraph
       INTEGER iDiag
       SAVE cDiag,graphDiag
 
@@ -789,6 +789,10 @@ C--   Descending source slots make terminal tail swaps deterministic.
               IF ( planBi(jp).EQ.bi .AND. planBj(jp).EQ.bj .AND.
      &             planSlot(jp).EQ.ip ) matchPlan=jp
             ENDDO
+            IF ( matchPlan.EQ.0 ) THEN
+              CALL ALL_PROC_DIE(0)
+              STOP 'ABNORMAL END: P4.3 EVENT PLAN COMMIT'
+            ENDIF
             CALL BOM_FREE_REMOVE(
      I           ip,bi,bj,planId(matchPlan),
      O           movedId,freeFailCode,freeValid)
@@ -808,6 +812,10 @@ C--   Allocate children by the same global order that assigned their IDs.
           DO ip=1,nCandidate
             IF ( cId(ip).EQ.gChildId(jp) ) kp=ip
           ENDDO
+          IF ( kp.EQ.0 ) THEN
+            CALL ALL_PROC_DIE(0)
+            STOP 'ABNORMAL END: P4.3 EVENT CHILD COMMIT'
+          ENDIF
           CALL BOM_FREE_ALLOC(
      I         gDestBi(jp),gDestBj(jp),cId(kp),cParentId(kp),
      I         cStatus(kp),cBirthCount(kp),cX(kp),cY(kp),
@@ -1016,6 +1024,7 @@ C--   Append locally destined children in canonical global child-ID order.
 C--   A topology change rebuilds the FINAL cutoff graph before commit.
       doGraph=bomSpringLaw.NE.'NONE' .AND.
      &        globalTerminal+nGlobalBirth.GT.0
+      componentValid=.TRUE.
       IF ( doGraph ) THEN
         graphEpoch=mySubstep
         CALL BOM_SPRING_RHS_STAGE(
@@ -1052,7 +1061,7 @@ C--   A topology change rebuilds the FINAL cutoff graph before commit.
             cRaftSize(ip)=0
           ENDDO
         ENDIF
-        IF ( graphValid ) THEN
+        IF ( graphValid .AND. componentValid ) THEN
           DO ip=1,nCandidate
             cSpringEast(ip)=graphSpringEast(ip)
             cSpringNorth(ip)=graphSpringNorth(ip)
