@@ -9,6 +9,7 @@ readonly EXP2_CODE="${REPO_ROOT}/verification/exp2/code"
 readonly EXPECTED_HEAD="${MITGCM_BOM_EXPECTED_HEAD:-$(git -C "${REPO_ROOT}" rev-parse HEAD)}"
 readonly BASELINE_REF="${MITGCM_BOM_BASELINE_REF:-MITGCM-BOM/development}"
 readonly REQUIRE_CLEAN="${MITGCM_BOM_REQUIRE_CLEAN:-yes}"
+readonly REPLAY_SCOPE="${MITGCM_BOM_REPLAY_SCOPE:-none}"
 readonly TEST_ID="${MITGCM_BOM_TEST_ID:-p35-performance-${EXPECTED_HEAD:0:10}-attempt01}"
 readonly BUILD_ROOT="${MITGCM_BOM_TEST_BUILD_ROOT:-/home/wyl/build/mitgcm-bom/phase03-performance-closeout}/${TEST_ID}"
 readonly RUN_ROOT="${MITGCM_BOM_TEST_RUN_ROOT:-/home/wyl/runs/mitgcm-bom/phase03-performance-closeout}/${TEST_ID}"
@@ -34,6 +35,8 @@ if [[ "${REQUIRE_CLEAN}" == yes ]]; then
   [[ -z "$(git -C "${REPO_ROOT}" status --porcelain=v1)" ]] \
     || fail 'authoritative run requires a clean worktree'
 fi
+[[ "${REPLAY_SCOPE}" == none || "${REPLAY_SCOPE}" == predecessor ]] \
+  || fail "unsupported MITGCM_BOM_REPLAY_SCOPE: ${REPLAY_SCOPE}"
 git -C "${REPO_ROOT}" rev-parse --verify "${BASELINE_REF}^{commit}" \
   >/dev/null || fail "missing baseline ref ${BASELINE_REF}"
 [[ -z "$(git -C "${REPO_ROOT}" tag -l MITGCM-BOM-v0.4)" ]] \
@@ -72,6 +75,20 @@ source_audit() {
     "${REPO_ROOT}/pkg/bom/bom_check_state.F"
     "${REPO_ROOT}/pkg/bom/bom_read_pickup.F"
   )
+  if [[ "${REPLAY_SCOPE}" == predecessor ]]; then
+    expected_collective_files+=(
+      "${REPO_ROOT}/pkg/bom/bom_terminal_plan.F"
+    )
+    grep -Fq 'INTEGER localMeta(9),allMeta(9,nPx*nPy)' \
+      "${REPO_ROOT}/pkg/bom/bom_terminal_plan.F" \
+      || fail 'P4 failure metadata shape changed'
+    grep -Fq 'localMeta,9,MPI_INTEGER' \
+      "${REPO_ROOT}/pkg/bom/bom_terminal_plan.F" \
+      || fail 'P4 failure gather send width changed'
+    grep -Fq 'allMeta,9,MPI_INTEGER' \
+      "${REPO_ROOT}/pkg/bom/bom_terminal_plan.F" \
+      || fail 'P4 failure gather receive width changed'
+  fi
   [[ "${collective_files[*]}" == "${expected_collective_files[*]}" ]] \
     || fail 'unexpected global particle collective call path'
   grep -Fq 'CALL BOM_BUILD_CELL_LIST' \

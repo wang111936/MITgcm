@@ -88,7 +88,7 @@ S<Smin、S>Smax 事件。出生成功时父/子设 S0；全部湿点重试失败
 |---|---|---|---|
 | P4.0 | 源码审计、接口/编号/schema/RNG/测试冻结 | 本地完成 | 文档/范围审计 15/15；生产 diff 为零 |
 | P4.1 | 参数/稳定码、T/N 端点、Brooks stateless kernel | 本地完成 | P4-Z01/C01/E01/E02/B01、B12、前序 538 |
-| P4.2 | boundary scratch、terminal state machine、compact-tail free stack | 未开始 | P4-L01/F01/T01、B11、B13 death/free |
+| P4.2 | boundary scratch、terminal state machine、compact-tail free stack | 本地完成 | P4-L01/F01/T01、B11、B13 death/free |
 | P4.3 | Philox、重试、全局出生 ID、packet schema 3、graph integration | 未开始 | P4-RNG01/BR01/ID01/M01、B13/B14/B17 |
 | P4.4 | schema 4、事件分片、诊断、pickup | 未开始 | P4-S01/EV01、B15/B18 |
 | P4.5 | 容量矩阵、完整集成和退出 | 未开始 | B19、P4-G99、独立退出审计 |
@@ -154,22 +154,47 @@ P4.1 已在功能头
 4. `p41-predecessor-final-head-attempt02` 通过 P3 直接 148/148、Phase 2
    closure 390/390 和总计 538/538；
 5. 两套证据的 source-head 均为 `4043a35dd...`，manifest 自校验通过；
-6. live owner/event/schema4 仍 fail-closed，P4.1 无出生、terminal commit、
+6. live owner/event/schema4 在 P4.1 仍 fail-closed，P4.1 无出生、terminal commit、
    slot 变更、事件 I/O 或 restart/output 扩展；
-7. 分支未推送、未创建 PR、未合并、未创建 v0.5。
+7. P4.0 已由 PR #33、P4.1 已由 PR #34 依次以 merge commit 集成到
+   development；未创建 v0.5。
 
 详细实现边界、已解决问题和证据路径见
 [P4.1 closeout](../../../../verification/bom/phase04-biology-land/P4.1_CLOSEOUT.md)。
 
-## 9. 当前恢复点
+## 9. P4.2 完成结果
 
-P4.1 本地完成后：
+P4.2 在独立分支 `MITGCM-BOM/p4.2-boundary-terminal-free-stack` 本地关闭：
+
+1. `145244380` 加入 WET/BEACHED/OUTSIDE/FATAL classifier、P4 owner/event
+   状态、compact-tail free stack、负原点 periodic 修正及 land-only 迁移维护；
+2. `6fbcb7819` 加入 additive RK2/RK4 P4 接口、spring terminal exclusion、
+   exact-ID post-migration binding 和 all-or-nothing event transaction；
+3. `62538a836` 加入 P4.2 18-row 串行/MPI4 direct gate，覆盖 P4-L01/F01/T01、
+   B11 以及 B13 death/free；
+4. `p42-final-head-attempt03` 在洁净精确 closeout 头通过 18/18；
+5. `p42-p41-accepted-attempt04` 在同一头以显式 p42 scope 重放 P4.1
+   31/31；默认 p41 范围断言保持不变；
+6. 隔离共享 clone 中的 `p42-predecessor-final-head-attempt04` 通过 P3
+   direct 148/148、Phase 2 closure 390/390，总计 538/538；权威分支和
+   annotated v0.4 未改动；
+7. P4.2 保持 owner packet schema 2、P3 container schema 3 不变；完整
+   parent/S/birth migration、Philox、child ID、graph integration 属于 P4.3；
+8. event files、schema 4 output/pickup、restart 与最终预算仍属于 P4.4/P4.5；
+9. 本分支未推送、未创建 PR、未合并，也未创建 v0.5。
+
+详细实现边界、已解决问题和证据路径见
+[P4.2 closeout](../../../../verification/bom/phase04-biology-land/P4.2_CLOSEOUT.md)。
+
+## 10. 当前恢复点
+
+P4.2 本地完成后：
 
 1. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
-2. 获授权后集中推送 P4.0/P4.1 提交并创建 Draft PR；
-3. P4.1 经评审集成后从 development 创建 P4.2 分支；
-4. P4.2 仅开发 boundary classifier、RK terminal scratch、terminal event
-   transaction 和 compact-tail free stack；
-5. P4.2 不提前进入 Philox births、全局 child ID、event files 或 schema 4。
+2. 获授权后集中推送 P4.2 的生产、验证和收口提交并创建 Draft PR；
+3. P4.2 经评审集成后从 development 创建 P4.3 分支；
+4. P4.3 仅开发 Philox/retry、全局 parent order/child ID、完整 packet
+   schema 3 和 post-event graph integration；
+5. P4.3 不提前进入 event files、schema 4 trajectory/pickup 或 P4-G99。
 
 在 Phase 4 最终退出审计前不创建 MITGCM-BOM-v0.5 标签。

@@ -9,11 +9,11 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p4.1-biology-fields` |
-| 当前阶段 PR | P4.0/P4.1 均仅本地完成，尚未推送或创建 PR |
-| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.1 本地完成） |
-| 当前工作包 | P4.1 已在功能头 `4043a35dd` 通过直接 31/31 与前序 replay 538/538 |
-| 下一工作包 | P4.1 经授权推送、评审和集成后，开始 P4.2 boundary/terminal/free-stack |
+| 当前任务分支 | `MITGCM-BOM/p4.2-boundary-terminal-free-stack` |
+| 当前阶段 PR | P4.0 PR #33、P4.1 PR #34 已合并；P4.2 仅本地完成，尚未推送或创建 PR |
+| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.2 本地完成） |
+| 当前工作包 | P4.2 closeout 头通过直接 18/18、P4.1 31/31 与前序 replay 538/538 |
+| 下一工作包 | P4.2 经授权推送、评审和集成后，开始 P4.3 RNG/birth/ID/schema3/graph |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -21,17 +21,18 @@
 下一次继续开发时，从以下任务开始：
 
 1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md) 和
-   `verification/bom/phase04-biology-land/P4.1_CLOSEOUT.md`；
-2. 核对 P4.1 三个功能/验证提交均为 WangYuLin，已测试功能头为
-   `4043a35ddeb049ead5c8081bae3417e335cdbae7`；
-3. 核对 `p41-final-head-attempt02` 的 31/31、
-   `p41-predecessor-final-head-attempt02` 的 538/538、source-head 和
+   `verification/bom/phase04-biology-land/P4.2_CLOSEOUT.md`；
+2. 核对 P4.2 三个生产/验证提交 `145244380`、`6fbcb7819`、`62538a836`
+   及收口提交均为 WangYuLin；
+3. 核对 `p42-final-head-attempt03` 的 18/18、
+   `p42-p41-accepted-attempt04` 的 31/31、
+   `p42-predecessor-final-head-attempt04` 的 538/538、source-head 和
    manifest 自校验；
-4. 保持 P4.1 不进入 live owner/event/schema4 路径；
+4. 保持 P4.2 不进入 Philox/child ID/schema3/event files/schema4 路径；
 5. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
-6. 后续获授权时集中推送 P4.0/P4.1 并创建 Draft PR；
-7. P4.1 评审集成后创建 P4.2 分支，开发 boundary、terminal transaction
-   和 compact-tail free stack。
+6. 后续获授权时集中推送 P4.2 并创建 Draft PR；
+7. P4.2 评审集成后创建 P4.3 分支，开发 RNG、birth retry、global ID、
+   complete packet schema 3 和 post-event graph integration。
 
 开始前执行：
 
@@ -50,13 +51,34 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
-| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.1 本地完成：31/31 direct、538/538 predecessor；P4.2 未开始 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
+| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.2 本地完成：18/18 direct、P4.1 31/31、538/538 predecessor；P4.3 未开始 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
 状态只能使用：`未开始`、`进行中`、`阻塞`、`完成`、`后置`。只有阶段退出条件全部通过后才能标记为完成。
 
 ## 3. 已完成证据
+
+### P4.2 boundary、terminal transaction 与 compact-tail free stack
+
+- 生产状态/classifier/free-stack 提交
+  `145244380986df569a78b7e443b37f8139e40cfb`；
+- terminal/RK/spring 集成提交
+  `6fbcb781979019c9e8b6e43fbdba1da60f7ee6b2`；
+- 直接门禁提交 `62538a8360a97d8fa9718b15ee6d874cca357b5a`；
+- `p42-final-head-attempt03` 在洁净精确 closeout 头通过 18/18，覆盖
+  P4-L01/F01/T01、RK2/RK4 K1--K4/FINAL、spring rank seam、B11 distinct
+  terminal、B13 interleaved death/reuse、WAITING freeze 和实际 owner
+  migration/free-stack reconstruction；
+- `p42-p41-accepted-attempt04` 在同一头以 p42 scope 通过完整 P4.1
+  31/31；
+- 隔离 shared clone 的 `p42-predecessor-final-head-attempt04` 通过 P3
+  direct 148/148 与 Phase 2 closure 390/390，总计 538/538；
+- owner packet schema 2、P3 container schema 3 与 v0.4 annotated tag 均未
+  改动；P4.3/P4.4/P4.5 范围仍保持冻结；
+- 当前 P4.2 分支未推送、未创建 PR、未合并，也未创建 v0.5；
+- 详细记录见
+  `verification/bom/phase04-biology-land/P4.2_CLOSEOUT.md`。
 
 ### P4.1 温度/营养盐端点与 Brooks stateless kernel
 
@@ -1021,6 +1043,30 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   未合并，也未创建 v0.5；
 - P4.0 经明确授权集成后，唯一生产任务为 P4.1 T/N accepted endpoints、
   exact-time sampling、missing policy 与 Brooks stateless/plan。
+
+### 2026-08-29：P4.0/P4.1 集成与 P4.2 本地完成
+
+- P4.0 PR #33 已以 merge commit
+  `2e65cc63d66ff625594dbbf61048e60513ed39fe` 集成，P4.1 PR #34 已以
+  merge commit `0d7a20ef232c45c70fa0f90dbba1dc79a3893ab9` 集成；
+- 从 P4.1 merge commit 创建独立分支
+  `MITGCM-BOM/p4.2-boundary-terminal-free-stack`；
+- `145244380` 实现 regular-grid wet/dry/outside/fatal classifier、terminal/
+  event/free 状态、compact-tail O(1) remove/alloc/rebuild、负 periodic origin
+  修正和 land-only migration tail maintenance；
+- `6fbcb7819` 实现 additive RK2/RK4 P4 interfaces、first-terminal scratch、
+  synchronous spring exclusion、exact-ID post-migration binding、biology
+  death 与 all-or-nothing event transaction；
+- `62538a836` 加入 serial/MPI4 18-row direct gate；开发期最终脏树门禁
+  `p42-migration-attempt01` 已先通过 18/18；
+- clean closeout 头的 `p42-final-head-attempt03` 通过 18/18，完整 P4.1
+  `p42-p41-accepted-attempt04` 以显式 p42 scope 通过 31/31；
+- 隔离共享 clone 的 `p42-predecessor-final-head-attempt04` 通过 P3 直接
+  148/148、Phase 2 closure 390/390，总计 538/538；
+- P4.2 关闭 P4-R06/R07/R10 及 P4-R08/R09 的本包部分，未进入 Philox、
+  birth retry、global child ID、complete packet schema 3、event files、
+  schema 4 或 P4-G99；
+- 分支未推送、未创建 PR、未合并、未创建 v0.5；唯一下一生产包为 P4.3。
 
 ## 6. 每次会话结束时必须更新
 

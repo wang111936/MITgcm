@@ -7,6 +7,11 @@ REPO_ROOT="$(cd "${CASE_DIR}/../../.." && pwd -P)"
 readonly REPO_ROOT
 readonly EXPECTED_HEAD="${MITGCM_BOM_EXPECTED_HEAD:?set full exact head}"
 readonly MODE="${MITGCM_BOM_INTEGRATION_MODE:-candidate}"
+P4_REPLAY_SCOPE=none
+if [[ "${MODE}" == predecessor ]]; then
+  P4_REPLAY_SCOPE=predecessor
+fi
+readonly P4_REPLAY_SCOPE
 readonly TEST_ID="${MITGCM_BOM_TEST_ID:-p3-g99-${MODE}-${EXPECTED_HEAD:0:10}-attempt01}"
 readonly EVIDENCE_ROOT="${MITGCM_BOM_TEST_ARTIFACT_ROOT:-/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99}/${TEST_ID}"
 readonly EXPECTED_TOTAL=538
@@ -74,6 +79,7 @@ run_driver() {
       MITGCM_BOM_TEST_ID="${id}" \
       MITGCM_BOM_REQUIRE_CLEAN=yes \
       MITGCM_BOM_SCOPE_MODE=p35 \
+      MITGCM_BOM_REPLAY_SCOPE="${P4_REPLAY_SCOPE}" \
       "${driver}" > "${EVIDENCE_ROOT}/${group}.log" 2>&1
 }
 
@@ -159,7 +165,9 @@ register_direct p31-reference 34 \
 log 'run exact Phase 2 predecessor closure'
 closure_scope=P3.5
 if [[ "${MODE}" == predecessor ]]; then
-  closure_scope=P4.1
+  closure_scope="${MITGCM_BOM_PREDECESSOR_CLOSURE_SCOPE:-P4.1}"
+  [[ "${closure_scope}" == P4.1 || "${closure_scope}" == P4.2 ]] \
+    || fail 'predecessor closure scope must be P4.1 or P4.2'
 fi
 env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
     MITGCM_BOM_TEST_ID="${TEST_ID}-phase2" \

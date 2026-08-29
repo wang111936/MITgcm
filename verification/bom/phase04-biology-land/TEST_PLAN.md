@@ -1,10 +1,10 @@
 # MITGCM-BOM Phase 4 test plan
 
-Status: **P4.1 EXECUTED; P4.2--P4.5 FROZEN**
+Status: **P4.2 EXECUTED; P4.3--P4.5 FROZEN**
 
-P4.0 ran only the document/scope audit.  P4.1 now has accepted direct and
-predecessor evidence recorded in `P4.1_CLOSEOUT.md`; P4.2--P4.5 rows remain
-future obligations and may not be reported as executed.
+P4.0 ran only the document/scope audit. P4.1 and P4.2 now have accepted direct
+and predecessor evidence recorded in their closeout files; P4.3--P4.5 rows
+remain future obligations and may not be reported as executed.
 
 ## 1. Common evidence rules
 
@@ -61,7 +61,9 @@ Build/run the released v0.4 modes with every P4 switch off:
 - BOM spring NONE/schema 2;
 - BOM HOOKE/schema 3;
 - BOM EBOMB/schema 3;
-- FLT+BOM coexistence cases from the predecessor matrix.
+- FLT+BOM coexistence compatibility cases from the predecessor matrix; these
+  prove collision-free simultaneous enablement and do not make BOM depend on
+  FLT.
 
 Require the existing dispatch, schemas, output/pickup bytes and registered
 predecessor summaries to match v0.4. The source call graph must prove no T/N
@@ -142,6 +144,10 @@ P4.1 stops before committing births/deaths; threshold rows inspect immutable
 event-plan candidates only.
 
 ## 5. P4.2 boundary, state and free-stack gates
+
+Execution status: accepted on one clean exact head by the 18/18 serial/MPI4
+direct gate, the complete P4.1 31/31 replay and exact v0.4 predecessor
+538/538 replay recorded in `P4.2_CLOSEOUT.md`.
 
 ### P4-L01 boundary classifier
 
@@ -357,7 +363,8 @@ On the ordered merged production tree, run:
 - every accepted P4.1--P4.5 direct/negative/MPI/restart/schema row;
 - B11--B15 and B17--B19 in their complete matrices;
 - the exact Phase 3 release matrix of 538 predecessor rows;
-- P4 disabled schema/core compatibility and FLT+BOM coexistence;
+- P4 disabled schema/core compatibility and the compatibility-only FLT+BOM
+  coexistence regression;
 - Julia/reference and Philox fixture integrity;
 - production source/link isolation;
 - clean source, expected/actual row audit and self-validating manifest.

@@ -129,7 +129,18 @@ def main() -> int:
             gather_files.add(source.name)
         require(not re.search(r"MPI_INTEGER8\s*[,)]", text),
                 f"non-portable MPI_INTEGER8: {source.name}")
-    require(gather_files == {"bom_check_state.F", "bom_read_pickup.F"},
+    expected_gather_files = {"bom_check_state.F", "bom_read_pickup.F"}
+    if mode == "predecessor":
+        expected_gather_files.add("bom_terminal_plan.F")
+        terminal = (repo / "pkg/bom/bom_terminal_plan.F").read_text(
+            encoding="ascii"
+        )
+        require("INTEGER localMeta(9),allMeta(9,nPx*nPy)" in terminal and
+                "CALL MPI_Allgather(" in terminal and
+                "localMeta,9,MPI_INTEGER" in terminal and
+                "allMeta,9,MPI_INTEGER" in terminal,
+                "P4 terminal gather is not fixed failure metadata")
+    require(gather_files == expected_gather_files,
             f"unexpected global collective files: {sorted(gather_files)}")
     spring = (repo / "pkg/bom/bom_spring_stage.F").read_text(encoding="ascii")
     require("CALL BOM_BUILD_CELL_LIST" in spring and
