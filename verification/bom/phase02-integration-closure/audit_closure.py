@@ -89,7 +89,11 @@ P42_ALLOWED_PATHS = P41_ALLOWED_PATHS | {
     "verification/bom/phase03-performance-closeout/run_performance_gate.sh",
 }
 P43_ALLOWED_PATHS = P42_ALLOWED_PATHS | {
+    "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.small",
+    "verification/bom/phase01-owner-migration/code/BOM_SIZE.h.tile-small",
+    "verification/bom/phase01-owner-migration/run_owner_gate.sh",
     "verification/bom/phase03-performance-closeout/code/BOM_SIZE.h.performance",
+    "verification/bom/phase03-spring-ensemble/run_spring_ensemble_gate.sh",
 }
 
 

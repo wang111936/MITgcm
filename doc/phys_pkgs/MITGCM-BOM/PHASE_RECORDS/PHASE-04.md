@@ -200,12 +200,12 @@ P4.3 在独立分支 `MITGCM-BOM/p4.3-rng-birth-schema3` 本地关闭：
 4. 收口增量让迁移生产路径共用 packet validator，拒绝 schema、
    ID/parent words、count、destination、non-finite real 和 packet length
    变异，且在 owner replacement 前失败关闭；
-5. `p43-final-head-attempt04` 在洁净精确头通过 26/26，包含
+5. `p43-final-head-attempt05` 在洁净精确头通过 26/26，包含
    serial/MPI2/MPI4 Philox、birth/ID/event/schema3/graph 以及反向 slot
    比较；
-6. `p43-p42-accepted-attempt04` 通过 18/18，
-   `p43-p41-accepted-attempt04` 以显式 p43 scope 通过 31/31；
-7. 隔离 shared clone 的 `p43-predecessor-final-head-attempt04` 通过
+6. `p43-p42-accepted-attempt05` 通过 18/18，
+   `p43-p41-accepted-attempt05` 以显式 p43 scope 通过 31/31；
+7. 隔离 shared clone 的 `p43-predecessor-final-head-attempt05` 通过
    Phase 3 direct 148/148 与 Phase 2 closure 390/390，总计 538/538；
 8. 前一次完整 replay 在 P3.5、P3.4 通过后发现 P3.3 仍检查旧二维迁移
    缓冲区源码形态；门禁已改为检查等价的一维 `packetOffset` 字段位置，
@@ -213,8 +213,11 @@ P4.3 在独立分支 `MITGCM-BOM/p4.3-rng-birth-schema3` 本地关闭：
 9. 后续 replay 已通过 Phase 3 148 项并进入 Phase 2，在 P1.4 找到最后一组
    旧二维 packet 源码断言；全库检索后将其更新为等价的 `packetOffset`
    schema2 字段及默认宽度检查；
-10. BOM 仍为独立 package，`FLT+BOM` 仅是兼容回归；未读写 SKRIPS；
-11. event files、schema 4 output/pickup、restart、B18/B19 和 P4-G99
+10. 再次 replay 已通过 Phase 3 148 项和 Phase 2 390 项功能门禁，最后由
+   独立 closure scope 发现 P4.3 fixture/audit 维护路径未列入白名单；现仅
+   精确加入两个 Phase 1 header 和两个 packet audit driver，未放宽目录；
+11. BOM 仍为独立 package，`FLT+BOM` 仅是兼容回归；未读写 SKRIPS；
+12. event files、schema 4 output/pickup、restart、B18/B19 和 P4-G99
    仍属于 P4.4/P4.5；本分支未推送、未创建 PR、未合并、
    未创建 v0.5。
 

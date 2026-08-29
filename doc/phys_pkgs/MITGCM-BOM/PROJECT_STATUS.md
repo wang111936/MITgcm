@@ -24,10 +24,10 @@
    `verification/bom/phase04-biology-land/P4.3_CLOSEOUT.md`；
 2. 核对 P4.3 生产提交 `852659089`、`7a14707da`、`460d42890`
    及收口提交均为 WangYuLin；
-3. 核对 `p43-final-head-attempt04` 的 26/26、
-   `p43-p42-accepted-attempt04` 的 18/18、
-   `p43-p41-accepted-attempt04` 的 31/31 与
-   `p43-predecessor-final-head-attempt04` 的 538/538、source-head 和
+3. 核对 `p43-final-head-attempt05` 的 26/26、
+   `p43-p42-accepted-attempt05` 的 18/18、
+   `p43-p41-accepted-attempt05` 的 31/31 与
+   `p43-predecessor-final-head-attempt05` 的 538/538、source-head 和
    manifest 自校验；
 4. 保持 P4.3 不进入 event files、schema4 output/pickup、restart 或 P4-G99；
 5. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
@@ -67,10 +67,10 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 收口增量补全 production packet validator、schema/word/count/destination/
   real/length 变异、MPI2/MPI4 exact Philox、reverse-slot canonical event
   比较、P3 counter overflow preflight 与 predecessor scope；
-- `p43-final-head-attempt04` 在洁净精确头通过 26/26；
-- `p43-p42-accepted-attempt04` 通过 P4.2 18/18，
-  `p43-p41-accepted-attempt04` 以 p43 scope 通过 P4.1 31/31；
-- 隔离 shared clone 的 `p43-predecessor-final-head-attempt04` 通过
+- `p43-final-head-attempt05` 在洁净精确头通过 26/26；
+- `p43-p42-accepted-attempt05` 通过 P4.2 18/18，
+  `p43-p41-accepted-attempt05` 以 p43 scope 通过 P4.1 31/31；
+- 隔离 shared clone 的 `p43-predecessor-final-head-attempt05` 通过
   P3 direct 148/148 与 Phase 2 closure 390/390，总计 538/538；
 - serial/MPI2/MPI4 和反向 owner-slot 的语义 owner/event 记录
   byte-identical；出生先后顺序只依赖 exact parent ID；
@@ -1105,9 +1105,9 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 首次 predecessor 尝试在 P3 小容量 `BOM_SIZE.h` 缺少新的
   schema3 编译常量处停止；只向三份验证头追加 3/13/7，没有
   改动 schema2 值或容量；
-- clean closeout 证据为 `p43-final-head-attempt04` 26/26、
-  `p43-p42-accepted-attempt04` 18/18、`p43-p41-accepted-attempt04`
-  31/31 和 `p43-predecessor-final-head-attempt04` 538/538；
+- clean closeout 证据为 `p43-final-head-attempt05` 26/26、
+  `p43-p42-accepted-attempt05` 18/18、`p43-p41-accepted-attempt05`
+  31/31 和 `p43-predecessor-final-head-attempt05` 538/538；
 - P4.3 关闭 P4-R11--R13/R15、P4-R14 本包事务部分与 P4-R19
   birth/event 分布式部分；完整 B19 仍归 P4.5；
 - 未涉及 SKRIPS，未推送 GitHub、未创建 PR、未合并、未创建
