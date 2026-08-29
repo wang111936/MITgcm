@@ -33,6 +33,81 @@ C--   Stable component identifiers for copied COUPLER Stokes publication.
       PARAMETER ( BOM_COUPLER_NORTH = 2 )
       PARAMETER ( BOM_COUPLER_NCOMP = 2 )
 
+C--   Stable P4.1 scalar-source codes.  Temperature and nutrient codes are
+C     separate namespaces and are persisted with each accepted endpoint.
+      INTEGER BOM_BIO_TEMP_NONE
+      INTEGER BOM_BIO_TEMP_THETA
+      INTEGER BOM_BIO_N_NONE
+      INTEGER BOM_BIO_N_PTRACER
+      INTEGER BOM_BIO_N_FILES
+      PARAMETER ( BOM_BIO_TEMP_NONE  = 0 )
+      PARAMETER ( BOM_BIO_TEMP_THETA = 1 )
+      PARAMETER ( BOM_BIO_N_NONE     = 0 )
+      PARAMETER ( BOM_BIO_N_PTRACER  = 1 )
+      PARAMETER ( BOM_BIO_N_FILES    = 2 )
+
+C--   Accepted surface temperature/nutrient bracket.  One shared validity
+C     flag proves that both scalars are present at a wet C point.
+      _RL bomBioTemp(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,nSx,nSy)
+      _RL bomBioN(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,nSx,nSy)
+      COMMON /BOM_BIO_FIELD_R/ bomBioTemp, bomBioN
+
+      _RL bomBioTime(BOM_ENV_NEND)
+      COMMON /BOM_BIO_TIME_R/ bomBioTime
+
+      INTEGER bomBioIter(BOM_ENV_NEND)
+      INTEGER bomBioTempSource(BOM_ENV_NEND)
+      INTEGER bomBioNSource(BOM_ENV_NEND)
+      COMMON /BOM_BIO_TIME_I/
+     &       bomBioIter, bomBioTempSource, bomBioNSource
+
+      LOGICAL bomBioValid(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,nSx,nSy)
+      LOGICAL bomBioReady
+      COMMON /BOM_BIO_FIELD_L/ bomBioValid
+      COMMON /BOM_BIO_STATE_L/ bomBioReady
+
+C--   P4.1 transaction scratch and BOM-owned one-level provider storage.
+      _RL bomBioTempScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,nSx,nSy)
+      _RL bomBioNScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,nSx,nSy)
+      COMMON /BOM_BIO_SCRATCH_R/
+     &       bomBioTempScratch, bomBioNScratch
+
+      _RL bomBioTimeScratch(BOM_ENV_NEND)
+      COMMON /BOM_BIO_SCRATCH_TIME_R/ bomBioTimeScratch
+
+      INTEGER bomBioIterScratch(BOM_ENV_NEND)
+      INTEGER bomBioTempSourceScratch(BOM_ENV_NEND)
+      INTEGER bomBioNSourceScratch(BOM_ENV_NEND)
+      COMMON /BOM_BIO_SCRATCH_TIME_I/
+     &       bomBioIterScratch, bomBioTempSourceScratch,
+     &       bomBioNSourceScratch
+
+      LOGICAL bomBioValidScratch(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
+     &     BOM_ENV_NEND,nSx,nSy)
+      COMMON /BOM_BIO_SCRATCH_L/ bomBioValidScratch
+
+      _RL bomBioTempWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomBioNWork(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomBioN0(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      _RL bomBioN1(
+     &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,1,nSx,nSy)
+      COMMON /BOM_BIO_WORK_R/
+     &       bomBioTempWork, bomBioNWork, bomBioN0, bomBioN1
+
       _RL bomEnvEast(
      &     1-OLx:sNx+OLx,1-OLy:sNy+OLy,
      &     BOM_ENV_NEND,BOM_ENV_NSOURCE,nSx,nSy)

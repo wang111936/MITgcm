@@ -18,7 +18,8 @@ for command_name in awk bash git grep python3 rg sha256sum shellcheck; do
   command -v "${command_name}" >/dev/null 2>&1 \
     || fail "missing ${command_name}"
 done
-[[ "${MODE}" == candidate || "${MODE}" == final ]] \
+[[ "${MODE}" == candidate || "${MODE}" == final \
+   || "${MODE}" == predecessor ]] \
   || fail "invalid MITGCM_BOM_INTEGRATION_MODE=${MODE}"
 [[ "$(git -C "${REPO_ROOT}" rev-parse HEAD)" == "${EXPECTED_HEAD}" ]] \
   || fail 'current HEAD differs from expected head'
@@ -33,7 +34,7 @@ if [[ "${MODE}" == candidate ]]; then
   git -C "${REPO_ROOT}" merge-base --is-ancestor \
     MITGCM-BOM/development "${EXPECTED_HEAD}" \
     || fail 'development is not an ancestor of the package head'
-else
+elif [[ "${MODE}" == final ]]; then
   [[ "$(git -C "${REPO_ROOT}" branch --show-current)" == \
     MITGCM-BOM/development ]] \
     || fail 'final mode requires the development branch'
@@ -42,6 +43,16 @@ else
   git -C "${REPO_ROOT}" merge-base --is-ancestor \
     "${MITGCM_BOM_P35_PACKAGE_HEAD}" "${EXPECTED_HEAD}" \
     || fail 'P3.5 package head is not integrated'
+else
+  [[ "$(git -C "${REPO_ROOT}" branch --show-current)" == \
+    MITGCM-BOM/p3.5-performance-closeout ]] \
+    || fail 'predecessor mode requires an isolated P3.5 replay branch'
+  [[ "$(git -C "${REPO_ROOT}" rev-parse MITGCM-BOM/development)" == \
+    "${EXPECTED_HEAD}" ]] \
+    || fail 'predecessor replay baseline must equal the exact head'
+  git -C "${REPO_ROOT}" merge-base --is-ancestor \
+    70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a "${EXPECTED_HEAD}" \
+    || fail 'v0.4 release commit is not an ancestor of replay head'
 fi
 [[ ! -e "${EVIDENCE_ROOT}" ]] \
   || fail "evidence root exists: ${EVIDENCE_ROOT}"
@@ -146,10 +157,14 @@ register_direct p31-reference 34 \
   "/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p31-reference-laws/${TEST_ID}-p31-reference/summary.tsv"
 
 log 'run exact Phase 2 predecessor closure'
+closure_scope=P3.5
+if [[ "${MODE}" == predecessor ]]; then
+  closure_scope=P4.1
+fi
 env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
     MITGCM_BOM_TEST_ID="${TEST_ID}-phase2" \
     MITGCM_BOM_SCOPE_MODE=p35 \
-    MITGCM_BOM_CLOSURE_SCOPE=P3.5 \
+    MITGCM_BOM_CLOSURE_SCOPE="${closure_scope}" \
     "${REPO_ROOT}/verification/bom/phase02-integration-closure/run_phase2_closure.sh" \
     > "${EVIDENCE_ROOT}/phase2.log" 2>&1
 register_phase2 \

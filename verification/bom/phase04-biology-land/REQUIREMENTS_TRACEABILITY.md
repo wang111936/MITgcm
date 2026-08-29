@@ -1,6 +1,6 @@
 # Phase 4 requirements traceability
 
-Status: **FROZEN AT P4.0; PRODUCTION IMPLEMENTATION NOT STARTED**
+Status: **P4.1 LOCALLY VERIFIED; P4.2--P4.5 REMAIN FROZEN**
 
 Baseline: MITGCM-BOM-v0.4 at
 70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a
@@ -10,13 +10,13 @@ mean a production feature is implemented or tested.
 
 ## 1. Forward map
 
-| ID | Requirement | Intended production owner | Required evidence | Package | P4.0 state |
+| ID | Requirement | Intended production owner | Required evidence | Package | Current state |
 |---|---|---|---|---|---|
-| P4-R01 | Preserve the exact v0.4 path, schemas, arithmetic and collectives when P4 switches are off | BOM_READPARMS, BOM_CHECK, existing BOM_MAIN dispatch | P4-Z01 plus exact 538-row predecessor gate | P4.1--P4.5 | frozen |
-| P4-R02 | Validate biology/land/source parameters, units and appended stable codes without renumbering 0--25 | BOM_READPARMS, BOM_CHECK, BOM.h | P4-C01 and configuration negatives | P4.1 | frozen |
-| P4-R03 | Publish complete accepted OLD/NEW T/N endpoints transactionally with exact source time and validity | BOM_BUILD_BIO_ENDPOINTS and source providers | P4-E01, source rollback, MPI4 | P4.1 | frozen |
-| P4-R04 | Sample T/N at exact completed-substep time with common wet weights and explicit missing policy | BOM_INTERP_BIO_TIME | P4-E02, STOP/NO_GROWTH negatives | P4.1 | frozen |
-| P4-R05 | Evaluate finite SI Brooks temperature/nutrient factors and strict amount thresholds | BOM_BROOKS_RATE, BOM_BIOLOGY_PLAN | P4-B01 and B12 analytical rows | P4.1 | frozen |
+| P4-R01 | Preserve the exact v0.4 path, schemas, arithmetic and collectives when P4 switches are off | BOM_READPARMS, BOM_CHECK, existing BOM_MAIN dispatch | P4-Z01 plus exact 538-row predecessor gate | P4.1--P4.5 | P4.1 focus verified; remains cumulative |
+| P4-R02 | Validate biology/land/source parameters, units and appended stable codes without renumbering 0--25 | BOM_READPARMS, BOM_CHECK, BOM.h | P4-C01 and configuration negatives | P4.1 | verified at P4.1 |
+| P4-R03 | Publish complete accepted OLD/NEW T/N endpoints transactionally with exact source time and validity | BOM_BUILD_BIO_ENDPOINTS and source providers | P4-E01, source rollback, MPI4 | P4.1 | verified at P4.1 |
+| P4-R04 | Sample T/N at exact completed-substep time with common wet weights and explicit missing policy | BOM_INTERP_BIO_TIME | P4-E02, STOP/NO_GROWTH negatives | P4.1 | verified at P4.1 |
+| P4-R05 | Evaluate finite SI Brooks temperature/nutrient factors and strict amount thresholds | BOM_BROOKS_RATE, BOM_BIOLOGY_PLAN | P4-B01 and B12 analytical rows | P4.1 | verified at P4.1 |
 | P4-R06 | Classify wet, dry and outside attempts without relabelling numerical failures | BOM_CLASSIFY_BOUNDARY | P4-L01, B11 and failure injection | P4.2 | frozen |
 | P4-R07 | Prevent dry/exterior publication and retain last accepted wet plus attempted event position | RK boundary scratch and event planner | B11 serial/MPI, stage cases | P4.2 | frozen |
 | P4-R08 | Keep every owner/event mutation outside RK stages and rollback the complete event phase on failure | BOM_EVENT_TRANSACTION | P4-T01, spring/non-spring rollback | P4.2--P4.4 | frozen |

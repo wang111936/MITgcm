@@ -47,6 +47,7 @@ C !LOCAL VARIABLES:
       LOGICAL stokesRepFinite, stokesScaleFinite
       LOGICAL tauDaysInRange
       INTEGER springFailCode
+      INTEGER biologyFailCode
       INTEGER i, j
       _RL springHalfPeriod, springXPeriod
       _RL springMinCos, springCosLat, springFactor
@@ -54,6 +55,7 @@ C !LOCAL VARIABLES:
       _RL springYLo, springYHi
       LOGICAL springPeriodicX, springConfigValid
       LOGICAL springCalcValid, springTermValid
+      LOGICAL biologyConfigValid
 
       _BEGIN_MASTER(myThid)
 
@@ -105,6 +107,16 @@ C !LOCAL VARIABLES:
      &     'bomSpringCFL =', ' /* spring stability bound */')
       CALL WRITE_0D_L( bomRaftDiagnostics, INDEX_NONE,
      &     'bomRaftDiagnostics =', ' /* FINAL components */')
+      IF ( bomUseBiology .OR. bomUseLand ) THEN
+        CALL WRITE_0D_L( bomUseBiology, INDEX_NONE,
+     &       'bomUseBiology =', ' /* P4 biology */')
+        CALL WRITE_0D_L( bomUseLand, INDEX_NONE,
+     &       'bomUseLand =', ' /* P4 land classifier */')
+        CALL WRITE_0D_C( bomTempSource, -1, INDEX_NONE,
+     &       'bomTempSource =', ' /* NONE or THETA */')
+        CALL WRITE_0D_C( bomNSource, -1, INDEX_NONE,
+     &       'bomNSource =', ' /* NONE, PTRACER, FILES */')
+      ENDIF
 
       errCount = 0
       nSub = 0
@@ -234,6 +246,18 @@ C     pole, where no globally unique positive physical X cutoff exists.
         WRITE(msgBuf,'(3A,I4)')
      &       'BOM_CHECK: invalid Phase-3 spring configuration law=',
      &       bomSpringLaw, ' failCode=', springFailCode
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+
+      CALL BOM_VALIDATE_BIOLOGY_CONFIG(
+     O     biologyFailCode, biologyConfigValid,
+     I     myThid )
+      IF ( .NOT.biologyConfigValid ) THEN
+        WRITE(msgBuf,'(4A,I4)')
+     &       'BOM_CHECK: invalid P4.1 biology configuration T/N=',
+     &       bomTempSource, bomNSource,
+     &       ' failCode=', biologyFailCode
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
       ENDIF
