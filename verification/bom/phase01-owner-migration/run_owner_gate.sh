@@ -311,22 +311,21 @@ grep -Fq 'hopCount = MAX(dxTile,dyTile)' "${LOCATE_SOURCE}" \
   || fail 'exactly one MPI_Alltoall count exchange is required'
 [[ "$(grep -c 'CALL MPI_Alltoallv(' "${EXCHANGE_SOURCE}")" -eq 2 ]] \
   || fail 'exactly two MPI_Alltoallv packet exchanges are required'
-if grep -Fq 'PARAMETER ( bomPacketSchema   = 2 )' "${SIZE_SOURCE}"; then
-  grep -Fq 'sendInt(1,packetIndex) = bomPacketSchema' \
-    "${EXCHANGE_SOURCE}" || fail 'schema-v2 packet marker is missing'
-  grep -Fq 'sendInt(2,packetIndex) = INT(idHi8)' "${EXCHANGE_SOURCE}" \
-    || fail 'schema-v2 64-bit ID high-word packing is missing'
-  grep -Fq 'sendInt(3,packetIndex) = INT(idLo8' "${EXCHANGE_SOURCE}" \
-    || fail 'schema-v2 64-bit ID low-word packing is missing'
-else
-  grep -Fq 'sendInt(1,packetIndex) = INT(idHi8)' "${EXCHANGE_SOURCE}" \
-    || fail '64-bit ID high-word packing is missing'
-  grep -Fq 'sendInt(2,packetIndex) = INT(idLo8' "${EXCHANGE_SOURCE}" \
-    || fail '64-bit ID low-word packing is missing'
-fi
-grep -Fq 'sendReal(1,packetIndex) = planX' "${EXCHANGE_SOURCE}" \
+grep -Fq 'PARAMETER ( bomPacketSchema   = 2 )' "${SIZE_SOURCE}" \
+  || fail 'owner migration schema is not version 2'
+grep -Fq 'packetSchemaActive=bomPacketSchema' "${EXCHANGE_SOURCE}" \
+  || fail 'schema-v2 packet default is missing'
+grep -Fq 'sendInt(packetOffsetI+1) = packetSchemaActive' \
+  "${EXCHANGE_SOURCE}" || fail 'schema-v2 packet marker is missing'
+grep -Fq 'sendInt(packetOffsetI+2) = INT(idHi8)' "${EXCHANGE_SOURCE}" \
+  || fail 'schema-v2 64-bit ID high-word packing is missing'
+grep -Fq 'sendInt(packetOffsetI+3) = INT(idLo8' "${EXCHANGE_SOURCE}" \
+  || fail 'schema-v2 64-bit ID low-word packing is missing'
+grep -Fq 'packetRealsActive=bomPacketReals' "${EXCHANGE_SOURCE}" \
+  || fail 'schema-v2 real packet width is not the default'
+grep -Fq 'sendReal(packetOffsetR+1) = planX' "${EXCHANGE_SOURCE}" \
   || fail 'minimal real packet X field is missing'
-grep -Fq 'sendReal(4,packetIndex) = bomAge' "${EXCHANGE_SOURCE}" \
+grep -Fq 'sendReal(packetOffsetR+4) = bomAge' "${EXCHANGE_SOURCE}" \
   || fail 'minimal real packet age field is missing'
 grep -Fq 'IF ( globalMoveCount.EQ.0 ) RETURN' "${EXCHANGE_SOURCE}" \
   || fail 'bitwise no-movement fast path is missing'
