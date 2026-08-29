@@ -18,6 +18,7 @@ C     classifier result remains fatal.  No owner or event state is changed.
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
+#include "PARAMS.h"
 #include "BOM_SIZE.h"
 #include "BOM.h"
       _RL attemptedX,attemptedY,terminalAttemptX,terminalAttemptY
@@ -106,6 +107,7 @@ C     owns placement, global ordering and child IDs.
       INTEGER localOwners,localTerminal,freeFailCode,newStatus
       INTEGER localDeath,localBeach,localOutside
       INTEGER globalDeath,globalBeach,globalOutside
+      INTEGER localMissing,globalMissing,firstEventSlot
       INTEGER planType(bomMaxInitRecords)
       INTEGER planStage(bomMaxInitRecords)
       INTEGER planBi(bomMaxInitRecords)
@@ -152,6 +154,7 @@ C     owns placement, global ordering and child IDs.
       localDeath = 0
       localBeach = 0
       localOutside = 0
+      localMissing = 0
 
       IF ( .NOT.IEEE_IS_FINITE(tSub0) .OR.
      &     .NOT.IEEE_IS_FINITE(tSub1) .OR. tSub1.LT.tSub0 .OR.
@@ -314,6 +317,10 @@ C--   Biology is evaluated only for surviving ALIVE owners at tSub1.
      U                 localFailPhase,localFailCode,
      U                 localFailBi,localFailBj,
      U                 localFailSlot,localFailId)
+                ELSEIF ( missingGrowth ) THEN
+                  localMissing=localMissing+1
+                  sWork(ip,bi,bj)=sCandidate
+                  sPublish(ip,bi,bj)=.TRUE.
                 ELSEIF ( eventType.EQ.BOM_EVENT_BIRTH ) THEN
 C--               Birth placement and IDs are deliberately P4.3 scope.
                   CALL BOM_P4_KEEP_FAILURE(
@@ -469,9 +476,11 @@ C     failure or collective operation.
       globalDeath=localDeath
       globalBeach=localBeach
       globalOutside=localOutside
+      globalMissing=localMissing
       CALL GLOBAL_SUM_INT(globalDeath,myThid)
       CALL GLOBAL_SUM_INT(globalBeach,myThid)
       CALL GLOBAL_SUM_INT(globalOutside,myThid)
+      CALL GLOBAL_SUM_INT(globalMissing,myThid)
       IF ( bomDeathEvents.LT.0_8 .OR.
      &     bomDeathEvents.GT.HUGE(bomDeathEvents)-INT(globalDeath,8)
      &     .OR. bomBeachEvents.LT.0_8 .OR.
@@ -479,6 +488,9 @@ C     failure or collective operation.
      &     .OR. bomOutsideEvents.LT.0_8 .OR.
      &     bomOutsideEvents.GT.HUGE(bomOutsideEvents)
      &                              -INT(globalOutside,8)
+     &     .OR. bomMissingGrowthEvents.LT.0_8
+     &     .OR. bomMissingGrowthEvents.GT.
+     &     HUGE(bomMissingGrowthEvents)-INT(globalMissing,8)
      &     .OR. bomEventTimeIndex.LT.0_8 .OR.
      &     bomEventTimeIndex.EQ.HUGE(bomEventTimeIndex) )
      &     CALL BOM_P4_KEEP_FAILURE(
@@ -516,6 +528,7 @@ C     failure or collective operation.
       IF ( .NOT.isValid ) RETURN
 
 C--   Commit begins only after every rank has accepted the same preflight.
+      firstEventSlot=bomEventBufferCount+1
       DO bj=myByLo(myThid),myByHi(myThid)
        DO bi=myBxLo(myThid),myBxHi(myThid)
         DO ip=1,bomNPartTile(bi,bj)
@@ -592,8 +605,19 @@ C--   Descending bound slots make every O(1) tail swap deterministic.
       bomDeathEvents=bomDeathEvents+INT(globalDeath,8)
       bomBeachEvents=bomBeachEvents+INT(globalBeach,8)
       bomOutsideEvents=bomOutsideEvents+INT(globalOutside,8)
+      bomMissingGrowthEvents=bomMissingGrowthEvents+
+     &     INT(globalMissing,8)
       bomNPartLiveExpected=globalAfter
       bomEventTimeIndex=bomEventTimeIndex+1_8
+      CALL BOM_EVENT_BUDGET_CHECK(localFailCode,myThid)
+      IF ( localFailCode.NE.BOM_FAIL_NONE ) THEN
+        CALL ALL_PROC_DIE(0)
+        STOP 'ABNORMAL END: P4.4 EVENT BUDGET COMMIT'
+      ENDIF
+#ifdef ALLOW_DIAGNOSTICS
+      IF ( useDiagnostics ) CALL BOM_DIAGNOSTICS_FILL(
+     I     firstEventSlot,nPlan,myThid)
+#endif
 
 C--   Scratch is consumed only by the successful commit.
       DO bj=myByLo(myThid),myByHi(myThid)

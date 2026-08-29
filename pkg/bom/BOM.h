@@ -23,6 +23,7 @@ CEOP
       CHARACTER*(MAX_LEN_FNAM) bomVStokesFile
       CHARACTER*(MAX_LEN_FNAM) bomNFile
       CHARACTER*(MAX_LEN_FNAM) bomEventFile
+      CHARACTER*40 bomP4SourceHead
       COMMON /BOM_PARM_C/
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomWindSource, bomStokesSource,
@@ -30,7 +31,7 @@ CEOP
      &       bomNeighborPolicy, bomTempSource, bomNSource,
      &       bomBiologyMissingPolicy, bomInitialFile,
      &       bomUStokesFile, bomVStokesFile,
-     &       bomNFile, bomEventFile
+     &       bomNFile, bomEventFile, bomP4SourceHead
 
       _RL bomDeltaTTarget
       _RL bomOutputFreq
@@ -461,6 +462,13 @@ C     P4.4 owns shard I/O and pickup persistence.
       INTEGER*8 bomBeachEvents
       INTEGER*8 bomOutsideEvents
       INTEGER*8 bomCancelEvents
+      INTEGER*8 bomMissingGrowthEvents
+      INTEGER*8 bomEventShardRecords
+      INTEGER*8 bomEventShardBirth
+      INTEGER*8 bomEventShardDeath
+      INTEGER*8 bomEventShardBeach
+      INTEGER*8 bomEventShardOutside
+      INTEGER*8 bomEventShardCancel
       INTEGER*8 bomEventIndexBuffer(bomMaxEventBuffer)
       INTEGER*8 bomEventSubjectIdBuffer(bomMaxEventBuffer)
       INTEGER*8 bomEventParentIdBuffer(bomMaxEventBuffer)
@@ -469,6 +477,10 @@ C     P4.4 owns shard I/O and pickup persistence.
      &       bomNextId, bomEventTimeIndex,
      &       bomBirthEvents, bomDeathEvents, bomBeachEvents,
      &       bomOutsideEvents, bomCancelEvents,
+     &       bomMissingGrowthEvents, bomEventShardRecords,
+     &       bomEventShardBirth, bomEventShardDeath,
+     &       bomEventShardBeach, bomEventShardOutside,
+     &       bomEventShardCancel,
      &       bomEventIndexBuffer, bomEventSubjectIdBuffer,
      &       bomEventParentIdBuffer, bomEventChildIdBuffer
 
@@ -485,6 +497,16 @@ C     P4.4 owns shard I/O and pickup persistence.
      &       bomEventAcceptedYBuffer, bomEventAttemptXBuffer,
      &       bomEventAttemptYBuffer, bomEventSBeforeBuffer,
      &       bomEventSTrialBuffer, bomEventSAfterBuffer
+
+C--   Per-rank append-only event-shard publication state.  These values are
+C     restored from the schema-1 shard manifest before a split run appends.
+      _RL bomEventShardTimeMin
+      _RL bomEventShardTimeMax
+      COMMON /BOM_P4_EVENT_SHARD_R/
+     &       bomEventShardTimeMin, bomEventShardTimeMax
+
+      LOGICAL bomEventShardReady
+      COMMON /BOM_P4_EVENT_SHARD_L/ bomEventShardReady
 
 C--   Phase-2 accepted final-position diagnostic vector.  P2.5 persists all
 C     components in versioned BOM trajectory and pickup schema-2 records.

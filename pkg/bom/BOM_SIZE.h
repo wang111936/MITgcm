@@ -50,6 +50,18 @@ CEOP
       INTEGER bomPickupChunkFields
       INTEGER bomP3CounterFields
       INTEGER bomP3CounterDigits
+      INTEGER bomP4ContainerSchema
+      INTEGER bomP4SidecarSchema
+      INTEGER bomP4SidecarFields
+      INTEGER bomP4SidecarHeaderRecords
+      INTEGER bomP4ManifestSchema
+      INTEGER bomP4EventSchema
+      INTEGER bomP4EventFields
+      INTEGER bomP4SigBase
+      INTEGER bomP4FileNameChars
+      INTEGER bomP4SourceHeadChars
+      INTEGER bomP4SigFields
+      INTEGER bomP4BioHeader
       INTEGER BOM_P3_COUNT_OWNER
       INTEGER BOM_P3_COUNT_GHOST
       INTEGER BOM_P3_COUNT_NONEMPTY
@@ -109,6 +121,20 @@ CEOP
       PARAMETER ( bomPickupChunkFields = 24 )
       PARAMETER ( bomP3CounterFields = 14 )
       PARAMETER ( bomP3CounterDigits = 5 )
+      PARAMETER ( bomP4ContainerSchema = 4 )
+      PARAMETER ( bomP4SidecarSchema = 1 )
+      PARAMETER ( bomP4SidecarFields = 4 )
+      PARAMETER ( bomP4SidecarHeaderRecords = 3 )
+      PARAMETER ( bomP4ManifestSchema = 1 )
+      PARAMETER ( bomP4EventSchema = 1 )
+      PARAMETER ( bomP4EventFields = 32 )
+      PARAMETER ( bomP4SigBase = 80 )
+      PARAMETER ( bomP4FileNameChars = 512 )
+      PARAMETER ( bomP4SourceHeadChars = 40 )
+      PARAMETER ( bomP4SigFields =
+     &            bomP4SigBase+bomP4FileNameChars
+     &            +bomP4SourceHeadChars )
+      PARAMETER ( bomP4BioHeader = 18 )
       PARAMETER ( BOM_P3_COUNT_OWNER = 1 )
       PARAMETER ( BOM_P3_COUNT_GHOST = 2 )
       PARAMETER ( BOM_P3_COUNT_NONEMPTY = 3 )

@@ -21,6 +21,7 @@ C     commit.  Collectives carry bounded event metadata, never live owners.
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
+#include "PARAMS.h"
 #include "BOM_SIZE.h"
 #include "BOM_GRAPH_SIZE.h"
 #include "BOM.h"
@@ -38,6 +39,7 @@ C     commit.  Collectives carry bounded event metadata, never live owners.
       INTEGER localOwners,globalOwners,globalTerminal,globalAfter
       INTEGER localDeath,localBeach,localOutside,localCancel
       INTEGER globalDeath,globalBeach,globalOutside,globalCancel
+      INTEGER localMissing,globalMissing,firstEventSlot
       INTEGER localFailCode,localFailPhase,localFailBi,localFailBj
       INTEGER localFailSlot,orderFail,orderPhase,orderRank
       INTEGER orderBi,orderBj,orderSlot,freeFailCode,newSlot
@@ -162,6 +164,7 @@ C     commit.  Collectives carry bounded event metadata, never live owners.
       localBeach=0
       localOutside=0
       localCancel=0
+      localMissing=0
 
       IF ( .NOT.bomUseBiology .OR.
      &     .NOT.IEEE_IS_FINITE(tSub0) .OR.
@@ -324,6 +327,10 @@ C--   Plan biology without changing S, birth counters, or topology.
      U               localFailPhase,localFailCode,
      U               localFailBi,localFailBj,
      U               localFailSlot,localFailId)
+              ELSEIF ( missingGrowth ) THEN
+                localMissing=localMissing+1
+                sWork(ip,bi,bj)=sCandidate
+                sPublish(ip,bi,bj)=.TRUE.
               ELSEIF ( eventType.EQ.BOM_EVENT_BIRTH ) THEN
                 IF ( nBirth.GE.bomMaxEventBuffer ) THEN
                   CALL BOM_P4_KEEP_FAILURE(
@@ -623,10 +630,12 @@ C--   Counter and global live-budget checks complete initial preflight.
       globalBeach=localBeach
       globalOutside=localOutside
       globalCancel=localCancel
+      globalMissing=localMissing
       CALL GLOBAL_SUM_INT(globalDeath,myThid)
       CALL GLOBAL_SUM_INT(globalBeach,myThid)
       CALL GLOBAL_SUM_INT(globalOutside,myThid)
       CALL GLOBAL_SUM_INT(globalCancel,myThid)
+      CALL GLOBAL_SUM_INT(globalMissing,myThid)
       globalOwners=localOwners
       globalTerminal=nPlan
       CALL GLOBAL_SUM_INT(globalOwners,myThid)
@@ -663,6 +672,9 @@ C--   Counter and global live-budget checks complete initial preflight.
      &     bomCancelEvents.LT.0_8 .OR.
      &     bomCancelEvents.GT.HUGE(bomCancelEvents)
      &       -INT(globalCancel,8) .OR.
+     &     bomMissingGrowthEvents.LT.0_8 .OR.
+     &     bomMissingGrowthEvents.GT.HUGE(bomMissingGrowthEvents)
+     &       -INT(globalMissing,8) .OR.
      &     bomEventTimeIndex.LT.0_8 .OR.
      &     bomEventTimeIndex.EQ.HUGE(bomEventTimeIndex) )
      &     CALL BOM_P4_KEEP_FAILURE(
@@ -687,6 +699,7 @@ C--   Counter and global live-budget checks complete initial preflight.
 
 C--   Commit begins: initialize compact-tail stacks after the last failure.
   800 CONTINUE
+      firstEventSlot=bomEventBufferCount+1
       DO bj=myByLo(myThid),myByHi(myThid)
        DO bi=myBxLo(myThid),myBxHi(myThid)
         CALL BOM_FREE_INIT(bi,bj,freeFailCode,freeValid)
@@ -769,8 +782,12 @@ C--   Every prospective parent emits exactly one BIRTH or BIRTH_CANCEL.
           bomEventSAfterBuffer(eventSlot)=bSBefore(jp)
         ENDIF
         bomEventIndexBuffer(eventSlot)=bomEventTimeIndex
-        bomEventSubjectIdBuffer(eventSlot)=bParentId(jp)
         bomEventParentIdBuffer(eventSlot)=bParentId(jp)
+        IF ( bEvent(jp).EQ.BOM_EVENT_BIRTH ) THEN
+          bomEventSubjectIdBuffer(eventSlot)=bChildId(jp)
+        ELSE
+          bomEventSubjectIdBuffer(eventSlot)=bParentId(jp)
+        ENDIF
         bomEventTimeBuffer(eventSlot)=tSub1
         bomEventAttemptXBuffer(eventSlot)=bFirstX(jp)
         bomEventAttemptYBuffer(eventSlot)=bFirstY(jp)
@@ -883,6 +900,8 @@ C--   Publish the preflighted complete candidate by exact ID after swaps.
       bomBeachEvents=bomBeachEvents+INT(globalBeach,8)
       bomOutsideEvents=bomOutsideEvents+INT(globalOutside,8)
       bomCancelEvents=bomCancelEvents+INT(globalCancel,8)
+      bomMissingGrowthEvents=bomMissingGrowthEvents+
+     &     INT(globalMissing,8)
       bomNextId=nextIdAfter
       bomNPartLiveExpected=globalAfter
       bomEventTimeIndex=bomEventTimeIndex+1_8
@@ -907,6 +926,15 @@ C--   Publish the preflighted complete candidate by exact ID after swaps.
         bomP3MaximumComponentSize=INT(maximumComponent,8)
         bomP3ComponentIterations=INT(componentIterations,8)
       ENDIF
+      CALL BOM_EVENT_BUDGET_CHECK(localFailCode,myThid)
+      IF ( localFailCode.NE.BOM_FAIL_NONE ) THEN
+        CALL ALL_PROC_DIE(0)
+        STOP 'ABNORMAL END: P4.4 EVENT BUDGET COMMIT'
+      ENDIF
+#ifdef ALLOW_DIAGNOSTICS
+      IF ( useDiagnostics ) CALL BOM_DIAGNOSTICS_FILL(
+     I     firstEventSlot,nPlan+nBirth,myThid)
+#endif
 
 C--   Terminal scratch is consumed only by this successful commit.
       DO bj=myByLo(myThid),myByHi(myThid)

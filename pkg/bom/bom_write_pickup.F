@@ -50,7 +50,7 @@ C !LOCAL VARIABLES:
       INTEGER sigRecordFields, sigRecords, sigIndex, writeRecord
       INTEGER localOwnerCount, globalOwnerCount
       INTEGER*8 idRadix, idHi8, idLo8
-      LOGICAL schemaValid, useSchema3
+      LOGICAL schemaValid, useSchema3, useSchema4
 
       idRadix = 4294967296_8
       localErrCount = 0
@@ -62,6 +62,7 @@ C !LOCAL VARIABLES:
       envFields = 0
       schemaValid = .TRUE.
       useSchema3 = .FALSE.
+      useSchema4 = .FALSE.
       IF ( bomMode.EQ.'BOM' ) THEN
         activeSchema = bomPickupSchema2
         activeFields = bomPickupFields2
@@ -82,6 +83,7 @@ C !LOCAL VARIABLES:
      I       myThid )
         IF ( .NOT.schemaValid ) localErrCount = localErrCount + 1
         useSchema3 = bomSpringLaw.NE.'NONE'
+        useSchema4 = bomUseLand .OR. bomUseBiology
         IF ( useSchema3 ) THEN
           CALL BOM_VALIDATE_P3_IO_STATE(
      I         myTime, myIter, bomNextOutputTime,
@@ -130,7 +132,11 @@ C !LOCAL VARIABLES:
       globalOwnerCount = localOwnerCount
       CALL GLOBAL_SUM_INT( globalErrCount, myThid )
       CALL GLOBAL_SUM_INT( globalOwnerCount, myThid )
-      IF ( globalOwnerCount.NE.bomNPartExpected )
+      IF ( useSchema4 .AND.
+     &     globalOwnerCount.NE.bomNPartLiveExpected )
+     &     globalErrCount = globalErrCount + 1
+      IF ( .NOT.useSchema4 .AND.
+     &     globalOwnerCount.NE.bomNPartExpected )
      &     globalErrCount = globalErrCount + 1
       IF ( globalErrCount.GT.0 ) THEN
         _BEGIN_MASTER(myThid)
@@ -150,7 +156,7 @@ C !LOCAL VARIABLES:
       ENDIF
 
 C--   The full state budget is meaningful only for a nonempty owner set.
-      IF ( bomNPartExpected.GT.0 ) THEN
+      IF ( bomNPartLiveExpected.GT.0 ) THEN
         CALL BOM_CHECK_STATE(
      I       myTime, myIter, 'PICKUP_WRITE', myThid )
       ENDIF
@@ -158,7 +164,37 @@ C--   The full state budget is meaningful only for a nonempty owner set.
       WRITE(fileName,'(A,A)') 'pickup_bom.', suffix(1:suffixLen)
       WRITE(sigName,'(A,A)') fileName(1:ILNBLNK(fileName)), '.sig'
 
+      IF ( useSchema4 ) THEN
+        _BEGIN_MASTER(myThid)
+        CALL BOM_EVENT_FLUSH(
+     I       .TRUE.,
+     O       localErrCount,
+     I       myThid)
+        IF ( localErrCount.NE.0 ) THEN
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_WRITE_PICKUP EVENT FLUSH'
+        ENDIF
+        _END_MASTER(myThid)
+        _BARRIER
+        CALL BOM_EVENT_BUDGET_CHECK(localErrCount,myThid)
+        IF ( localErrCount.NE.BOM_FAIL_NONE ) THEN
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_WRITE_PICKUP EVENT BUDGET'
+        ENDIF
+      ENDIF
+
       _BEGIN_MASTER(myThid)
+      IF ( useSchema4 ) THEN
+        CALL BOM_WRITE_P4_SIGNATURE(
+     I       fileName,2,bomPickupFields2,
+     I       myTime,myTime,bomNextOutputTime,myIter,
+     O       localErrCount,
+     I       myThid)
+        IF ( localErrCount.NE.0 ) THEN
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_WRITE_PICKUP P4SIG'
+        ENDIF
+      ENDIF
       IF ( useSchema3 ) THEN
         CALL BOM_WRITE_P3_SIGNATURE(
      I       fileName, myTime, myIter,
@@ -298,6 +334,13 @@ C--   The full state budget is meaningful only for a nonempty owner set.
      I       fileName, myTime, myTime,
      I       bomNextOutputTime, myIter, myThid )
       ENDIF
+      IF ( useSchema4 ) THEN
+        CALL BOM_WRITE_P4_SIDECAR(
+     I       fileName,myTime,myTime,bomNextOutputTime,myIter,myThid)
+        IF ( bomUseBiology )
+     &       CALL BOM_WRITE_P4_BIO_PICKUP(
+     I       fileName,myTime,myIter,myThid)
+      ENDIF
       IF ( myProcId.EQ.0 ) THEN
         WRITE(msgBuf,'(A,A,A,I12,A,3(1X,1PE24.16))')
      &       'BOM_WRITE_PICKUP: suffix=', suffix(1:suffixLen),
@@ -306,6 +349,20 @@ C--   The full state budget is meaningful only for a nonempty owner set.
      &       bomNextOutputTime
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                      SQUEEZE_RIGHT, myThid )
+      ENDIF
+      _END_MASTER(myThid)
+      _BARRIER
+      _BEGIN_MASTER(myThid)
+      IF ( useSchema4 .AND. myProcId.EQ.0 ) THEN
+        CALL BOM_WRITE_P4_MANIFEST(
+     I       fileName,2,useSchema3,bomUseBiology,
+     I       myTime,myTime,myIter,
+     O       localErrCount,
+     I       myThid)
+        IF ( localErrCount.NE.0 ) THEN
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_WRITE_PICKUP P4MANIFEST'
+        ENDIF
       ENDIF
       _END_MASTER(myThid)
       _BARRIER

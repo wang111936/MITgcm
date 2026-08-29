@@ -44,7 +44,7 @@ C !LOCAL VARIABLES:
       INTEGER modeCode, equationCode, currentCode
       INTEGER windCode, stokesCode, integratorCode
       INTEGER*8 idRadix, idHi8, idLo8
-      LOGICAL codesValid, useSchema3
+      LOGICAL codesValid, useSchema3, useSchema4
 
       idRadix = 4294967296_8
       activeSchema = bomOutputSchema
@@ -57,6 +57,7 @@ C !LOCAL VARIABLES:
       integratorCode = 0
       codesValid = .TRUE.
       useSchema3 = .FALSE.
+      useSchema4 = .FALSE.
       IF ( bomMode.EQ.'BOM' ) THEN
         activeSchema = bomOutputSchema2
         activeFields = bomOutputFields2
@@ -65,6 +66,7 @@ C !LOCAL VARIABLES:
      O       windCode, stokesCode, integratorCode,
      O       codesValid )
         useSchema3 = bomSpringLaw.NE.'NONE'
+        useSchema4 = bomUseLand .OR. bomUseBiology
       ENDIF
       IF ( .NOT.codesValid ) THEN
         WRITE(msgBuf,'(A,I12,A,A,A,A)')
@@ -106,6 +108,17 @@ C--   Reject invalid schema-3 state before creating any frame member.
       ENDIF
 
       _BEGIN_MASTER(myThid)
+      IF ( useSchema4 ) THEN
+        CALL BOM_WRITE_P4_SIGNATURE(
+     I       fileName,1,bomOutputFields2,
+     I       sampleTime,scheduledTime,nextTime,myIter,
+     O       localErrCount,
+     I       myThid)
+        IF ( localErrCount.NE.0 ) THEN
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_WRITE_TRAJECTORY P4SIG'
+        ENDIF
+      ENDIF
       IF ( useSchema3 ) THEN
         CALL BOM_WRITE_P3_SIGNATURE(
      I       fileName, sampleTime, myIter,
@@ -210,6 +223,10 @@ C--   Reject invalid schema-3 state before creating any frame member.
      I       fileName, sampleTime, scheduledTime,
      I       nextTime, myIter, myThid )
       ENDIF
+      IF ( useSchema4 ) THEN
+        CALL BOM_WRITE_P4_SIDECAR(
+     I       fileName,sampleTime,scheduledTime,nextTime,myIter,myThid)
+      ENDIF
       IF ( myProcId.EQ.0 ) THEN
         WRITE(msgBuf,'(A,A10,A,I12,A,3(1X,1PE24.16))')
      &       'BOM_WRITE_TRAJECTORY: suffix=', suffix,
@@ -218,6 +235,20 @@ C--   Reject invalid schema-3 state before creating any frame member.
      &       sampleTime, scheduledTime, nextTime
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                      SQUEEZE_RIGHT, myThid )
+      ENDIF
+      _END_MASTER(myThid)
+      _BARRIER
+      _BEGIN_MASTER(myThid)
+      IF ( useSchema4 .AND. myProcId.EQ.0 ) THEN
+        CALL BOM_WRITE_P4_MANIFEST(
+     I       fileName,1,useSchema3,.FALSE.,
+     I       sampleTime,scheduledTime,myIter,
+     O       localErrCount,
+     I       myThid)
+        IF ( localErrCount.NE.0 ) THEN
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_WRITE_TRAJECTORY P4MANIFEST'
+        ENDIF
       ENDIF
       _END_MASTER(myThid)
       _BARRIER
