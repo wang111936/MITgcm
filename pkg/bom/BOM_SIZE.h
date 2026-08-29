@@ -17,6 +17,9 @@ CEOP
       INTEGER bomPacketSchema
       INTEGER bomPacketInts
       INTEGER bomPacketReals
+      INTEGER bomPacketSchema3
+      INTEGER bomPacketInts3
+      INTEGER bomPacketReals3
       INTEGER bomGhostSchema
       INTEGER bomGhostPacketInts
       INTEGER bomGhostPacketReals
@@ -70,6 +73,9 @@ CEOP
       PARAMETER ( bomPacketSchema   = 2 )
       PARAMETER ( bomPacketInts     = 10 )
       PARAMETER ( bomPacketReals    = 6 )
+      PARAMETER ( bomPacketSchema3  = 3 )
+      PARAMETER ( bomPacketInts3    = 13 )
+      PARAMETER ( bomPacketReals3   = 7 )
       PARAMETER ( bomGhostSchema    = 1 )
       PARAMETER ( bomGhostPacketInts = 9 )
       PARAMETER ( bomGhostPacketReals = 2 )

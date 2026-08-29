@@ -88,7 +88,27 @@ source_audit() {
     grep -Fq 'allMeta,9,MPI_INTEGER' \
       "${REPO_ROOT}/pkg/bom/bom_terminal_plan.F" \
       || fail 'P4 failure gather receive width changed'
+    if [[ -f "${REPO_ROOT}/pkg/bom/bom_birth_order.F" ]] \
+       && rg -q 'CALL[[:space:]]+MPI_(Allgather|Allgatherv)' \
+         "${REPO_ROOT}/pkg/bom/bom_birth_order.F"; then
+      expected_collective_files+=(
+        "${REPO_ROOT}/pkg/bom/bom_birth_order.F"
+      )
+      grep -Fq 'PARAMETER ( metaInts=6 )' \
+        "${REPO_ROOT}/pkg/bom/bom_birth_order.F" \
+        || fail 'P4 parent-order metadata width changed'
+      grep -Fq 'PARAMETER ( metaInts=13,metaReals=2 )' \
+        "${REPO_ROOT}/pkg/bom/bom_birth_order.F" \
+        || fail 'P4 accepted-birth metadata width changed'
+      if rg -n 'bom(NPartTile|Status|Id|X|Y)[[:space:]]*\(' \
+        "${REPO_ROOT}/pkg/bom/bom_birth_order.F"; then
+        fail 'P4 birth-order collective references live owner arrays'
+      fi
+    fi
   fi
+  mapfile -t expected_collective_files < <(
+    printf '%s\n' "${expected_collective_files[@]}" | sort
+  )
   [[ "${collective_files[*]}" == "${expected_collective_files[*]}" ]] \
     || fail 'unexpected global particle collective call path'
   grep -Fq 'CALL BOM_BUILD_CELL_LIST' \

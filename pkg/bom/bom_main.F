@@ -402,11 +402,19 @@ C--     No non-owner candidate may enter a state budget or next substep.
      I       tSub1, myIter, iSub+1, myThid )
 
         IF ( bomUseLand .OR. bomUseBiology ) THEN
-          CALL BOM_EVENT_TRANSACTION(
+          IF ( bomUseBiology ) THEN
+            CALL BOM_EVENT_TRANSACTION_P43(
      I         tSub0,tSub1,myIter,iSub+1,BOM_P4_PHASE_NONE,
      O         failCode,p4FailPhase,p4FailRank,
      O         p4FailBi,p4FailBj,p4FailSlot,p4FailId,eventValid,
      I         myThid)
+          ELSE
+            CALL BOM_EVENT_TRANSACTION(
+     I         tSub0,tSub1,myIter,iSub+1,BOM_P4_PHASE_NONE,
+     O         failCode,p4FailPhase,p4FailRank,
+     O         p4FailBi,p4FailBj,p4FailSlot,p4FailId,eventValid,
+     I         myThid)
+          ENDIF
           IF ( .NOT.eventValid ) THEN
             _BEGIN_MASTER(myThid)
             IF ( myProcId.EQ.0 ) THEN

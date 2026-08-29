@@ -16,8 +16,6 @@ C     No owner array is replaced until global plan, capacity, packet, and
 C     target-owner refresh checks have all succeeded.
 
 C !USES:
-      USE, INTRINSIC :: IEEE_ARITHMETIC,
-     &     ONLY: IEEE_IS_FINITE
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
@@ -34,6 +32,8 @@ CEOP
 C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER bi, bj, ip, jp, slot, rankIndex, packetIndex, iDiag
+      INTEGER packetSchemaActive,packetIntsActive,packetRealsActive
+      INTEGER packetOffsetI,packetOffsetR
       INTEGER localErrCount, globalErrCount
       INTEGER localMoveCount, globalMoveCount
       INTEGER localRemoteCount, globalRemoteCount
@@ -55,10 +55,10 @@ C !LOCAL VARIABLES:
       INTEGER sendCountsR(nPx*nPy), recvCountsR(nPx*nPy)
       INTEGER sendDisplsR(nPx*nPy), recvDisplsR(nPx*nPy)
       INTEGER packetCursor(nPx*nPy)
-      INTEGER sendInt(bomPacketInts,bomMaxExchange)
-      INTEGER recvInt(bomPacketInts,bomMaxExchange)
-      _RL sendReal(bomPacketReals,bomMaxExchange)
-      _RL recvReal(bomPacketReals,bomMaxExchange)
+      INTEGER sendInt(bomPacketInts3*bomMaxExchange)
+      INTEGER recvInt(bomPacketInts3*bomMaxExchange)
+      _RL sendReal(bomPacketReals3*bomMaxExchange)
+      _RL recvReal(bomPacketReals3*bomMaxExchange)
       INTEGER workCount(nSx,nSy)
       INTEGER workStatus(bomMaxPartTile,nSx,nSy)
       INTEGER workBirthCount(bomMaxPartTile,nSx,nSy)
@@ -87,6 +87,7 @@ C !LOCAL VARIABLES:
       LOGICAL workRefresh(bomMaxPartTile,nSx,nSy)
       INTEGER*8 idRadix, idHi8, idLo8, recvId, keyId
       INTEGER*8 keyParentId
+      INTEGER*8 parentHi8,parentLo8,recvParentId
       INTEGER*8 raftHi8, raftLo8, recvRaftId, keyRaftId
       INTEGER keyStatus, keyBirthCount, keyNeighbor, keyRaftSize
       _RL keyX, keyY, keyRelease, keyAge, keyI, keyJ
@@ -96,6 +97,7 @@ C !LOCAL VARIABLES:
       _RL keySpringEast, keySpringNorth
       _RL keyRhsDiag(BOM_RHS_NDIAG)
       LOGICAL keyRefresh, locateValid, rhsOwner, rhsValid
+      LOGICAL packetValid
       LOGICAL springEastValid, springNorthValid
       _RL rhsX, rhsY, wetWeight, stageCFL
       INTEGER rhsFailStage
@@ -107,6 +109,14 @@ C     bounded packet storage lifetime independent of compiler stack limits.
 
 #ifdef ALLOW_BOM
       idRadix = 4294967296_8
+      packetSchemaActive=bomPacketSchema
+      packetIntsActive=bomPacketInts
+      packetRealsActive=bomPacketReals
+      IF ( bomUseBiology ) THEN
+        packetSchemaActive=bomPacketSchema3
+        packetIntsActive=bomPacketInts3
+        packetRealsActive=bomPacketReals3
+      ENDIF
       localErrCount = 0
       localMoveCount = 0
       localRemoteCount = 0
@@ -264,49 +274,71 @@ C--   Pack remote migrants in destination-rank order.
             rankIndex = planRank(ip,bi,bj) + 1
             packetIndex = packetCursor(rankIndex) + 1
             packetCursor(rankIndex) = packetIndex
+            packetOffsetI=packetIntsActive*(packetIndex-1)
+            packetOffsetR=packetRealsActive*(packetIndex-1)
             idHi8 = bomId(ip,bi,bj)/idRadix
             idLo8 = MOD(bomId(ip,bi,bj),idRadix)
-            sendInt(1,packetIndex) = bomPacketSchema
-            sendInt(2,packetIndex) = INT(idHi8)
+            sendInt(packetOffsetI+1) = packetSchemaActive
+            sendInt(packetOffsetI+2) = INT(idHi8)
             IF ( idLo8.GT.2147483647_8 ) THEN
-              sendInt(3,packetIndex) = INT(idLo8-idRadix)
+              sendInt(packetOffsetI+3) = INT(idLo8-idRadix)
             ELSE
-              sendInt(3,packetIndex) = INT(idLo8)
+              sendInt(packetOffsetI+3) = INT(idLo8)
             ENDIF
-            sendInt(4,packetIndex) = bomStatus(ip,bi,bj)
-            sendInt(5,packetIndex) = planBi(ip,bi,bj)
-            sendInt(6,packetIndex) = planBj(ip,bi,bj)
-            sendInt(7,packetIndex) =
+            sendInt(packetOffsetI+4) = bomStatus(ip,bi,bj)
+            sendInt(packetOffsetI+5) = planBi(ip,bi,bj)
+            sendInt(packetOffsetI+6) = planBj(ip,bi,bj)
+            sendInt(packetOffsetI+7) =
      &           bomNeighborCount(ip,bi,bj)
             raftHi8 = bomRaftId(ip,bi,bj)/idRadix
             raftLo8 = MOD(bomRaftId(ip,bi,bj),idRadix)
-            sendInt(8,packetIndex) = INT(raftHi8)
+            sendInt(packetOffsetI+8) = INT(raftHi8)
             IF ( raftLo8.GT.2147483647_8 ) THEN
-              sendInt(9,packetIndex) = INT(raftLo8-idRadix)
+              sendInt(packetOffsetI+9) = INT(raftLo8-idRadix)
             ELSE
-              sendInt(9,packetIndex) = INT(raftLo8)
+              sendInt(packetOffsetI+9) = INT(raftLo8)
             ENDIF
-            sendInt(10,packetIndex) = bomRaftSize(ip,bi,bj)
-            sendReal(1,packetIndex) = planX(ip,bi,bj)
-            sendReal(2,packetIndex) = planY(ip,bi,bj)
-            sendReal(3,packetIndex) = bomReleaseTime(ip,bi,bj)
-            sendReal(4,packetIndex) = bomAge(ip,bi,bj)
-            sendReal(5,packetIndex) = bomSpringEast(ip,bi,bj)
-            sendReal(6,packetIndex) = bomSpringNorth(ip,bi,bj)
+            sendInt(packetOffsetI+10) = bomRaftSize(ip,bi,bj)
+            sendReal(packetOffsetR+1) = planX(ip,bi,bj)
+            sendReal(packetOffsetR+2) = planY(ip,bi,bj)
+            sendReal(packetOffsetR+3) = bomReleaseTime(ip,bi,bj)
+            sendReal(packetOffsetR+4) = bomAge(ip,bi,bj)
+            sendReal(packetOffsetR+5) = bomSpringEast(ip,bi,bj)
+            sendReal(packetOffsetR+6) = bomSpringNorth(ip,bi,bj)
+            IF ( bomUseBiology ) THEN
+              parentHi8=bomParentId(ip,bi,bj)/idRadix
+              parentLo8=MOD(bomParentId(ip,bi,bj),idRadix)
+              sendInt(packetOffsetI+11)=INT(parentHi8)
+              IF ( parentLo8.GT.2147483647_8 ) THEN
+                sendInt(packetOffsetI+12)=INT(parentLo8-idRadix)
+              ELSE
+                sendInt(packetOffsetI+12)=INT(parentLo8)
+              ENDIF
+              sendInt(packetOffsetI+13)=bomBirthCount(ip,bi,bj)
+              sendReal(packetOffsetR+7)=bomS(ip,bi,bj)
+            ENDIF
           ENDIF
         ENDDO
        ENDDO
       ENDDO
 
       DO rankIndex=1,nPx*nPy
-        sendCountsI(rankIndex) = bomPacketInts*sendCounts(rankIndex)
-        recvCountsI(rankIndex) = bomPacketInts*recvCounts(rankIndex)
-        sendDisplsI(rankIndex) = bomPacketInts*sendDispls(rankIndex)
-        recvDisplsI(rankIndex) = bomPacketInts*recvDispls(rankIndex)
-        sendCountsR(rankIndex) = bomPacketReals*sendCounts(rankIndex)
-        recvCountsR(rankIndex) = bomPacketReals*recvCounts(rankIndex)
-        sendDisplsR(rankIndex) = bomPacketReals*sendDispls(rankIndex)
-        recvDisplsR(rankIndex) = bomPacketReals*recvDispls(rankIndex)
+        sendCountsI(rankIndex) =
+     &       packetIntsActive*sendCounts(rankIndex)
+        recvCountsI(rankIndex) =
+     &       packetIntsActive*recvCounts(rankIndex)
+        sendDisplsI(rankIndex) =
+     &       packetIntsActive*sendDispls(rankIndex)
+        recvDisplsI(rankIndex) =
+     &       packetIntsActive*recvDispls(rankIndex)
+        sendCountsR(rankIndex) =
+     &       packetRealsActive*sendCounts(rankIndex)
+        recvCountsR(rankIndex) =
+     &       packetRealsActive*recvCounts(rankIndex)
+        sendDisplsR(rankIndex) =
+     &       packetRealsActive*sendDispls(rankIndex)
+        recvDisplsR(rankIndex) =
+     &       packetRealsActive*recvDispls(rankIndex)
       ENDDO
 
 #ifdef ALLOW_USE_MPI
@@ -354,67 +386,18 @@ C--   Validate packet metadata and final per-tile capacity before commit.
        ENDDO
       ENDDO
       DO packetIndex=1,recvTotal
-        bi = recvInt(5,packetIndex)
-        bj = recvInt(6,packetIndex)
-        IF ( bi.LT.1 .OR. bi.GT.nSx .OR.
-     &       bj.LT.1 .OR. bj.GT.nSy ) THEN
-          localErrCount = localErrCount + 1
-        ELSE
+        packetOffsetI=packetIntsActive*(packetIndex-1)
+        packetOffsetR=packetRealsActive*(packetIndex-1)
+        CALL BOM_OWNER_PACKET_VALIDATE(
+     I       recvInt(packetOffsetI+1),packetIntsActive,
+     I       recvReal(packetOffsetR+1),packetRealsActive,
+     I       packetSchemaActive,
+     O       recvId,recvParentId,recvRaftId,bi,bj,packetValid,
+     I       myThid )
+        IF ( packetValid ) THEN
           targetCount(bi,bj) = targetCount(bi,bj) + 1
-        ENDIF
-        IF ( recvInt(1,packetIndex).NE.bomPacketSchema )
-     &       localErrCount = localErrCount+1
-        idHi8 = INT(recvInt(2,packetIndex),8)
-        idLo8 = INT(recvInt(3,packetIndex),8)
-        IF ( idLo8.LT.0_8 ) idLo8 = idLo8 + idRadix
-        IF ( idHi8.LT.0_8 ) THEN
+        ELSE
           localErrCount = localErrCount + 1
-          recvId = 0_8
-        ELSE
-          recvId = idHi8*idRadix + idLo8
-          IF ( recvId.LE.0_8 ) localErrCount=localErrCount+1
-        ENDIF
-        IF ( recvInt(4,packetIndex).NE.BOM_ALIVE .AND.
-     &       recvInt(4,packetIndex).NE.BOM_WAITING )
-     &       localErrCount = localErrCount + 1
-        IF ( recvInt(7,packetIndex).LT.0 .OR.
-     &       recvInt(7,packetIndex).GT.bomMaxNeighbor )
-     &       localErrCount = localErrCount+1
-        raftHi8 = INT(recvInt(8,packetIndex),8)
-        raftLo8 = INT(recvInt(9,packetIndex),8)
-        IF ( raftLo8.LT.0_8 ) raftLo8=raftLo8+idRadix
-        IF ( raftHi8.LT.0_8 ) THEN
-          recvRaftId = 0_8
-          localErrCount = localErrCount+1
-        ELSE
-          recvRaftId = raftHi8*idRadix+raftLo8
-        ENDIF
-        IF ( (recvRaftId.EQ.0_8 .AND.
-     &        recvInt(10,packetIndex).NE.0) .OR.
-     &       (recvRaftId.GT.0_8 .AND.
-     &        recvInt(10,packetIndex).LT.1) )
-     &       localErrCount = localErrCount+1
-        IF ( .NOT.IEEE_IS_FINITE(recvReal(1,packetIndex)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(2,packetIndex)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(3,packetIndex)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(4,packetIndex)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(5,packetIndex)) .OR.
-     &       .NOT.IEEE_IS_FINITE(recvReal(6,packetIndex)) .OR.
-     &       recvReal(3,packetIndex).LT.0. _d 0 .OR.
-     &       recvReal(4,packetIndex).LT.0. _d 0 )
-     &       localErrCount = localErrCount + 1
-        IF ( bi.GE.1 .AND. bi.LE.nSx .AND.
-     &       bj.GE.1 .AND. bj.LE.nSy ) THEN
-          CALL BOM_LOCATE_OWNER(
-     I         recvReal(1,packetIndex), recvReal(2,packetIndex),
-     I         bi, bj,
-     O         keyX, keyY, rankIndex, ip, jp, slot, locateValid,
-     I         myThid )
-          IF ( .NOT.locateValid .OR. rankIndex.NE.myProcId .OR.
-     &         ip.NE.bi .OR. jp.NE.bj .OR. slot.NE.0 .OR.
-     &         keyX.NE.recvReal(1,packetIndex) .OR.
-     &         keyY.NE.recvReal(2,packetIndex) )
-     &         localErrCount = localErrCount + 1
         ENDIF
       ENDDO
       DO bj=1,nSy
@@ -533,33 +516,44 @@ C--   Build scratch owner arrays.  Retained records preserve diagnostics.
       ENDDO
 
       DO packetIndex=1,recvTotal
-        bi = recvInt(5,packetIndex)
-        bj = recvInt(6,packetIndex)
+        packetOffsetI=packetIntsActive*(packetIndex-1)
+        packetOffsetR=packetRealsActive*(packetIndex-1)
+        bi = recvInt(packetOffsetI+5)
+        bj = recvInt(packetOffsetI+6)
         workCount(bi,bj) = workCount(bi,bj) + 1
         slot = workCount(bi,bj)
-        idHi8 = INT(recvInt(2,packetIndex),8)
-        idLo8 = INT(recvInt(3,packetIndex),8)
+        idHi8 = INT(recvInt(packetOffsetI+2),8)
+        idLo8 = INT(recvInt(packetOffsetI+3),8)
         IF ( idLo8.LT.0_8 ) idLo8 = idLo8 + idRadix
         workId(slot,bi,bj) = idHi8*idRadix + idLo8
-C--     Schema 2 has no biology sidecar.  P4.2 permits remote migration only
-C       for land-only tracking, whose initial parent/count/S defaults are
-C       reproduced here.  Schema 3 will carry the complete state in P4.3.
-        workParentId(slot,bi,bj) = 0_8
-        workStatus(slot,bi,bj) = recvInt(4,packetIndex)
-        workBirthCount(slot,bi,bj) = 0
-        workS(slot,bi,bj) = bomS0
-        workX(slot,bi,bj) = recvReal(1,packetIndex)
-        workY(slot,bi,bj) = recvReal(2,packetIndex)
-        workRelease(slot,bi,bj) = recvReal(3,packetIndex)
-        workAge(slot,bi,bj) = recvReal(4,packetIndex)
-        workSpringEast(slot,bi,bj) = recvReal(5,packetIndex)
-        workSpringNorth(slot,bi,bj) = recvReal(6,packetIndex)
-        workNeighbor(slot,bi,bj) = recvInt(7,packetIndex)
-        raftHi8 = INT(recvInt(8,packetIndex),8)
-        raftLo8 = INT(recvInt(9,packetIndex),8)
+        workStatus(slot,bi,bj) = recvInt(packetOffsetI+4)
+C--     Released schema 2 remains the exact land-only packet.  Biology
+C       selects schema 3 and restores its complete owner sidecar.
+        IF ( bomUseBiology ) THEN
+          parentHi8=INT(recvInt(packetOffsetI+11),8)
+          parentLo8=INT(recvInt(packetOffsetI+12),8)
+          IF ( parentLo8.LT.0_8 ) parentLo8=parentLo8+idRadix
+          workParentId(slot,bi,bj)=
+     &         parentHi8*idRadix+parentLo8
+          workBirthCount(slot,bi,bj)=recvInt(packetOffsetI+13)
+          workS(slot,bi,bj)=recvReal(packetOffsetR+7)
+        ELSE
+          workParentId(slot,bi,bj) = 0_8
+          workBirthCount(slot,bi,bj) = 0
+          workS(slot,bi,bj) = bomS0
+        ENDIF
+        workX(slot,bi,bj) = recvReal(packetOffsetR+1)
+        workY(slot,bi,bj) = recvReal(packetOffsetR+2)
+        workRelease(slot,bi,bj) = recvReal(packetOffsetR+3)
+        workAge(slot,bi,bj) = recvReal(packetOffsetR+4)
+        workSpringEast(slot,bi,bj) = recvReal(packetOffsetR+5)
+        workSpringNorth(slot,bi,bj) = recvReal(packetOffsetR+6)
+        workNeighbor(slot,bi,bj) = recvInt(packetOffsetI+7)
+        raftHi8 = INT(recvInt(packetOffsetI+8),8)
+        raftLo8 = INT(recvInt(packetOffsetI+9),8)
         IF ( raftLo8.LT.0_8 ) raftLo8=raftLo8+idRadix
         workRaftId(slot,bi,bj) = raftHi8*idRadix+raftLo8
-        workRaftSize(slot,bi,bj) = recvInt(10,packetIndex)
+        workRaftSize(slot,bi,bj) = recvInt(packetOffsetI+10)
         workRefresh(slot,bi,bj) = .TRUE.
       ENDDO
 

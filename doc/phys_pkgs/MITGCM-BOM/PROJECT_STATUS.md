@@ -9,11 +9,11 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p4.2-boundary-terminal-free-stack` |
-| 当前阶段 PR | P4.0 PR #33、P4.1 PR #34 已合并；P4.2 仅本地完成，尚未推送或创建 PR |
-| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.2 本地完成） |
-| 当前工作包 | P4.2 closeout 头通过直接 18/18、P4.1 31/31 与前序 replay 538/538 |
-| 下一工作包 | P4.2 经授权推送、评审和集成后，开始 P4.3 RNG/birth/ID/schema3/graph |
+| 当前任务分支 | `MITGCM-BOM/p4.3-rng-birth-schema3` |
+| 当前阶段 PR | P4.0 PR #33、P4.1 PR #34、P4.2 PR #35 已合并；P4.3 仅本地完成，尚未推送或创建 PR |
+| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.3 本地完成） |
+| 当前工作包 | P4.3 closeout 头通过直接 26/26、P4.2 18/18、P4.1 31/31 与前序 replay 538/538 |
+| 下一工作包 | P4.3 经授权集中推送、评审和集成后，开始 P4.4 schema4/event/diagnostics/pickup |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -21,18 +21,19 @@
 下一次继续开发时，从以下任务开始：
 
 1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md) 和
-   `verification/bom/phase04-biology-land/P4.2_CLOSEOUT.md`；
-2. 核对 P4.2 三个生产/验证提交 `145244380`、`6fbcb7819`、`62538a836`
+   `verification/bom/phase04-biology-land/P4.3_CLOSEOUT.md`；
+2. 核对 P4.3 生产提交 `852659089`、`7a14707da`、`460d42890`
    及收口提交均为 WangYuLin；
-3. 核对 `p42-final-head-attempt03` 的 18/18、
-   `p42-p41-accepted-attempt04` 的 31/31、
-   `p42-predecessor-final-head-attempt04` 的 538/538、source-head 和
+3. 核对 `p43-final-head-attempt05` 的 26/26、
+   `p43-p42-accepted-attempt05` 的 18/18、
+   `p43-p41-accepted-attempt05` 的 31/31 与
+   `p43-predecessor-final-head-attempt05` 的 538/538、source-head 和
    manifest 自校验；
-4. 保持 P4.2 不进入 Philox/child ID/schema3/event files/schema4 路径；
+4. 保持 P4.3 不进入 event files、schema4 output/pickup、restart 或 P4-G99；
 5. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
-6. 后续获授权时集中推送 P4.2 并创建 Draft PR；
-7. P4.2 评审集成后创建 P4.3 分支，开发 RNG、birth retry、global ID、
-   complete packet schema 3 和 post-event graph integration。
+6. 后续获授权时集中推送 P4.3 并创建 Draft PR；
+7. P4.3 评审集成后创建 P4.4 分支，开发 schema-4 trajectory/
+   P4 sidecar、event shards、diagnostics 与 same-decomposition pickup/restart。
 
 开始前执行：
 
@@ -51,13 +52,32 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
-| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.2 本地完成：18/18 direct、P4.1 31/31、538/538 predecessor；P4.3 未开始 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
+| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.3 本地完成：26/26 direct、P4.2 18/18、P4.1 31/31、538/538 predecessor | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
 状态只能使用：`未开始`、`进行中`、`阻塞`、`完成`、`后置`。只有阶段退出条件全部通过后才能标记为完成。
 
 ## 3. 已完成证据
+
+### P4.3 Philox、deterministic birth/ID、schema 3 与 event graph
+
+- exact RNG 提交 `852659089`、birth/order 提交 `7a14707da`、
+  atomic event/schema3/graph 提交 `460d42890`；
+- 收口增量补全 production packet validator、schema/word/count/destination/
+  real/length 变异、MPI2/MPI4 exact Philox、reverse-slot canonical event
+  比较、P3 counter overflow preflight 与 predecessor scope；
+- `p43-final-head-attempt05` 在洁净精确头通过 26/26；
+- `p43-p42-accepted-attempt05` 通过 P4.2 18/18，
+  `p43-p41-accepted-attempt05` 以 p43 scope 通过 P4.1 31/31；
+- 隔离 shared clone 的 `p43-predecessor-final-head-attempt05` 通过
+  P3 direct 148/148 与 Phase 2 closure 390/390，总计 538/538；
+- serial/MPI2/MPI4 和反向 owner-slot 的语义 owner/event 记录
+  byte-identical；出生先后顺序只依赖 exact parent ID；
+- BOM 仍独立于 FLT，未读写 SKRIPS；P4.4/P4.5 边界保持冻结；
+- 当前 P4.3 分支未推送、未创建 PR、未合并、未创建 v0.5；
+- 详细记录见
+  `verification/bom/phase04-biology-land/P4.3_CLOSEOUT.md`。
 
 ### P4.2 boundary、terminal transaction 与 compact-tail free stack
 
@@ -1067,6 +1087,31 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   birth retry、global child ID、complete packet schema 3、event files、
   schema 4 或 P4-G99；
 - 分支未推送、未创建 PR、未合并、未创建 v0.5；唯一下一生产包为 P4.3。
+
+### 2026-08-29：P4.2 集成与 P4.3 本地完成
+
+- P4.2 PR #35 已以 merge commit `f7937de95f7637b9b30ff8f08fb5e20d77f4f360`
+  集成，从该头创建 `MITGCM-BOM/p4.3-rng-birth-schema3`；
+- `852659089` 实现 exact Philox4x32-10 与 frozen birth key，
+  `7a14707da` 实现 deterministic retry/global parent order/child IDs，
+  `460d42890` 实现 atomic birth/death/free-stack、packet schema 3 和
+  post-event graph/component rebuild；
+- 对照冻结计划后，将候选门禁从 23 行补全为 26 行：增加
+  MPI2/MPI4 exact Philox、schema/word/count/destination/real/length packet
+  mutations 以及 reverse owner-slot owner/event 规范化比较；
+- P4.3 production migration 共用新的 packet validator，所有验证发生在
+  owner replacement 之前；有效 schema-2 10/6 和 schema-3 13/7 路径
+  都通过；
+- 首次 predecessor 尝试在 P3 小容量 `BOM_SIZE.h` 缺少新的
+  schema3 编译常量处停止；只向三份验证头追加 3/13/7，没有
+  改动 schema2 值或容量；
+- clean closeout 证据为 `p43-final-head-attempt05` 26/26、
+  `p43-p42-accepted-attempt05` 18/18、`p43-p41-accepted-attempt05`
+  31/31 和 `p43-predecessor-final-head-attempt05` 538/538；
+- P4.3 关闭 P4-R11--R13/R15、P4-R14 本包事务部分与 P4-R19
+  birth/event 分布式部分；完整 B19 仍归 P4.5；
+- 未涉及 SKRIPS，未推送 GitHub、未创建 PR、未合并、未创建
+  v0.5；唯一下一生产包为 P4.4 schema4/event/diagnostics/pickup。
 
 ## 6. 每次会话结束时必须更新
 

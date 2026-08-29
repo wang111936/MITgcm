@@ -140,6 +140,18 @@ def main() -> int:
                 "localMeta,9,MPI_INTEGER" in terminal and
                 "allMeta,9,MPI_INTEGER" in terminal,
                 "P4 terminal gather is not fixed failure metadata")
+        birth_path = repo / "pkg/bom/bom_birth_order.F"
+        if birth_path.exists():
+            birth = birth_path.read_text(encoding="ascii")
+            if gather_pattern.search(birth):
+                expected_gather_files.add("bom_birth_order.F")
+                require("PARAMETER ( metaInts=6 )" in birth and
+                        "PARAMETER ( metaInts=13,metaReals=2 )" in birth and
+                        "bomMaxEventBuffer" in birth,
+                        "P4 birth gather is not bounded event metadata")
+                require(not re.search(
+                    r"bom(?:NPartTile|Status|Id|X|Y)\s*\(", birth
+                ), "P4 birth gather references live owner arrays")
     require(gather_files == expected_gather_files,
             f"unexpected global collective files: {sorted(gather_files)}")
     spring = (repo / "pkg/bom/bom_spring_stage.F").read_text(encoding="ascii")

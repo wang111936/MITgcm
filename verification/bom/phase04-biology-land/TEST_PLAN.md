@@ -1,9 +1,9 @@
 # MITGCM-BOM Phase 4 test plan
 
-Status: **P4.2 EXECUTED; P4.3--P4.5 FROZEN**
+Status: **P4.3 EXECUTED; P4.4--P4.5 FROZEN**
 
-P4.0 ran only the document/scope audit. P4.1 and P4.2 now have accepted direct
-and predecessor evidence recorded in their closeout files; P4.3--P4.5 rows
+P4.0 ran only the document/scope audit. P4.1--P4.3 now have accepted direct
+and predecessor evidence recorded in their closeout files; P4.4--P4.5 rows
 remain future obligations and may not be reported as executed.
 
 ## 1. Common evidence rules
@@ -283,6 +283,13 @@ length; require rollback before any owner replacement.
 Compare all owners and event state after multiple movement/biology event
 phases, including spring graph split/merge after births/deaths. Serial/MPI2/
 MPI4 canonical owner, graph, event and counter records must be bitwise equal.
+
+P4.3 executes this section through `run_p43_gate.sh`: 26/26 rows cover three
+debug/IEEE builds, serial/MPI2/MPI4 exact Philox, retry/order/ID fixtures,
+schema-3 positive migration and packet mutation, atomic B13/B14/B17 event
+transactions, reversed owner slots and byte-identical canonical owner/event
+records. Exact evidence and accepted predecessor roots are recorded in
+`P4.3_CLOSEOUT.md`.
 
 ## 7. P4.4 schema, event, diagnostic and restart gates
 

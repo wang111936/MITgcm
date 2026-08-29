@@ -126,10 +126,10 @@ source_audit() {
   grep -Fq 'PARAMETER ( bomPacketSchema   = 2 )' \
     "${REPO_ROOT}/pkg/bom/BOM_SIZE.h" \
     || fail 'owner migration schema is not version 2'
-  grep -Fq 'sendReal(5,packetIndex) = bomSpringEast' \
+  grep -Fq 'sendReal(packetOffsetR+5) = bomSpringEast' \
     "${REPO_ROOT}/pkg/bom/bom_particle_exchange.F" \
     || fail 'migration packet does not carry spring east'
-  grep -Fq 'sendInt(10,packetIndex) = bomRaftSize' \
+  grep -Fq 'sendInt(packetOffsetI+10) = bomRaftSize' \
     "${REPO_ROOT}/pkg/bom/bom_particle_exchange.F" \
     || fail 'migration packet does not carry raft size'
   record_pass p33-migration-contract \

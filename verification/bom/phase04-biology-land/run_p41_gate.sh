@@ -38,8 +38,9 @@ git -C "${REPO_ROOT}" status --porcelain=v1 \
   > "${RUN_ROOT}/git-status-before.txt"
 [[ "${REQUIRE_CLEAN}" == 0 || "${REQUIRE_CLEAN}" == 1 ]] \
   || fail 'MITGCM_BOM_REQUIRE_CLEAN must be 0 or 1'
-[[ "${SCOPE_MODE}" == p41 || "${SCOPE_MODE}" == p42 ]] \
-  || fail 'MITGCM_BOM_SCOPE_MODE must be p41 or p42'
+[[ "${SCOPE_MODE}" == p41 || "${SCOPE_MODE}" == p42 \
+   || "${SCOPE_MODE}" == p43 ]] \
+  || fail 'MITGCM_BOM_SCOPE_MODE must be p41, p42 or p43'
 if [[ -n "${EXPECTED_SOURCE_HEAD}" \
    && "${source_head}" != "${EXPECTED_SOURCE_HEAD}" ]]; then
   fail "source head ${source_head}, expected ${EXPECTED_SOURCE_HEAD}"
@@ -119,9 +120,19 @@ source_scope_audit() {
     [[ "$(printf '%s\n' "${biology_calls}" \
       | grep -c 'bom_terminal_plan.F')" -eq 1 ]] \
       || fail 'P4.2 replay lacks the unique event biology caller'
-    if grep -RniE 'random_number|CALL BOM_(PHILOX|BIRTH_|BIRTH_ORDER)' \
-      "${REPO_ROOT}/pkg/bom" --include='*.F'; then
-      fail 'P4.2 replay leaks P4.3 RNG/birth scope'
+    if [[ "${SCOPE_MODE}" == p42 ]]; then
+      if grep -RniE 'random_number|CALL BOM_(PHILOX|BIRTH_|BIRTH_ORDER)' \
+        "${REPO_ROOT}/pkg/bom" --include='*.F'; then
+        fail 'P4.2 replay leaks P4.3 RNG/birth scope'
+      fi
+    else
+      [[ "$(printf '%s\n' "${biology_calls}" \
+        | grep -c 'bom_event_transaction_p43.F')" -eq 1 ]] \
+        || fail 'P4.3 replay lacks the atomic biology event caller'
+      if grep -Rni 'random_number' \
+        "${REPO_ROOT}/pkg/bom" --include='*.F'; then
+        fail 'P4.3 replay contains non-counter RNG'
+      fi
     fi
   fi
   if grep -niE 'bomIntegrator|bomSpringLaw' \
@@ -148,7 +159,7 @@ build_case() {
     cp "${CASE_DIR}/code/bom_verify_p41_endpoints.F" "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_p41_interp.F" "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_p41_brooks.F" "${mods_dir}/"
-    if [[ "${SCOPE_MODE}" == p42 ]]; then
+    if [[ "${SCOPE_MODE}" == p42 || "${SCOPE_MODE}" == p43 ]]; then
       cp "${CASE_DIR}/code/bom_verify_p42_core.F" "${mods_dir}/"
     fi
   fi
