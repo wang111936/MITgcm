@@ -88,7 +88,9 @@ P41_ALLOWED_PATHS = {
 P42_ALLOWED_PATHS = P41_ALLOWED_PATHS | {
     "verification/bom/phase03-performance-closeout/run_performance_gate.sh",
 }
-P43_ALLOWED_PATHS = P42_ALLOWED_PATHS
+P43_ALLOWED_PATHS = P42_ALLOWED_PATHS | {
+    "verification/bom/phase03-performance-closeout/code/BOM_SIZE.h.performance",
+}
 
 
 def require(condition: bool, message: str) -> None:

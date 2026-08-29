@@ -200,12 +200,12 @@ P4.3 在独立分支 `MITGCM-BOM/p4.3-rng-birth-schema3` 本地关闭：
 4. 收口增量让迁移生产路径共用 packet validator，拒绝 schema、
    ID/parent words、count、destination、non-finite real 和 packet length
    变异，且在 owner replacement 前失败关闭；
-5. `p43-final-head-attempt01` 在洁净精确头通过 26/26，包含
+5. `p43-final-head-attempt02` 在洁净精确头通过 26/26，包含
    serial/MPI2/MPI4 Philox、birth/ID/event/schema3/graph 以及反向 slot
    比较；
-6. `p43-p42-accepted-attempt01` 通过 18/18，
-   `p43-p41-accepted-attempt01` 以显式 p43 scope 通过 31/31；
-7. 隔离 shared clone 的 `p43-predecessor-final-head-attempt01` 通过
+6. `p43-p42-accepted-attempt02` 通过 18/18，
+   `p43-p41-accepted-attempt02` 以显式 p43 scope 通过 31/31；
+7. 隔离 shared clone 的 `p43-predecessor-final-head-attempt02` 通过
    Phase 3 direct 148/148 与 Phase 2 closure 390/390，总计 538/538；
 8. BOM 仍为独立 package，`FLT+BOM` 仅是兼容回归；未读写 SKRIPS；
 9. event files、schema 4 output/pickup、restart、B18/B19 和 P4-G99

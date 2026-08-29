@@ -130,6 +130,17 @@ grep -Eq 'PARAMETER \( bomPacketInts3[[:space:]]*= 13 \)' \
   "${REPO_ROOT}/pkg/bom/BOM_SIZE.h" || fail 'schema3 ints absent'
 grep -Eq 'PARAMETER \( bomPacketReals3[[:space:]]*= 7 \)' \
   "${REPO_ROOT}/pkg/bom/BOM_SIZE.h" || fail 'schema3 reals absent'
+for size_header in \
+  "${REPO_ROOT}/verification/bom/phase01-owner-migration/code/BOM_SIZE.h.small" \
+  "${REPO_ROOT}/verification/bom/phase01-owner-migration/code/BOM_SIZE.h.tile-small" \
+  "${REPO_ROOT}/verification/bom/phase03-performance-closeout/code/BOM_SIZE.h.performance"; do
+  grep -Eq 'PARAMETER \( bomPacketSchema3[[:space:]]*= 3 \)' \
+    "${size_header}" || fail "schema3 ID absent from ${size_header}"
+  grep -Eq 'PARAMETER \( bomPacketInts3[[:space:]]*= 13 \)' \
+    "${size_header}" || fail "schema3 ints absent from ${size_header}"
+  grep -Eq 'PARAMETER \( bomPacketReals3[[:space:]]*= 7 \)' \
+    "${size_header}" || fail "schema3 reals absent from ${size_header}"
+done
 fixed_sources=(
   "${REPO_ROOT}/pkg/bom/bom_philox.F"
   "${REPO_ROOT}/pkg/bom/bom_birth_place.F"
