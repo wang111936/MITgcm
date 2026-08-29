@@ -1,9 +1,9 @@
 # MITGCM-BOM Phase 4 test plan
 
-Status: **P4.3 EXECUTED; P4.4--P4.5 FROZEN**
+Status: **P4.4 EXECUTED; P4.5 FROZEN**
 
 P4.0 ran only the document/scope audit. P4.1--P4.3 now have accepted direct
-and predecessor evidence recorded in their closeout files; P4.4--P4.5 rows
+and predecessor evidence recorded in their closeout files; P4.5 rows
 remain future obligations and may not be reported as executed.
 
 ## 1. Common evidence rules
@@ -344,6 +344,22 @@ output window and restart boundary. Failed transactions add zero.
 Grid BOMCOUNT/BOMMASS sums and scalar/event counters must match canonical owner
 and event records. Terminal owners contribute their final event but not
 post-event live mass.
+
+### P4.4 execution record
+
+`run_p44_gate.sh` closes this section with exactly 57 PASS rows:
+
+- debug/IEEE serial, MPI2 and MPI4 builds;
+- multi-flush, empty-flush, SHA oracle, canonical rank/shard-order and injected
+  rollback event checks;
+- NONE and EBOMB schema-4 write/read/bitwise/audit rows for every build;
+- header, parent-high, parent-low, amount, birth-count, record-order/count,
+  truncate, append, missing, signature, T/N member and event manifest/shard
+  corruption rejection before state publication;
+- changed-decomposition rejection for both NONE and EBOMB.
+
+The executed matrix verifies P4-S01, P4-EV01, B15 and B18. B19 and the final
+P4-G99/exit audit remain P4.5.
 
 ## 8. P4.5 capacity and final integration
 

@@ -89,8 +89,8 @@ S<Smin、S>Smax 事件。出生成功时父/子设 S0；全部湿点重试失败
 | P4.0 | 源码审计、接口/编号/schema/RNG/测试冻结 | 本地完成 | 文档/范围审计 15/15；生产 diff 为零 |
 | P4.1 | 参数/稳定码、T/N 端点、Brooks stateless kernel | 本地完成 | P4-Z01/C01/E01/E02/B01、B12、前序 538 |
 | P4.2 | boundary scratch、terminal state machine、compact-tail free stack | 本地完成 | P4-L01/F01/T01、B11、B13 death/free |
-| P4.3 | Philox、重试、全局出生 ID、packet schema 3、graph integration | 本地完成 | P4-RNG01/BR01/ID01/M01、B13/B14/B17 |
-| P4.4 | schema 4、事件分片、诊断、pickup | 未开始 | P4-S01/EV01、B15/B18 |
+| P4.3 | Philox、重试、全局出生 ID、packet schema 3、graph integration | 已集成 | P4-RNG01/BR01/ID01/M01、B13/B14/B17 |
+| P4.4 | schema 4、事件分片、诊断、pickup | 本地完成 | P4-S01/EV01、B15/B18 |
 | P4.5 | 容量矩阵、完整集成和退出 | 未开始 | B19、P4-G99、独立退出审计 |
 
 工作包必须按顺序完成。每个包可以有多个本地提交，但关闭时必须在同一
@@ -224,15 +224,42 @@ P4.3 在独立分支 `MITGCM-BOM/p4.3-rng-birth-schema3` 本地关闭：
 详细实现边界、已解决问题和证据路径见
 [P4.3 closeout](../../../../verification/bom/phase04-biology-land/P4.3_CLOSEOUT.md)。
 
-## 11. 当前恢复点
+## 11. P4.4 完成结果
 
-P4.3 本地完成后：
+P4.3 已由 PR #36 以 merge commit `d97eb32e2` 集成；P4.4 在独立分支
+`MITGCM-BOM/p4.4-schema4-events-pickup` 本地关闭：
+
+1. 保持 schema-2 trajectory 48 字段和 pickup 45 字段不变，弹簧路径继续
+   保持 P3 sidecar；新增四字段 P4 owner sidecar、schema-4 signature 和
+   逐成员 size/SHA-256 complete manifest；
+2. 新增 pure-Fortran SHA-256、每 rank 32-word event shard 和最后发布的
+   provenance/parameter/count/time/size/SHA manifest；
+3. multi-flush、empty flush 与 failure injection 均维持事件 buffer/shard/
+   manifest 事务语义；
+4. B18 预算覆盖 birth/death/beach/outside/cancel/missing-growth、live/free/
+   next-ID，并注册 BOMCOUNT/BOMMASS/BOMBIRTH/BOMDEAD/BOMBEACH；
+5. pickup 在权威状态发布前校验完整 schema-4 frame 与事件分片，恢复 P4/P3
+   owner、计数器、T/N OLD/NEW bracket、事件状态和 deterministic free stack；
+6. `p44-final-head-attempt01` 在洁净精确头通过 57/57，覆盖 NONE/EBOMB
+   x serial/MPI2/MPI4 continuous/split bitwise restart、16 类损坏和两类
+   changed-decomposition 拒绝；
+7. `p44-p43-accepted-attempt01`、`p44-p42-accepted-attempt01`、
+   `p44-p41-accepted-attempt01` 分别通过 26/26、18/18、31/31；
+8. 隔离 shared clone 的 `p44-predecessor-final-head-attempt01` 通过
+   Phase 3 direct 148/148 与 Phase 2 closure 390/390，总计 538/538；
+9. BOM 仍为独立 package，未读写 SKRIPS；未创建 v0.5。
+
+详细实现边界、已解决问题和证据路径见
+[P4.4 closeout](../../../../verification/bom/phase04-biology-land/P4.4_CLOSEOUT.md)。
+
+## 12. 当前恢复点
+
+P4.4 本地完成后：
 
 1. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
-2. 获授权后集中推送 P4.3 的生产、验证和收口提交并创建 Draft PR；
-3. P4.3 经评审集成后从 development 创建 P4.4 分支；
-4. P4.4 仅开发 schema-4 trajectory/P4 sidecar、event shards、diagnostics、
-   same-decomposition pickup/restart 和 B15/B18；
-5. P4.4 不提前进入 B19、P4-G99、Phase 4 exit 或 Phase 5 服务器扩展。
+2. 获授权后集中推送 P4.4 的生产、验证和收口提交并创建 Draft PR；
+3. P4.4 经评审集成后从 development 创建 P4.5 分支；
+4. P4.5 仅关闭 B19、最终 P4-G99 和独立 Phase 4 exit audit；
+5. Phase 5 目标服务器扩展仍不进入 P4.5 功能范围。
 
 在 Phase 4 最终退出审计前不创建 MITGCM-BOM-v0.5 标签。

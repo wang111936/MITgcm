@@ -91,8 +91,9 @@ external environmental datasets remain outside the repository.
 - phase03-integration-closure/: integrated P3-G99 and independent exit-audit
   drivers;
 - phase04-biology-land/: P4.0 source/interface/test freeze, accepted P4.1
-  T/N/Brooks, P4.2 boundary/terminal/compact-tail and P4.3 Philox/birth/ID/
-  packet-schema-3/graph gates; schema 4, B15/B18--B19 and P4-G99 remain staged;
+  T/N/Brooks, P4.2 boundary/terminal/compact-tail, P4.3 Philox/birth/ID/
+  packet-schema-3/graph and P4.4 schema-4/event/diagnostic/restart gates;
+  B19, final P4-G99 and the Phase 4 exit audit remain staged;
 - reference/phase02/: checksummed B16 inputs, fixed-step golden files, and a
   separately marked non-gating adaptive Tsit5 context trajectory;
 - later phase directories: analytical, restart, MPI decomposition and
