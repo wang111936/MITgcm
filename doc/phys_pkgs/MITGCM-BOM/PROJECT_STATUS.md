@@ -9,31 +9,29 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p4.0-interface-freeze` |
-| 当前阶段 PR | Phase 3 PR #30--#32 已集成；P4.0 仅本地开发，尚未创建 PR |
-| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.0 设计冻结） |
-| 当前工作包 | P4.0 本地完成：冻结提交 `88214b7de`，仓库外文档/范围/参考审计 15/15 PASS |
-| 下一工作包 | P4.0 独立文档/范围审计通过并集成后，开始 P4.1 T/N accepted endpoints 与 Brooks stateless kernel |
+| 当前任务分支 | `MITGCM-BOM/p4.1-biology-fields` |
+| 当前阶段 PR | P4.0/P4.1 均仅本地完成，尚未推送或创建 PR |
+| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.1 本地完成） |
+| 当前工作包 | P4.1 已在功能头 `4043a35dd` 通过直接 31/31 与前序 replay 538/538 |
+| 下一工作包 | P4.1 经授权推送、评审和集成后，开始 P4.2 boundary/terminal/free-stack |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md)、
-   `verification/bom/phase04-biology-land/P4.0_DESIGN_AUDIT.md` 和四份
-   冻结文档；
-2. 核对 branch 包含 immutable freeze
-   `88214b7dee0816ec197691014261a356b7210614` 及其审计账本；
-3. 重跑仓库外 `P4.0_doc_audit.py`，要求精确头 15/15、九个 Markdown
-   allowlist、`pkg/bom`/`model` 和 executable test 零差异；
-4. 核对锁定 Julia checkout 仍洁净且七份文件哈希匹配；
-5. 保持 P4.0 分支不创建 v0.5；
-6. 未经明确授权不推送/创建 PR/合并；
-7. P4.0 集成后从 merge commit 创建
-   `MITGCM-BOM/p4.1-biology-fields`；
-8. P4.1 仅实现 inactive 参数/稳定码、T/N accepted endpoints 和 Brooks
-   stateless/plan，并重跑 exact 538-row predecessor gate。
+1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md) 和
+   `verification/bom/phase04-biology-land/P4.1_CLOSEOUT.md`；
+2. 核对 P4.1 三个功能/验证提交均为 WangYuLin，已测试功能头为
+   `4043a35ddeb049ead5c8081bae3417e335cdbae7`；
+3. 核对 `p41-final-head-attempt02` 的 31/31、
+   `p41-predecessor-final-head-attempt02` 的 538/538、source-head 和
+   manifest 自校验；
+4. 保持 P4.1 不进入 live owner/event/schema4 路径；
+5. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
+6. 后续获授权时集中推送 P4.0/P4.1 并创建 Draft PR；
+7. P4.1 评审集成后创建 P4.2 分支，开发 boundary、terminal transaction
+   和 compact-tail free stack。
 
 开始前执行：
 
@@ -52,13 +50,30 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
-| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.0 源码/接口/测试冻结进行中；尚未修改生产 Fortran | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
+| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.1 本地完成：31/31 direct、538/538 predecessor；P4.2 未开始 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
 状态只能使用：`未开始`、`进行中`、`阻塞`、`完成`、`后置`。只有阶段退出条件全部通过后才能标记为完成。
 
 ## 3. 已完成证据
+
+### P4.1 温度/营养盐端点与 Brooks stateless kernel
+
+- 生产实现提交 `e540aed09decc39866a68368986a092f7b6676f5`；
+- 直接门禁提交 `5d3a373e984a182ab7f3e6c3df2718249b469907`；
+- 已测试功能/closeout 头为
+  `4043a35ddeb049ead5c8081bae3417e335cdbae7`；
+- `p41-final-head-attempt02` 在干净精确头通过 31/31，覆盖串行、MPI4、
+  no-PTRACERS、PTRACER/FILES、rollback/retry、common-wet interpolation、
+  90 位 Decimal Brooks oracle 和配置负例；
+- `p41-predecessor-final-head-attempt02` 通过 P3 直接 148/148 与 Phase 2
+  closure 390/390，总计 538/538，含 FLT+BOM coexistence；
+- P4.1 仍 fail-closed 拒绝 live biology owners、restart/output/schema4，
+  未提交出生、死亡、搁浅、域外或 slot 变更；
+- 当前分支未推送、未创建 PR、未合并，也未创建 v0.5 标签；
+- 详细记录见
+  `verification/bom/phase04-biology-land/P4.1_CLOSEOUT.md`。
 
 ### 环境与 MITgcm 基线
 

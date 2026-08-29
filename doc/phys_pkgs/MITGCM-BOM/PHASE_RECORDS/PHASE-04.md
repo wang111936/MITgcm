@@ -87,7 +87,7 @@ S<Smin、S>Smax 事件。出生成功时父/子设 S0；全部湿点重试失败
 | 工作包 | 内容 | 状态 | 退出门禁 |
 |---|---|---|---|
 | P4.0 | 源码审计、接口/编号/schema/RNG/测试冻结 | 本地完成 | 文档/范围审计 15/15；生产 diff 为零 |
-| P4.1 | 参数/稳定码、T/N 端点、Brooks stateless kernel | 未开始 | P4-Z01/C01/E01/E02/B01、B12、前序 538 |
+| P4.1 | 参数/稳定码、T/N 端点、Brooks stateless kernel | 本地完成 | P4-Z01/C01/E01/E02/B01、B12、前序 538 |
 | P4.2 | boundary scratch、terminal state machine、compact-tail free stack | 未开始 | P4-L01/F01/T01、B11、B13 death/free |
 | P4.3 | Philox、重试、全局出生 ID、packet schema 3、graph integration | 未开始 | P4-RNG01/BR01/ID01/M01、B13/B14/B17 |
 | P4.4 | schema 4、事件分片、诊断、pickup | 未开始 | P4-S01/EV01、B15/B18 |
@@ -140,15 +140,36 @@ P4.0 不运行或宣称任何已实现的 Phase 4 Fortran 功能测试。
 详细证据见
 [P4.0 design audit](../../../../verification/bom/phase04-biology-land/P4.0_DESIGN_AUDIT.md)。
 
-## 8. 当前恢复点
+## 8. P4.1 完成结果
 
-P4.0 完成并经明确授权集成后：
+P4.1 已在功能头
+`4043a35ddeb049ead5c8081bae3417e335cdbae7` 本地关闭：
 
-1. 从 P4.0 merge commit 创建 MITGCM-BOM/p4.1-biology-fields；
-2. 只追加 inactive 参数、稳定码、T/N accepted endpoints 和 Brooks
-   stateless/plan 接口；
-3. 不在 P4.1 修改 owner 数、slot、出生 ID、事件输出或 schema 4；
-4. 先完成 P4.1 direct gate，再运行精确 538-row v0.4 predecessor gate；
-5. 完成代码、测试、证据和 closeout 后再集中推送。
+1. `e540aed09` 加入 inactive 参数/稳定码、事务 T/N OLD/NEW endpoint、
+   THETA/PTRACER/FILES provider、exact-time/common-wet interpolation 和
+   Brooks stateless/immutable plan；
+2. `5d3a373e9` 加入 P4.1 串行/MPI4/no-PTRACERS 直接门禁、FILES fixture
+   和 90 位 Decimal oracle；
+3. `p41-final-head-attempt02` 在干净精确头通过 31/31；
+4. `p41-predecessor-final-head-attempt02` 通过 P3 直接 148/148、Phase 2
+   closure 390/390 和总计 538/538；
+5. 两套证据的 source-head 均为 `4043a35dd...`，manifest 自校验通过；
+6. live owner/event/schema4 仍 fail-closed，P4.1 无出生、terminal commit、
+   slot 变更、事件 I/O 或 restart/output 扩展；
+7. 分支未推送、未创建 PR、未合并、未创建 v0.5。
 
-在 P4.0 分支上不创建 MITGCM-BOM-v0.5 标签。
+详细实现边界、已解决问题和证据路径见
+[P4.1 closeout](../../../../verification/bom/phase04-biology-land/P4.1_CLOSEOUT.md)。
+
+## 9. 当前恢复点
+
+P4.1 本地完成后：
+
+1. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
+2. 获授权后集中推送 P4.0/P4.1 提交并创建 Draft PR；
+3. P4.1 经评审集成后从 development 创建 P4.2 分支；
+4. P4.2 仅开发 boundary classifier、RK terminal scratch、terminal event
+   transaction 和 compact-tail free stack；
+5. P4.2 不提前进入 Philox births、全局 child ID、event files 或 schema 4。
+
+在 Phase 4 最终退出审计前不创建 MITGCM-BOM-v0.5 标签。
