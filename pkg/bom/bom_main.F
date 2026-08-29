@@ -37,15 +37,20 @@ C     !LOCAL VARIABLES:
       INTEGER statusCandidate
       INTEGER failStage, failCode, releaseFailCode, p3FailPhase
       INTEGER rhsFailCode
+      INTEGER terminalType,terminalStage,p4FailPhase
+      INTEGER p4FailRank,p4FailBi,p4FailBj,p4FailSlot
+      INTEGER*8 p4FailId
       _RL stepStart, dtSub, tSub0, tSub1, dtActive, stageTime0
       _RL x0, y0, xCandidate, yCandidate, ageCandidate
       _RL ix, jy, oceanEast, oceanNorth
       _RL windEast, windNorth, driftEast, driftNorth
       _RL wetWeight, stageCFL, rhsX, rhsY
       _RL rhsDiagCandidate(BOM_RHS_NDIAG)
+      _RL terminalAttemptX,terminalAttemptY
       LOGICAL setupValid, boundsValid, releaseValid
       LOGICAL doAdvance, doRefresh, trialValid
       LOGICAL rhsOwner, rhsValid, ensembleValid
+      LOGICAL isTerminal,boundaryValid,eventValid
 
 C--   Phase-2 environment publication is independent of particle count.
       IF ( bomMode.EQ.'BOM' ) THEN
@@ -181,6 +186,11 @@ C--         Deterministic rollback diagnostics before any trial.
             stageCFL = 0. _d 0
             failStage = BOM_STAGE_NONE
             failCode = BOM_FAIL_NONE
+            terminalType = BOM_EVENT_NONE
+            terminalStage = BOM_STAGE_NONE
+            terminalAttemptX = 0. _d 0
+            terminalAttemptY = 0. _d 0
+            isTerminal = .FALSE.
             trialValid = .FALSE.
             DO iDiag=1,BOM_RHS_NDIAG
               rhsDiagCandidate(iDiag) = 0. _d 0
@@ -202,17 +212,21 @@ C--           A still-WAITING record is a successful no-op.
               stageTime0 = tSub1-dtActive
               IF ( bomMode.EQ.'BOM' ) THEN
                 IF ( bomIntegrator.EQ.'RK2' ) THEN
-                  CALL BOM_RK2_SLOW_MIGRATE(
+                  CALL BOM_RK2_SLOW_MIGRATE_P4(
      I                 x0, y0, stageTime0, dtActive, bi, bj,
      O                 xCandidate, yCandidate, ix, jy,
      O                 rhsDiagCandidate, wetWeight, stageCFL,
+     O                 terminalType,terminalStage,
+     O                 terminalAttemptX,terminalAttemptY,isTerminal,
      O                 failStage, failCode, trialValid,
      I                 myThid )
                 ELSEIF ( bomIntegrator.EQ.'RK4' ) THEN
-                  CALL BOM_RK4_SLOW_MIGRATE(
+                  CALL BOM_RK4_SLOW_MIGRATE_P4(
      I                 x0, y0, stageTime0, dtActive, bi, bj,
      O                 xCandidate, yCandidate, ix, jy,
      O                 rhsDiagCandidate, wetWeight, stageCFL,
+     O                 terminalType,terminalStage,
+     O                 terminalAttemptX,terminalAttemptY,isTerminal,
      O                 failStage, failCode, trialValid,
      I                 myThid )
                 ELSE
@@ -255,14 +269,29 @@ C--           A still-WAITING record is a successful no-op.
 C--           Release at tSub1: refresh FINAL diagnostics at zero time.
               failStage = BOM_STAGE_FINAL
               IF ( bomMode.EQ.'BOM' ) THEN
-                CALL BOM_RHS_SLOW_MANIFOLD(
+                CALL BOM_TRY_STAGE_BOUNDARY(
+     I               x0,y0,bi,bj,BOM_STAGE_FINAL,
+     O               terminalType,terminalAttemptX,terminalAttemptY,
+     O               isTerminal,rhsFailCode,p4FailPhase,boundaryValid,
+     I               myThid)
+                IF ( .NOT.boundaryValid ) THEN
+                  failCode=rhsFailCode
+                  rhsValid=.FALSE.
+                  rhsOwner=.FALSE.
+                ELSEIF ( isTerminal ) THEN
+                  terminalStage=BOM_STAGE_FINAL
+                  rhsValid=.TRUE.
+                  rhsOwner=.TRUE.
+                ELSE
+                  CALL BOM_RHS_SLOW_MANIFOLD(
      I               x0, y0, tSub1, 0. _d 0,
      I               bi, bj, BOM_STAGE_FINAL,
      O               rhsX, rhsY, ix, jy, rhsDiagCandidate,
      O               wetWeight, stageCFL,
      O               rhsOwner, rhsValid, rhsFailCode, failStage,
      I               myThid )
-                IF ( rhsValid ) THEN
+                ENDIF
+                IF ( rhsValid .AND. .NOT.isTerminal ) THEN
                   oceanEast = rhsDiagCandidate(BOM_RHS_VBASE_E)
                   oceanNorth = rhsDiagCandidate(BOM_RHS_VBASE_N)
                   windEast = rhsDiagCandidate(BOM_RHS_VW_E)
@@ -299,19 +328,31 @@ C--             Publish all authoritative candidates exactly once.
                 bomY(ip,bi,bj) = yCandidate
                 bomStatus(ip,bi,bj) = statusCandidate
                 bomAge(ip,bi,bj) = ageCandidate
-                bomI(ip,bi,bj) = ix
-                bomJ(ip,bi,bj) = jy
-                bomVEast(ip,bi,bj) = oceanEast
-                bomVNorth(ip,bi,bj) = oceanNorth
-                bomWindEast(ip,bi,bj) = windEast
-                bomWindNorth(ip,bi,bj) = windNorth
-                bomDriftEast(ip,bi,bj) = driftEast
-                bomDriftNorth(ip,bi,bj) = driftNorth
-                IF ( bomMode.EQ.'BOM' ) THEN
+                IF ( .NOT.isTerminal ) THEN
+                  bomI(ip,bi,bj) = ix
+                  bomJ(ip,bi,bj) = jy
+                  bomVEast(ip,bi,bj) = oceanEast
+                  bomVNorth(ip,bi,bj) = oceanNorth
+                  bomWindEast(ip,bi,bj) = windEast
+                  bomWindNorth(ip,bi,bj) = windNorth
+                  bomDriftEast(ip,bi,bj) = driftEast
+                  bomDriftNorth(ip,bi,bj) = driftNorth
+                ENDIF
+                IF ( bomMode.EQ.'BOM' .AND. .NOT.isTerminal ) THEN
                   DO iDiag=1,BOM_RHS_NDIAG
                     bomRhsDiag(iDiag,ip,bi,bj) =
      &                   rhsDiagCandidate(iDiag)
                   ENDDO
+                ENDIF
+                IF ( isTerminal ) THEN
+                  bomTerminalType(ip,bi,bj)=terminalType
+                  bomTerminalStage(ip,bi,bj)=terminalStage
+                  bomTerminalId(ip,bi,bj)=bomId(ip,bi,bj)
+                  bomTerminalAcceptedX(ip,bi,bj)=x0
+                  bomTerminalAcceptedY(ip,bi,bj)=y0
+                  bomTerminalAttemptX(ip,bi,bj)=terminalAttemptX
+                  bomTerminalAttemptY(ip,bi,bj)=terminalAttemptY
+                  bomTerminalReady(ip,bi,bj)=.TRUE.
                 ENDIF
               ENDIF
             ELSE
@@ -360,6 +401,29 @@ C--     No non-owner candidate may enter a state budget or next substep.
         CALL BOM_PARTICLE_EXCHANGE(
      I       tSub1, myIter, iSub+1, myThid )
 
+        IF ( bomUseLand .OR. bomUseBiology ) THEN
+          CALL BOM_EVENT_TRANSACTION(
+     I         tSub0,tSub1,myIter,iSub+1,BOM_P4_PHASE_NONE,
+     O         failCode,p4FailPhase,p4FailRank,
+     O         p4FailBi,p4FailBj,p4FailSlot,p4FailId,eventValid,
+     I         myThid)
+          IF ( .NOT.eventValid ) THEN
+            _BEGIN_MASTER(myThid)
+            IF ( myProcId.EQ.0 ) THEN
+              WRITE(msgBuf,1002)
+     &             'BOM_MAIN: P4 event failure iter/sub=',
+     &             myIter,iSub+1,' phase/code/rank=',
+     &             p4FailPhase,failCode,p4FailRank,
+     &             ' tile/slot=',p4FailBi,p4FailBj,p4FailSlot,
+     &             ' id=',p4FailId
+              CALL PRINT_ERROR(msgBuf,myThid)
+            ENDIF
+            _END_MASTER(myThid)
+            CALL ALL_PROC_DIE(0)
+            STOP 'ABNORMAL END: S/R BOM_MAIN P4 EVENT'
+          ENDIF
+        ENDIF
+
         IF ( bomCheckEverySubstep ) THEN
           CALL BOM_CHECK_STATE(
      I         tSub1, myIter, 'SUBSTEP', myThid )
@@ -374,6 +438,7 @@ C     checked, the last call above already is this exact budget.
       ENDIF
  1000 FORMAT(A,1PE24.16,A,2I12,A,4I6,A,I20,A,2I6)
  1001 FORMAT(A,1PE24.16,A,2I12,A,3I6)
+ 1002 FORMAT(A,2I12,A,3I8,A,3I6,A,I20)
 #endif /* ALLOW_BOM */
 
       RETURN
