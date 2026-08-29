@@ -240,17 +240,19 @@ P4.3 已由 PR #36 以 merge commit `d97eb32e2` 集成；P4.4 在独立分支
    next-ID，并注册 BOMCOUNT/BOMMASS/BOMBIRTH/BOMDEAD/BOMBEACH；
 5. pickup 在权威状态发布前校验完整 schema-4 frame 与事件分片，恢复 P4/P3
    owner、计数器、T/N OLD/NEW bracket、事件状态和 deterministic free stack；
-6. `p44-final-head-attempt03` 在洁净精确头通过 57/57，覆盖 NONE/EBOMB
+6. `p44-final-head-attempt04` 在洁净精确头通过 57/57，覆盖 NONE/EBOMB
    x serial/MPI2/MPI4 continuous/split bitwise restart、16 类损坏和两类
    changed-decomposition 拒绝；
-7. `p44-p43-accepted-attempt03`、`p44-p42-accepted-attempt03`、
-   `p44-p41-accepted-attempt03` 分别通过 26/26、18/18、31/31；P4.1
+7. `p44-p43-accepted-attempt04`、`p44-p42-accepted-attempt04`、
+   `p44-p41-accepted-attempt04` 分别通过 26/26、18/18、31/31；P4.1
    使用显式 `p44` scope 区分新增合法容量与仍须 pre-init 拒绝的缺失初态；
-8. 隔离 shared clone 的 `p44-predecessor-final-head-attempt03` 通过
+8. 隔离 shared clone 的 `p44-predecessor-final-head-attempt04` 通过
    Phase 3 direct 148/148 与 Phase 2 closure 390/390，总计 538/538；
 9. P4.2 回放发现两个直接构造状态的隔离夹具未同步 P4.4 next-ID/event
    账本不变量；已修正夹具边界，未放宽生产预算检查；
-10. BOM 仍为独立 package，未读写 SKRIPS；未创建 v0.5。
+10. predecessor 性能审计仅新增 P4 高/低字 exact-count gather 白名单及
+    shape/count 断言；三份容量测试头同步 P4.4 schema 常量且仅保留原容量差异；
+11. BOM 仍为独立 package，未读写 SKRIPS；未创建 v0.5。
 
 详细实现边界、已解决问题和证据路径见
 [P4.4 closeout](../../../../verification/bom/phase04-biology-land/P4.4_CLOSEOUT.md)。
