@@ -4,7 +4,7 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-29 |
+| 最后更新 | 2026-08-30 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
@@ -24,11 +24,11 @@
    `verification/bom/phase04-biology-land/P4.4_CLOSEOUT.md`；
 2. 核对 P4.4 本地提交作者/提交者均为
    `WangYuLin <wang111936@outlook.com>`；
-3. 核对 `p44-final-head-attempt01` 的 57/57、
-   `p44-p43-accepted-attempt01` 的 26/26、
-   `p44-p42-accepted-attempt01` 的 18/18、
-   `p44-p41-accepted-attempt01` 的 31/31 与
-   `p44-predecessor-final-head-attempt01` 的 538/538、source-head 和
+3. 核对 `p44-final-head-attempt02` 的 57/57、
+   `p44-p43-accepted-attempt02` 的 26/26、
+   `p44-p42-accepted-attempt02` 的 18/18、
+   `p44-p41-accepted-attempt02` 的 31/31 与
+   `p44-predecessor-final-head-attempt02` 的 538/538、source-head 和
    manifest 自校验；
 4. 保持 P4.4 不进入 B19、P4-G99、Phase 4 exit 或 Phase 5 scaling；
 5. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
@@ -70,10 +70,10 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   shard/manifest 支持 multi/empty flush 和注入失败 rollback；
 - B18 预算覆盖 birth/death/beach/outside/cancel/missing-growth、live/free/
   next-ID，并注册 BOMCOUNT/BOMMASS/BOMBIRTH/BOMDEAD/BOMBEACH；
-- `p44-final-head-attempt01` 在洁净精确头通过 57/57；
-- `p44-p43-accepted-attempt01`、`p44-p42-accepted-attempt01`、
-  `p44-p41-accepted-attempt01` 分别通过 26/26、18/18、31/31；
-- 隔离 shared clone 的 `p44-predecessor-final-head-attempt01` 通过
+- `p44-final-head-attempt02` 在洁净精确头通过 57/57；
+- `p44-p43-accepted-attempt02`、`p44-p42-accepted-attempt02`、
+  `p44-p41-accepted-attempt02` 分别通过 26/26、18/18、31/31；
+- 隔离 shared clone 的 `p44-predecessor-final-head-attempt02` 通过
   P3 direct 148/148 与 Phase 2 closure 390/390，总计 538/538；
 - NONE/EBOMB x serial/MPI2/MPI4 continuous/split restart 位级一致，
   16 类损坏和改变分解均在状态发布前拒绝；
@@ -1135,7 +1135,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 未涉及 SKRIPS，未推送 GitHub、未创建 PR、未合并、未创建
   v0.5；唯一下一生产包为 P4.4 schema4/event/diagnostics/pickup。
 
-### 2026-08-29：P4.3 集成与 P4.4 本地完成
+### 2026-08-29—30：P4.3 集成与 P4.4 本地完成
 
 - P4.3 PR #36 已以 merge commit `d97eb32e2` 集成，从该头创建
   `MITGCM-BOM/p4.4-schema4-events-pickup`；
@@ -1147,10 +1147,12 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - direct gate 扩展为 57 行，覆盖 NONE/EBOMB x serial/MPI2/MPI4、
   continuous/split bitwise restart、canonical events、16 类 corruption 和
   changed-decomposition rejection；
-- clean closeout 证据为 `p44-final-head-attempt01` 57/57、
-  `p44-p43-accepted-attempt01` 26/26、`p44-p42-accepted-attempt01`
-  18/18、`p44-p41-accepted-attempt01` 31/31 和
-  `p44-predecessor-final-head-attempt01` 538/538；
+- clean closeout 证据为 `p44-final-head-attempt02` 57/57、
+  `p44-p43-accepted-attempt02` 26/26、`p44-p42-accepted-attempt02`
+  18/18、`p44-p41-accepted-attempt02` 31/31 和
+  `p44-predecessor-final-head-attempt02` 538/538；
+- P4.2 回放发现两个直接构造状态的隔离夹具未同步 P4.4 next-ID/event
+  账本不变量；已补齐夹具初始化，生产预算约束保持不变；
 - P4.4 关闭 P4-R16--R18 和 P4-R19 的 restart/output 部分；B19、最终
   P4-G99 与独立 Phase 4 exit audit 仍归 P4.5；
 - 未涉及 SKRIPS，分支未推送、未创建 PR、未合并、未创建 v0.5；
