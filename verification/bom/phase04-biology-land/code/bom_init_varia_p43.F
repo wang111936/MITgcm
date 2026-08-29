@@ -23,6 +23,8 @@ CEOP
       CALL BOM_INIT_STATE( myThid )
       IF ( the_run_name.EQ.'P43-RNG' ) THEN
         CALL BOM_VERIFY_P43_RNG( myThid )
+      ELSEIF ( the_run_name.EQ.'P43-BIRTH' ) THEN
+        CALL BOM_VERIFY_P43_BIRTH( myThid )
       ENDIF
 #endif
 
