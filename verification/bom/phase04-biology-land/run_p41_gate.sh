@@ -39,8 +39,8 @@ git -C "${REPO_ROOT}" status --porcelain=v1 \
 [[ "${REQUIRE_CLEAN}" == 0 || "${REQUIRE_CLEAN}" == 1 ]] \
   || fail 'MITGCM_BOM_REQUIRE_CLEAN must be 0 or 1'
 [[ "${SCOPE_MODE}" == p41 || "${SCOPE_MODE}" == p42 \
-   || "${SCOPE_MODE}" == p43 ]] \
-  || fail 'MITGCM_BOM_SCOPE_MODE must be p41, p42 or p43'
+   || "${SCOPE_MODE}" == p43 || "${SCOPE_MODE}" == p44 ]] \
+  || fail 'MITGCM_BOM_SCOPE_MODE must be p41, p42, p43 or p44'
 if [[ -n "${EXPECTED_SOURCE_HEAD}" \
    && "${source_head}" != "${EXPECTED_SOURCE_HEAD}" ]]; then
   fail "source head ${source_head}, expected ${EXPECTED_SOURCE_HEAD}"
@@ -159,7 +159,8 @@ build_case() {
     cp "${CASE_DIR}/code/bom_verify_p41_endpoints.F" "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_p41_interp.F" "${mods_dir}/"
     cp "${CASE_DIR}/code/bom_verify_p41_brooks.F" "${mods_dir}/"
-    if [[ "${SCOPE_MODE}" == p42 || "${SCOPE_MODE}" == p43 ]]; then
+    if [[ "${SCOPE_MODE}" == p42 || "${SCOPE_MODE}" == p43 \
+       || "${SCOPE_MODE}" == p44 ]]; then
       cp "${CASE_DIR}/code/bom_verify_p42_core.F" "${mods_dir}/"
     fi
   fi
@@ -287,13 +288,21 @@ run_negative() {
   fi
   grep -Eq 'ABNORMAL END|S/R ALL_PROC_DIE' "${run_dir}/run.log" \
     || fail "negative fatal marker missing: ${name} (rc=${rc})"
-  grep -q 'invalid P4.1 biology configuration' "${run_dir}/run.log" \
-    || fail "P4.1 config marker missing: ${name}"
-  grep -q 'failCode=.*26' "${run_dir}/run.log" \
-    || fail "failure 26 missing: ${name}"
   [[ "$(grep -c 'P4-C01 PASS:' "${run_dir}/run.log" || true)" -eq 0 ]] \
     || fail "state initialization reached: ${name}"
-  record_pass "p41-c01-${name}" 'failure 26 before state initialization'
+  if [[ "${transform}" == live-state && "${SCOPE_MODE}" == p44 ]]; then
+    grep -q 'positive particle count requires input file' \
+      "${run_dir}/run.log" \
+      || fail "P4.4 missing-initial-state marker absent: ${name}"
+    record_pass "p41-c01-${name}" \
+      'P4.4 capacity accepted; missing initial state rejected'
+  else
+    grep -q 'invalid P4.1 biology configuration' "${run_dir}/run.log" \
+      || fail "P4.1 config marker missing: ${name}"
+    grep -q 'failCode=.*26' "${run_dir}/run.log" \
+      || fail "failure 26 missing: ${name}"
+    record_pass "p41-c01-${name}" 'failure 26 before state initialization'
+  fi
 }
 
 log 'source-scope audit and serial/MPI builds'
