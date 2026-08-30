@@ -97,6 +97,11 @@ external environmental datasets remain outside the repository.
 - phase04-integration-closure/: final 689-row P4-G99 and independent Phase 4
   exit-audit drivers; the release-candidate executions passed and the final
   release-head executions follow the exit-record merge;
+- phase05-scientific-acceptance/: P5.0 frozen production-simulation plan for
+  executable packaging, deterministic real inputs, full `BOM_MAIN` Julia and
+  PAPER2024 trajectory comparisons, released-feature/schema-4 qualification,
+  dynamic-ocean one-way coupling, restart/MPI and 30-day endurance; no Phase 5
+  execution evidence is claimed by the freeze;
 - reference/phase02/: checksummed B16 inputs, fixed-step golden files, and a
   separately marked non-gating adaptive Tsit5 context trajectory;
 - later phase directories: analytical, restart, MPI decomposition and
