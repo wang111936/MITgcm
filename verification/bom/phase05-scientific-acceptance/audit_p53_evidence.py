@@ -159,7 +159,8 @@ def audit_inputs(run_root: Path) -> int:
     checksum_files = 0
     for case_id, dt_s, steps, forcing, file_count in definitions:
         stem = f"input-{case_id}-dt{dt_s}"
-        report = json.loads((run_root / f"{stem}-audit.json").read_text(encoding="ascii"))
+        report_name = "input-p01-audit.json" if case_id == "p01" else f"{stem}-audit.json"
+        report = json.loads((run_root / report_name).read_text(encoding="ascii"))
         expected = {
             "result": "PASS", "case": case_id, "dt_s": dt_s,
             "steps": steps, "forcing_records": forcing,
