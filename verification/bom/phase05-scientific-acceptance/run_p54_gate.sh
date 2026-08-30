@@ -40,7 +40,7 @@ record p5.4-source-admission 'clean exact head descends from MITGCM-BOM-v0.5'
   mpirun --version
   python3 --version
   git --version
-  sha256sum --version | head -1
+  sha256sum --version
 } > "${EVIDENCE_ROOT}/environment.txt" 2>&1
 
 prepare_common_mods() {
