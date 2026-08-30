@@ -137,7 +137,7 @@ p3_id="${TEST_ID}-phase3-predecessor"
 env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
     MITGCM_BOM_TEST_ID="${p3_id}" \
     MITGCM_BOM_INTEGRATION_MODE=predecessor \
-    MITGCM_BOM_PREDECESSOR_CLOSURE_SCOPE=P4.4 \
+    MITGCM_BOM_PREDECESSOR_CLOSURE_SCOPE=P4.5 \
     "${REPLAY_REPO}/verification/bom/phase03-integration-closure/run_p3_g99.sh" \
     > "${EVIDENCE_ROOT}/phase3-predecessor.log" 2>&1
 p3_root="/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/${p3_id}"
