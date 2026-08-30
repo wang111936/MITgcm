@@ -127,11 +127,11 @@ log 'run exact 538-row v0.4 predecessor replay in isolated shared clone'
 readonly REPLAY_REPO="${REPLAY_ROOT}/repo"
 git clone --shared --no-checkout "${REPO_ROOT}" "${REPLAY_REPO}" \
   > "${EVIDENCE_ROOT}/replay-clone.log" 2>&1
-git -C "${REPLAY_REPO}" branch -f \
-  MITGCM-BOM/development "${EXPECTED_HEAD}"
 git -C "${REPLAY_REPO}" checkout -B \
   MITGCM-BOM/p3.5-performance-closeout "${EXPECTED_HEAD}" \
   >> "${EVIDENCE_ROOT}/replay-clone.log" 2>&1
+git -C "${REPLAY_REPO}" branch -f \
+  MITGCM-BOM/development "${EXPECTED_HEAD}"
 p3_id="${TEST_ID}-phase3-predecessor"
 env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
     MITGCM_BOM_TEST_ID="${p3_id}" \
