@@ -119,12 +119,15 @@ def main() -> int:
         ("p43-direct", "b14"),
         ("p43-direct", "b17"),
         ("p44-direct", "b15"),
-        ("p44-direct", "b18"),
         ("p45-b19", "b19"),
     ):
         require(any(pkg == package and token in case.lower()
                     for pkg, _, case in cases),
                 f"{package}: {token} coverage missing")
+    require(any(row["package"] == "p44-direct" and
+                "budget" in row["detail"].lower()
+                for row in all_rows),
+            "p44-direct: B18 budget coverage missing")
     require(any(pkg == "phase3-predecessor" and
                 group == "phase2/p15-coexistence"
                 for pkg, group, case in cases),
