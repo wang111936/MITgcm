@@ -149,12 +149,18 @@ def main() -> None:
             git(repo, "status", "--porcelain") == "", "clean source status")
     require(git(repo, "merge-base", "--is-ancestor", "MITGCM-BOM-v0.5", head) == "",
             "v0.5 ancestry")
-    grep_result = subprocess.run(
-        ("git", "-C", str(repo), "grep", "-Iin", "skrips", "--", "pkg/bom",
-         "verification/bom/phase05-scientific-acceptance"),
-        text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    require(grep_result.returncode == 1 and grep_result.stdout == "",
-            "SKRIPS dependency in P5.4 scope")
+    # Documentation states the isolation rule and this auditor names it, so a
+    # raw word search would reject the rule itself.  Inspect executable source
+    # and scripts for an actual path/dependency token, excluding this reader.
+    runnable_suffixes = {".F", ".h", ".py", ".sh"}
+    for relative in git(repo, "ls-files", "pkg/bom",
+                        "verification/bom/phase05-scientific-acceptance").splitlines():
+        path = repo / relative
+        if path.resolve() == Path(__file__).resolve() or path.suffix not in runnable_suffixes:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace").lower()
+        require("/skrips" not in text and "skrips/" not in text and
+                "skrips-project" not in text, f"SKRIPS dependency path in {relative}")
 
     manifest_files, manifest_digest = verify_manifest(evidence)
     summary_rows = audit_summary(evidence)
