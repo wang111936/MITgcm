@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 5 scientific acceptance
 
-Status: **P5.1 AND P5.2 COMPLETE; P5.2 LOCKED JULIA GATE 17/17 PASS**
+Status: **P5.1, P5.2 AND P5.3 COMPLETE; P5.3 PAPER2024 GATE 22/22 PASS**
 
 This work package proves that the released v0.5 BOM package works through the
 normal MITgcm production lifecycle: it is linked into `mitgcmuv`, reads real
@@ -14,13 +14,16 @@ the admitted production-build matrix, deterministic input generator,
 independent input/evidence auditors and BOM-off ocean-baseline smoke. P5.2
 adds the four-rank 96-step production run, byte-reproduced locked Julia
 references, independent trajectory/component/pickup decoders and exact-head
-scientific comparison.
+scientific comparison. P5.3 adds the independent 90-decimal PAPER2024 oracle,
+a separately locked convergence-resolving affine fixture, four production MPI
+runs and the frozen 900/450/225 s RK4 temporal-convergence decision.
 
 Accepted results and evidence roots are recorded in
-[P5.1_CLOSEOUT.md](P5.1_CLOSEOUT.md) and
-[P5.2_CLOSEOUT.md](P5.2_CLOSEOUT.md).
+[P5.1_CLOSEOUT.md](P5.1_CLOSEOUT.md),
+[P5.2_CLOSEOUT.md](P5.2_CLOSEOUT.md), and
+[P5.3_CLOSEOUT.md](P5.3_CLOSEOUT.md).
 
-Run either complete gate from a clean exact head with:
+Run any complete gate from a clean exact head with:
 
 ```sh
 MITGCM_BOM_TEST_ID=<fresh-p51-id> \
@@ -28,10 +31,14 @@ MITGCM_BOM_TEST_ID=<fresh-p51-id> \
 
 MITGCM_BOM_TEST_ID=<fresh-p52-id> \
   ./verification/bom/phase05-scientific-acceptance/run_p52_gate.sh
+
+MITGCM_BOM_TEST_ID=<fresh-p53-id> \
+  ./verification/bom/phase05-scientific-acceptance/run_p53_gate.sh
 ```
 
-P5.3 restart/decomposition parity, P5.4 Phase 4 physics, P5.5 output
-acceptance and P5-SA-G99 remain unexecuted at this boundary.
+P5.4 released-feature, dynamic-ocean, restart/decomposition and 30-day
+endurance qualification, followed by P5.5/P5-SA-G99 aggregation, remains
+unexecuted at this boundary.
 
 Scientific acceptance precedes the already-planned Phase 5 HPC hardening.
 Passing P5-SA-G99 establishes correctness on the admission platforms; it does
