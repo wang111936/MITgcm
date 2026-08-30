@@ -283,6 +283,7 @@ compare_states() {
 log 'audit frozen production owner-migration contract'
 readonly LOCATE_SOURCE="${REPO_ROOT}/pkg/bom/bom_locate_owner.F"
 readonly EXCHANGE_SOURCE="${REPO_ROOT}/pkg/bom/bom_particle_exchange.F"
+readonly PREFLIGHT_SOURCE="${REPO_ROOT}/pkg/bom/bom_event_preflight.F"
 readonly MAIN_SOURCE="${REPO_ROOT}/pkg/bom/bom_main.F"
 readonly CHECK_SOURCE="${REPO_ROOT}/pkg/bom/bom_check.F"
 readonly SIZE_SOURCE="${REPO_ROOT}/pkg/bom/BOM_SIZE.h"
@@ -329,8 +330,17 @@ grep -Fq 'sendReal(packetOffsetR+4) = bomAge' "${EXCHANGE_SOURCE}" \
   || fail 'minimal real packet age field is missing'
 grep -Fq 'IF ( globalMoveCount.EQ.0 ) RETURN' "${EXCHANGE_SOURCE}" \
   || fail 'bitwise no-movement fast path is missing'
-grep -Fq 'targetCount(bi,bj).GT.bomMaxPartTile' "${EXCHANGE_SOURCE}" \
-  || fail 'target tile capacity preflight is missing'
+if ! grep -Fq 'targetCount(bi,bj).GT.bomMaxPartTile' \
+     "${EXCHANGE_SOURCE}"; then
+  [[ "$(grep -c 'CALL BOM_OWNER_EXCHANGE_PREFLIGHT' \
+       "${EXCHANGE_SOURCE}")" -eq 2 ]] \
+    || fail 'owner exchange capacity preflight calls are missing'
+  grep -Fq 'required=INT(targetCount(bi,bj),8)' \
+    "${PREFLIGHT_SOURCE}" \
+    || fail 'target tile capacity requirement is missing'
+  grep -Fq 'required.GT.capacity' "${PREFLIGHT_SOURCE}" \
+    || fail 'target tile capacity comparison is missing'
+fi
 grep -Eq 'workId\(jp,bi,bj\)\.(GT|LE)\.keyId' \
   "${EXCHANGE_SOURCE}" \
   || fail 'full INTEGER*8 deterministic sort is missing'
