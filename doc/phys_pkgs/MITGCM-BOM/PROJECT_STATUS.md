@@ -9,11 +9,11 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p4.5-capacity-exit` |
-| 当前阶段 PR | P4.0 PR #33--P4.4 PR #37 已合并；P4.5 本地实现待集中推送 |
-| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.5 B19 本地完成） |
-| 当前工作包 | P4.5 B19 通过 19/19；P4-G99 689 行与独立退出审计 driver 已实现 |
-| 下一工作包 | 合并 P4.5 PR，在 development 集成头运行 P4-G99/退出审计并提交退出记录 |
+| 当前任务分支 | `MITGCM-BOM/phase4-exit-audit` |
+| 当前阶段 PR | P4.0--P4.5 PR #33--#38 与集成修正 PR #39--#43 已合并 |
+| 当前阶段 | Phase 4：生物过程、陆地与事件（release-candidate 退出审计通过） |
+| 当前工作包 | 候选头 P4-G99 689/689、独立退出审计 PASS；正在提交退出记录 |
+| 下一工作包 | 合并退出记录，在最终 release head 复验两项门禁并发布 annotated v0.5 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -21,14 +21,12 @@
 下一次继续开发时，从以下任务开始：
 
 1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md) 和
-   `verification/bom/phase04-biology-land/P4.5_CLOSEOUT.md`；
-2. 核对 P4.5 本地提交作者/提交者均为
-   `WangYuLin <wang111936@outlook.com>`；
-3. 在洁净精确包头复验 `run_p45_gate.sh` 19/19；
-4. 集中推送并以 merge commit 合并 P4.5 PR；
-5. 在集成头运行 P4-G99 689/689 和独立 Phase 4 exit audit；
-6. 合并退出记录 PR 后复验最终门禁，再创建 annotated v0.5；
-7. 保持 Phase 5 scaling 和 Phase 6 grid support 在本阶段之外。
+   `verification/bom/phase04-biology-land/PHASE4_EXIT_AUDIT.md`；
+2. 推送并以 merge commit 合并 Phase 4 退出记录 PR；
+3. 在最终洁净精确 development 头运行 P4-G99 689/689；
+4. 使用新的 P4-G99 证据运行独立 Phase 4 exit audit；
+5. 两项最终门禁通过后创建、推送并复核 annotated v0.5；
+6. 保持 Phase 5 scaling 和 Phase 6 grid support 在本阶段之外。
 
 开始前执行：
 
@@ -47,7 +45,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
-| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.4 PR #37 已合并；P4.5 B19 本地 19/19，最终 689/689 与退出审计待集成头运行 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
+| Phase 4 生物与陆地 | 进行中 | v0.5 | PR #33--#43 已合并；候选头 689/689 与独立退出审计 PASS；最终头复验/标签待完成 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
@@ -55,7 +53,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 
 ## 3. 已完成证据
 
-### P4.5 capacity matrix 与最终退出 driver
+### P4.5 capacity matrix 与 release-candidate 退出
 
 - P4.4 PR #37 已以 merge commit `4306d03e8` 集成；
 - 新增统一 event/owner-exchange preflight，覆盖 global、tile、event、
@@ -66,7 +64,10 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   stable need/capacity/context 与 bitwise rollback；
 - 最终 P4-G99 固定 689 行，独立 exit audit 固定 P4-R01--P4-R20、包祖先、
   schema、gather 和 Phase 5/6 范围审计；
-- 当前尚未推送 P4.5、未运行集成头最终门禁、未创建 v0.5；
+- P4.5 PR #38 与集成修正 PR #39--#43 已以 merge commit 集成；
+- clean exact candidate `9a468ec3d` 的 P4-G99 通过 689/689，独立
+  P4-R01--P4-R20 exit audit PASS；
+- 当前尚待退出记录 PR、release-head 两项复验和 annotated v0.5；
 - 详细记录见
   `verification/bom/phase04-biology-land/P4.5_CLOSEOUT.md`。
 
@@ -1184,6 +1185,21 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 冻结 B19 gate 已在 `p45-b19-dev-attempt10` 通过 19/19；
 - 新增 P4-G99 689-row aggregate 与独立 Phase 4 exit audit driver；
 - 未涉及 SKRIPS，未实现 Phase 5/6，未创建 v0.5。
+
+### 2026-08-30：P4.5 集成、修正与 release-candidate 退出
+
+- P4.5 exact package head `d618716f3936da7b589598b53f023f2ae379cf15`
+  的 `p45-final-head-attempt11` 通过 B19 19/19；
+- P4.5 PR #38 以 merge commit `3c066e7d8` 集成；
+- 首轮完整 P4-G99 暴露的五项历史 audit/isolated-clone 兼容问题分别由
+  PR #39--#43 以 merge commit 修正，冻结的生产语义与行数未改变；
+- 洁净精确 candidate `9a468ec3d642986f292b941aa6612d74301dda91`
+  的 `p4-g99-release-candidate-9a468ec3d-attempt06` 通过 689/689；
+- 同一头的 `phase4-exit-release-candidate-9a468ec3d-attempt01` 通过独立
+  P4-R01--P4-R20、包祖先、schema、bounded metadata 和范围审计；
+- 当前正在 `MITGCM-BOM/phase4-exit-audit` 写入退出记录；合并后必须在
+  新 release head 重跑两项门禁，之后才允许 annotated v0.5；
+- 未涉及 SKRIPS，Phase 5/6 仍在 Phase 4 之外。
 
 ## 6. 每次会话结束时必须更新
 

@@ -1,6 +1,6 @@
 # Phase 4 requirements traceability
 
-Status: **P4.5 B19 LOCALLY VERIFIED; FINAL INTEGRATION PENDING**
+Status: **P4-R01--P4-R20 VERIFIED ON RELEASE CANDIDATE; RELEASE-HEAD RERUN PENDING**
 
 Baseline: MITGCM-BOM-v0.4 at
 70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a
@@ -12,7 +12,7 @@ mean a production feature is implemented or tested.
 
 | ID | Requirement | Intended production owner | Required evidence | Package | Current state |
 |---|---|---|---|---|---|
-| P4-R01 | Preserve the exact v0.4 path, schemas, arithmetic and collectives when P4 switches are off | BOM_READPARMS, BOM_CHECK, existing BOM_MAIN dispatch | P4-Z01 plus exact 538-row predecessor gate | P4.1--P4.5 | P4.3 focus verified; remains cumulative |
+| P4-R01 | Preserve the exact v0.4 path, schemas, arithmetic and collectives when P4 switches are off | BOM_READPARMS, BOM_CHECK, existing BOM_MAIN dispatch | P4-Z01 plus exact 538-row predecessor gate | P4.1--P4.5 | release-candidate verified by exact 538-row replay |
 | P4-R02 | Validate biology/land/source parameters, units and appended stable codes without renumbering 0--25 | BOM_READPARMS, BOM_CHECK, BOM.h | P4-C01 and configuration negatives | P4.1 | verified at P4.1 |
 | P4-R03 | Publish complete accepted OLD/NEW T/N endpoints transactionally with exact source time and validity | BOM_BUILD_BIO_ENDPOINTS and source providers | P4-E01, source rollback, MPI4 | P4.1 | verified at P4.1 |
 | P4-R04 | Sample T/N at exact completed-substep time with common wet weights and explicit missing policy | BOM_INTERP_BIO_TIME | P4-E02, STOP/NO_GROWTH negatives | P4.1 | verified at P4.1 |
@@ -25,13 +25,13 @@ mean a production feature is implemented or tested.
 | P4-R11 | Generate exact portable Philox words and angles solely from the frozen counter key and retry | BOM_PHILOX4X32, BOM_BIRTH_ANGLE | P4-RNG01, locked word fixtures, B14 | P4.3 | verified at P4.3 |
 | P4-R12 | Retry wet placement deterministically, cancel after the bound and restore parent Sbefore | BOM_BIRTH_PLACE | P4-BR01, B13/B14 land/outside cases | P4.3 | verified at P4.3 |
 | P4-R13 | Globally sort accepted parents by exact ID and assign contiguous decomposition-independent child IDs | BOM_BIRTH_ORDER, BOM_BIRTH_IDS | P4-ID01, B13/B14/B17 | P4.3 | verified at P4.3 |
-| P4-R14 | Preflight global/live/tile/packet/event capacity and fail closed without truncation | BOM_EVENT_PREFLIGHT | B19 and rollback sentinels | P4.3/P4.5 | locally verified by complete B19 19/19 |
+| P4-R14 | Preflight global/live/tile/packet/event capacity and fail closed without truncation | BOM_EVENT_PREFLIGHT | B19 and rollback sentinels | P4.3/P4.5 | release-candidate verified by complete B19 19/19 |
 | P4-R15 | Migrate complete parent/S/birth state with packet schema 3 and rebuild post-event graph/components atomically | BOM_PARTICLE_EXCHANGE, event graph integration | P4-M01, B13/B17 | P4.3 | verified at P4.3 |
 | P4-R16 | Preserve released core/P3 bytes while transactionally writing and validating the required P4 sidecar and event schema | schema-4 output/event owners | P4-S01, corruption matrix | P4.4 | verified at P4.4 |
 | P4-R17 | Restart same-decomposition runs bitwise with P4 owners, counters, T/N brackets, event buffers and schedules | schema-4 pickup owners | B15 continuous/split serial/MPI | P4.4 | verified at P4.4 |
 | P4-R18 | Close live/event/ID/free-stack/mass diagnostics exactly once per successful substep | BOM_EVENT_BUDGET and diagnostics | B18 plus failure rollback | P4.4 | verified at P4.4 |
-| P4-R19 | Produce bitwise-equivalent canonical biology, births, terminal events, IDs and records in serial/MPI2/MPI4 | all P4 collective paths | B14, B17 and schema/event comparisons | P4.1--P4.5 | all direct portions locally verified; cumulative final pending |
-| P4-R20 | Close Phase 4 only with all direct gates, exact v0.4 predecessor matrix, independent audit and no Phase 5/6 scope leakage | P4-G99 and exit-audit drivers | B11--B15, B17--B19, P4-G99 | P4.5 | drivers implemented; final exact-head run pending |
+| P4-R19 | Produce bitwise-equivalent canonical biology, births, terminal events, IDs and records in serial/MPI2/MPI4 | all P4 collective paths | B14, B17 and schema/event comparisons | P4.1--P4.5 | release-candidate cumulative matrix verified |
+| P4-R20 | Close Phase 4 only with all direct gates, exact v0.4 predecessor matrix, independent audit and no Phase 5/6 scope leakage | P4-G99 and exit-audit drivers | B11--B15, B17--B19, P4-G99 | P4.5 | release-candidate 689/689 and independent audit PASS; release-head rerun pending |
 
 ## 2. Reverse implementation map
 
@@ -82,3 +82,8 @@ B17--B19 pass in their full serial/MPI/restart/corruption matrices, P4-G99
 reruns the exact 538-row v0.4 predecessor matrix, and an independent audit
 finds no production-path gather of live owners, no partial event publication,
 no released-schema change and no unrecorded scope amendment.
+
+The clean release-candidate head
+`9a468ec3d642986f292b941aa6612d74301dda91` satisfies this requirement with
+P4-G99 689/689 and an independent 20-requirement exit audit. The release-head
+created by merging the exit record must reproduce both results before v0.5.

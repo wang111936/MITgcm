@@ -1,6 +1,6 @@
 # MITGCM-BOM Phase 4 biology, land and events
 
-Status: **P4.4 LOCALLY COMPLETE; P4.5 NOT STARTED**
+Status: **P4.5 INTEGRATED; RELEASE-CANDIDATE EXIT AUDIT PASS**
 
 Phase 4 adds temperature/nutrient-driven Brooks amount, distinct terminal
 events, deterministic births, reusable compact owner slots, event diagnostics
@@ -40,17 +40,21 @@ release is MITGCM-BOM-v0.5.
 - [P4.4 closeout](P4.4_CLOSEOUT.md) records schema-4 framing, transactional
   event shards, diagnostics, same-decomposition restart, the 57/57 direct
   gate and all accepted predecessor replays.
+- [P4.5 closeout](P4.5_CLOSEOUT.md) records capacity preflight/rollback, the
+  19/19 B19 gate and the 689-row final integration drivers.
+- [Phase 4 exit audit](PHASE4_EXIT_AUDIT.md) records the ordered PR ancestry,
+  release-candidate P4-G99 689/689 and independent audit decision.
 
 ## Work packages
 
 | Package | Scope | Required closeout | State |
 |---|---|---|---|
-| P4.0 | source/design/interface/test freeze | 15/15 document/scope audit; no production diff | locally complete |
-| P4.1 | parameters/codes, accepted T/N endpoints, stateless Brooks | P4-Z01/C01/E01/E02/B01 and B12; exact 538 predecessor | locally complete |
-| P4.2 | boundary scratch, terminal state machine, compact-tail free stack | P4-L01/F01/T01, B11 and death/free-stack B13 | locally complete |
-| P4.3 | Philox, retry, global birth order/IDs, packet schema 3, graph integration | P4-RNG01/BR01/ID01/M01, B13/B14/B17 | locally complete |
-| P4.4 | schema 4, event shards, diagnostics and pickup | P4-S01/EV01, B15/B18 | locally complete |
-| P4.5 | capacity and full integration closeout | B19, P4-G99 and independent exit audit | not started |
+| P4.0 | source/design/interface/test freeze | 15/15 document/scope audit; no production diff | integrated |
+| P4.1 | parameters/codes, accepted T/N endpoints, stateless Brooks | P4-Z01/C01/E01/E02/B01 and B12; exact 538 predecessor | integrated |
+| P4.2 | boundary scratch, terminal state machine, compact-tail free stack | P4-L01/F01/T01, B11 and death/free-stack B13 | integrated |
+| P4.3 | Philox, retry, global birth order/IDs, packet schema 3, graph integration | P4-RNG01/BR01/ID01/M01, B13/B14/B17 | integrated |
+| P4.4 | schema 4, event shards, diagnostics and pickup | P4-S01/EV01, B15/B18 | integrated |
+| P4.5 | capacity and full integration closeout | B19, P4-G99 and independent exit audit | integrated; release-candidate PASS |
 
 Packages are sequential. Each completed implementation package needs a clean
 exact-head evidence root, immutable source/driver/reference hashes,
@@ -72,19 +76,15 @@ predecessor gates.
 - Phase 4 is one-way and regular-grid; OpenMP/target scaling and general grids
   remain later phases.
 
-## Unique next production task
+## Unique next release task
 
-After P4.4 is reviewed and integrated, the only next production package is
-P4.5:
+P4.0--P4.5 and the five integration-audit fixes are merged through clean
+release-candidate head `9a468ec3d642986f292b941aa6612d74301dda91`.
+P4-G99 passed 689/689 and the independent exit audit passed at that head.
 
-1. close the complete B19 equality/overflow capacity matrix;
-2. rerun all accepted Phase 4 direct groups at the final exact head;
-3. execute P4-G99 with the exact 538-row v0.4 predecessor matrix;
-4. perform the independent Phase 4 exit audit;
-5. integrate the exit record before considering annotated v0.5.
-
-P4.4 does not claim the final B19 capacity matrix, P4-G99, Phase 4 exit or
-target-server scaling; those remain P4.5/Phase 5 work.
+The only remaining Phase 4 release work is to merge the exit record, rerun
+both gates on the resulting exact release head, then create and verify the
+annotated `MITGCM-BOM-v0.5` tag. Target-server scaling remains Phase 5.
 
 P4.4 executes `run_p44_gate.sh`: 57/57 rows cover pure-Fortran SHA-256,
 transactional multi/empty/failure event flushes, independent canonical event
