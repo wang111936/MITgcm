@@ -125,7 +125,8 @@ register_direct p45-b19 19 \
 
 log 'run exact 538-row v0.4 predecessor replay in isolated shared clone'
 readonly REPLAY_REPO="${REPLAY_ROOT}/repo"
-git clone --shared --no-checkout "${REPO_ROOT}" "${REPLAY_REPO}" \
+git clone --shared --no-checkout --no-tags \
+  "${REPO_ROOT}" "${REPLAY_REPO}" \
   > "${EVIDENCE_ROOT}/replay-clone.log" 2>&1
 git -C "${REPLAY_REPO}" checkout -B \
   MITGCM-BOM/p3.5-performance-closeout "${EXPECTED_HEAD}" \
