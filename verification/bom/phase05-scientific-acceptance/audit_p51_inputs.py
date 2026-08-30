@@ -18,7 +18,8 @@ SCHEMA = "MITGCM-BOM-P5-I01-v1"
 NX, NY, NR = 8, 6, 2
 DX_M = DY_M = 50_000.0
 DT_S = 900
-TIMES_S = tuple(range(0, 86_400 + DT_S, DT_S))
+ENDPOINT_TIMES_S = tuple(range(0, 86_400 + DT_S, DT_S))
+FORCING_TIMES_S = (*ENDPOINT_TIMES_S, 87_300)
 F0_S_INV = 2.18213 / 86_400.0
 TEMP = (20.0, 2.0e-6, -1.0e-6, 1.0e-7, -0.5)
 NUTRIENT = (1.5, 1.0e-6, -5.0e-7, 2.0e-7)
@@ -80,8 +81,12 @@ def vector_3d(
     for _k in range(NR):
         for j in range(NY):
             for i in range(NX):
-                x = i * DX_M if component == "u" else (i + 0.5) * DX_M
-                y = (j + 0.5) * DY_M if component == "u" else j * DY_M
+                if component == "u":
+                    x, y = i * DX_M, (j + 0.5) * DY_M
+                elif component == "v":
+                    x, y = (i + 0.5) * DX_M, j * DY_M
+                else:
+                    fail(f"unknown vector component {component!r}")
                 values.append(affine(coeff, x, y, t))
     return pack(values)
 
@@ -166,11 +171,27 @@ def audit_manifest(
     if manifest.get("dimensions") != {"nx": NX, "ny": NY, "nr": NR}:
         fail("manifest dimensions differ")
     time = manifest.get("time")
-    if not isinstance(time, dict) or time.get("timestamps_s") != list(TIMES_S):
-        fail("manifest timestamps differ")
+    if not isinstance(time, dict):
+        fail("manifest time member is not an object")
+    if time.get("records") != len(ENDPOINT_TIMES_S):
+        fail("manifest endpoint record count differs")
+    if time.get("timestamps_s") != list(ENDPOINT_TIMES_S):
+        fail("manifest endpoint timestamps differ")
+    if time.get("forcing_records") != len(FORCING_TIMES_S):
+        fail("manifest forcing record count differs")
+    if time.get("forcing_timestamps_s") != list(FORCING_TIMES_S):
+        fail("manifest forcing timestamps differ")
+    if time.get("read_ahead_s") != FORCING_TIMES_S[-1]:
+        fail("manifest read-ahead timestamp differs")
     precision = manifest.get("precision")
     if precision != {"binary": "IEEE754-binary64", "endianness": "big"}:
         fail("manifest precision/endianness differs")
+    if manifest.get("c_grid") != {
+        "u": "x-face/y-center/i-fastest/k-outer",
+        "v": "x-center/y-face/i-fastest/k-outer",
+        "scalar": "x-center/y-center/i-fastest/record-outer",
+    }:
+        fail("manifest native C-grid contract differs")
     manifest_fields = manifest.get("affine_fields")
     if not isinstance(manifest_fields, dict):
         fail("manifest affine fields missing")
@@ -198,7 +219,7 @@ def audit_binary_fields(
     wind_u: list[float] = []
     wind_v: list[float] = []
     nutrient: list[float] = []
-    for record, t in enumerate(TIMES_S):
+    for record, t in enumerate(FORCING_TIMES_S):
         suffix = f"{record:010d}"
         compare_bytes(bundle / f"offline_u.{suffix}", vector_3d(fields[(1, 1)], "u", t), f"offline U {record}")
         compare_bytes(bundle / f"offline_v.{suffix}", vector_3d(fields[(1, 2)], "v", t), f"offline V {record}")
@@ -216,7 +237,7 @@ def audit_binary_fields(
     little_endian_first = struct.unpack("<d", (bundle / "bathy.bin").read_bytes()[:8])[0]
     if math.isclose(little_endian_first, -100.0, rel_tol=0.0, abs_tol=0.0):
         fail("bathymetry unexpectedly decodes as little-endian")
-    return 3 * len(TIMES_S) + 8
+    return 3 * len(FORCING_TIMES_S) + 8
 
 
 def audit_particles(bundle: Path, particles: list[tuple[int, float, float]]) -> None:
@@ -284,6 +305,7 @@ def audit_configs(bundle: Path) -> None:
             "VvelFile='offline_v'",
             "ThetFile='offline_theta'",
             "deltaToffline=900.",
+            "offlineTimeOffset=450.",
             "offlineForcingPeriod=900.",
             "offlineLoadPrec=64",
         ),
@@ -301,6 +323,7 @@ def audit_configs(bundle: Path) -> None:
     )
     common_bom = (
         "bomIntegrator='RK4'",
+        "bomPickupFreq=0.",
         "bomMaxParticles=3",
         "bomInitialFile='bom_particles'",
         "bomCurrentPolicy='EULERIAN'",
@@ -373,7 +396,8 @@ def main() -> None:
         "bundle": str(bundle),
         "file_count": file_count,
         "binary_field_checks": binary_count,
-        "time_records": len(TIMES_S),
+        "time_records": len(ENDPOINT_TIMES_S),
+        "forcing_records": len(FORCING_TIMES_S),
         "particles": len(particles),
         "reference_locks": expected_locks,
         "manifest_sha256": sha256(bundle / "input-manifest.json"),
@@ -383,7 +407,8 @@ def main() -> None:
     args.report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="ascii")
     print(
         f"P5-I01 INPUT AUDIT PASS files={file_count} "
-        f"binary_checks={binary_count} records={len(TIMES_S)}"
+        f"binary_checks={binary_count} endpoints={len(ENDPOINT_TIMES_S)} "
+        f"forcing_records={len(FORCING_TIMES_S)}"
     )
 
 

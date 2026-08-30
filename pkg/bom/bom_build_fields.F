@@ -133,6 +133,12 @@ C--   Preserve the complete surface C-grid inputs, including halos.
        ENDDO
       ENDDO
 
+C--   Native Nx-by-Ny C-grid records omit only the positive physical U/V
+C     faces.  Complete those faces in BOM work storage before colocation.
+      CALL BOM_FILL_CGRID_BOUNDARY(
+     U     bomGridUWork, bomGridVWork,
+     I     myThid )
+
 C--   Collocate C-grid faces, rotate, and mask.  Exchange each
 C     component as a scalar so vector exchange cannot rotate it again.
       CALL ROTATE_UV2EN_RL(

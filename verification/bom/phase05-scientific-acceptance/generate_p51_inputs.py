@@ -18,7 +18,8 @@ DX_M, DY_M = 50_000.0, 50_000.0
 DEL_R_M = (50.0, 50.0)
 DT_S = 900
 N_STEPS = 96
-TIMES_S = tuple(range(0, DT_S * N_STEPS + 1, DT_S))
+ENDPOINT_TIMES_S = tuple(range(0, DT_S * N_STEPS + 1, DT_S))
+FORCING_TIMES_S = (*ENDPOINT_TIMES_S, DT_S * (N_STEPS + 1))
 F0_S_INV = 2.18213 / 86_400.0
 PARTICLE_FIELDS = 8
 BOM_ALIVE = 1
@@ -94,16 +95,15 @@ def affine(coeff: dict[str, float], x: float, y: float, time_s: float) -> float:
 def field_3d(
     coeff: dict[str, float], component: str, time_s: float
 ) -> list[float]:
+    """Evaluate the locked affine field at native C-grid face locations."""
     values: list[float] = []
     for _k in range(NR):
         for j in range(NY):
             for i in range(NX):
                 if component == "u":
-                    x = i * DX_M
-                    y = (j + 0.5) * DY_M
+                    x, y = i * DX_M, (j + 0.5) * DY_M
                 elif component == "v":
-                    x = (i + 0.5) * DX_M
-                    y = j * DY_M
+                    x, y = (i + 0.5) * DX_M, j * DY_M
                 else:
                     raise ValueError(f"unknown C-grid component: {component}")
                 values.append(affine(coeff, x, y, time_s))
@@ -271,7 +271,7 @@ def data_bom_text(equation_mode: str, biology: bool = False) -> str:
  bomIntegrator='RK4',
  bomDeltaTTarget=900.,
  bomOutputFreq=900.,
- bomPickupFreq=43200.,
+ bomPickupFreq=0.,
  bomSeed=20260830,
  bomMaxParticles=3,
  bomInitialIter=0,
@@ -341,7 +341,7 @@ def write_configuration(output: Path) -> None:
  &OFFLINE_PARM02
  offlineIter0=0,
  deltaToffline=900.,
- offlineTimeOffset=0.,
+ offlineTimeOffset=450.,
  offlineForcingPeriod=900.,
  offlineForcingCycle=0.,
  offlineLoadPrec=64,
@@ -424,7 +424,7 @@ def main() -> None:
     uwind: list[float] = []
     vwind: list[float] = []
     nutrient: list[float] = []
-    for record, time_s in enumerate(TIMES_S):
+    for record, time_s in enumerate(FORCING_TIMES_S):
         suffix = f"{record:010d}"
         write_be64(output / f"offline_u.{suffix}", field_3d(fields[(1, 1)], "u", time_s))
         write_be64(output / f"offline_v.{suffix}", field_3d(fields[(1, 2)], "v", time_s))
@@ -462,10 +462,13 @@ def main() -> None:
         },
         "time": {
             "start_s": 0,
-            "end_s": TIMES_S[-1],
+            "end_s": ENDPOINT_TIMES_S[-1],
             "period_s": DT_S,
-            "records": len(TIMES_S),
-            "timestamps_s": list(TIMES_S),
+            "records": len(ENDPOINT_TIMES_S),
+            "timestamps_s": list(ENDPOINT_TIMES_S),
+            "forcing_records": len(FORCING_TIMES_S),
+            "forcing_timestamps_s": list(FORCING_TIMES_S),
+            "read_ahead_s": FORCING_TIMES_S[-1],
         },
         "precision": {"binary": "IEEE754-binary64", "endianness": "big"},
         "c_grid": {
@@ -500,7 +503,8 @@ def main() -> None:
     )
     print(
         f"P5-I01 INPUT GENERATION PASS files={len(checksum_paths) + 1} "
-        f"records={len(TIMES_S)} output={output}"
+        f"endpoints={len(ENDPOINT_TIMES_S)} "
+        f"forcing_records={len(FORCING_TIMES_S)} output={output}"
     )
 
 

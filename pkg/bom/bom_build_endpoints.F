@@ -262,6 +262,11 @@ C--   Initialise a complete scratch transaction on thread-owned tiles.
        ENDDO
       ENDDO
 
+C--   Complete omitted positive physical faces in BOM-owned C-grid work.
+      CALL BOM_FILL_CGRID_BOUNDARY(
+     U     bomEnvUWork, bomEnvVWork,
+     I     myThid )
+
 C--   Ocean source: surface C-grid copy, C-point colocation and rotation.
       CALL ROTATE_UV2EN_RL(
      U     bomEnvUWork, bomEnvVWork,
