@@ -167,8 +167,9 @@ closure_scope=P3.5
 if [[ "${MODE}" == predecessor ]]; then
   closure_scope="${MITGCM_BOM_PREDECESSOR_CLOSURE_SCOPE:-P4.1}"
   [[ "${closure_scope}" == P4.1 || "${closure_scope}" == P4.2 \
-     || "${closure_scope}" == P4.3 || "${closure_scope}" == P4.4 ]] \
-    || fail 'predecessor closure scope must be P4.1, P4.2, P4.3 or P4.4'
+     || "${closure_scope}" == P4.3 || "${closure_scope}" == P4.4 \
+     || "${closure_scope}" == P4.5 ]] \
+    || fail 'predecessor closure scope must be P4.1--P4.5'
 fi
 env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
     MITGCM_BOM_TEST_ID="${TEST_ID}-phase2" \

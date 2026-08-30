@@ -98,6 +98,10 @@ P43_ALLOWED_PATHS = P42_ALLOWED_PATHS | {
 P44_ALLOWED_PATHS = P43_ALLOWED_PATHS | {
     "verification/bom/phase03-integration-closure/run_p3_g99.sh",
 }
+P45_ALLOWED_PREFIXES = P41_ALLOWED_PREFIXES + (
+    "verification/bom/phase04-integration-closure/",
+)
+P45_ALLOWED_PATHS = P44_ALLOWED_PATHS
 
 
 def require(condition: bool, message: str) -> None:
@@ -129,6 +133,8 @@ def scope_rules() -> tuple[str, tuple[str, ...], set[str], str | None]:
         return scope, P41_ALLOWED_PREFIXES, P43_ALLOWED_PATHS, P41_BASELINE
     if scope == "P4.4":
         return scope, P41_ALLOWED_PREFIXES, P44_ALLOWED_PATHS, P41_BASELINE
+    if scope == "P4.5":
+        return scope, P45_ALLOWED_PREFIXES, P45_ALLOWED_PATHS, P41_BASELINE
     raise RuntimeError(f"unsupported closure scope: {scope}")
 
 
