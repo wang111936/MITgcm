@@ -166,11 +166,18 @@ check_production_symbols() {
   if grep -Eqi '[[:space:]]bom_verify[^[:space:]]*_$' "${symbols}"; then
     fail "verification-only BOM symbol linked into ${name}"
   fi
-  for macro in ALLOW_GFD ALLOW_CD_CODE ALLOW_OFFLINE ALLOW_EXF \
+  for macro in ALLOW_GENERIC_ADVDIFF ALLOW_MOM_COMMON ALLOW_MOM_FLUXFORM \
+    ALLOW_MOM_VECINV ALLOW_CD_CODE ALLOW_OFFLINE ALLOW_EXF \
     ALLOW_DIAGNOSTICS ALLOW_MNC ALLOW_BOM; do
     grep -Eq "^#define[[:space:]]+${macro}([[:space:]]|$)" \
       "${BUILD_ROOT}/${name}/PACKAGES_CONFIG.h" \
       || fail "${name} lacks ${macro}"
+  done
+  for object in gad_advection.o mom_fluxform.o mom_vecinv.o \
+    cd_code_scheme.o offline_fields_load.o exf_wind.o \
+    diagnostics_fill.o mnc_init.o bom_main.o; do
+    [[ -f "${BUILD_ROOT}/${name}/${object}" ]] \
+      || fail "${name} lacks package object ${object}"
   done
 }
 

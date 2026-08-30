@@ -30,13 +30,27 @@ REQUIRED_SYMBOLS = (
     "bom_event_budget_check_",
 )
 REQUIRED_MACROS = (
-    "ALLOW_GFD",
+    "ALLOW_GENERIC_ADVDIFF",
+    "ALLOW_MOM_COMMON",
+    "ALLOW_MOM_FLUXFORM",
+    "ALLOW_MOM_VECINV",
     "ALLOW_CD_CODE",
     "ALLOW_OFFLINE",
     "ALLOW_EXF",
     "ALLOW_DIAGNOSTICS",
     "ALLOW_MNC",
     "ALLOW_BOM",
+)
+REQUIRED_OBJECTS = (
+    "gad_advection.o",
+    "mom_fluxform.o",
+    "mom_vecinv.o",
+    "cd_code_scheme.o",
+    "offline_fields_load.o",
+    "exf_wind.o",
+    "diagnostics_fill.o",
+    "mnc_init.o",
+    "bom_main.o",
 )
 
 
@@ -134,6 +148,9 @@ def audit_build(build_root: Path, name: str) -> None:
     for macro in REQUIRED_MACROS:
         if re.search(rf"^#define\s+{macro}(\s|$)", packages, flags=re.MULTILINE) is None:
             fail(f"{name} lacks {macro}")
+    for object_name in REQUIRED_OBJECTS:
+        if not (build / object_name).is_file():
+            fail(f"{name} lacks package object {object_name}")
 
 
 def audit_smoke(run_root: Path, artifact: Path) -> int:
