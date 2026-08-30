@@ -1,10 +1,11 @@
 # MITGCM-BOM Phase 4 test plan
 
-Status: **P4.4 EXECUTED; P4.5 FROZEN**
+Status: **P4.5 B19 LOCALLY EXECUTED; FINAL INTEGRATION PENDING**
 
-P4.0 ran only the document/scope audit. P4.1--P4.3 now have accepted direct
-and predecessor evidence recorded in their closeout files; P4.5 rows
-remain future obligations and may not be reported as executed.
+P4.0 ran only the document/scope audit. P4.1--P4.4 have accepted direct and
+predecessor evidence in their closeout files. The frozen P4.5 B19 matrix has
+local 19/19 evidence; P4-G99 and the independent exit audit run only after
+the P4.5 package is integrated.
 
 ## 1. Common evidence rules
 
@@ -379,6 +380,16 @@ Each row requires the stable failure/phase, required and compile/runtime
 capacity, canonical first-failure context and bitwise rollback. Exact equality
 at every limit must succeed.
 
+### P4.5 B19 execution record
+
+`run_p45_gate.sh` executes exactly 19 PASS rows. Local development evidence
+`p45-b19-dev-attempt10` verifies direct preflight and actual transaction paths,
+including bounded parent-order metadata, packet exchange, exact ID range and
+post-birth candidate/neighbor/ghost limits. The candidate, neighbor and ghost
+boundaries are respectively 4/4 versus 4/3, 3/3 versus 3/2 and 4/4 versus
+5/4. Every overflow reports stable need/capacity context and leaves the
+authoritative snapshot bitwise unchanged.
+
 ### P4-G99 final integration gate
 
 On the ordered merged production tree, run:
@@ -392,9 +403,9 @@ On the ordered merged production tree, run:
 - production source/link isolation;
 - clean source, expected/actual row audit and self-validating manifest.
 
-Before the exact-head run, P4.5 freezes the complete ordered group names and
-row counts. A group may not be removed because it is slow or fails. P4-G99
-does not create a tag.
+The ordered group counts are frozen at P4.1 31, P4.2 18, P4.3 26, P4.4 57,
+P4.5 19 and exact predecessor 538: 689 total. A group may not be removed
+because it is slow or fails. P4-G99 does not create a tag.
 
 An independent exit audit must then prove P4-R01--P4-R20 closure, exact
 package ancestry, no open finding, no released-schema drift, no live-owner

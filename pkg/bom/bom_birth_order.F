@@ -45,7 +45,7 @@ C     record or owner-state array enters this collective.
       INTEGER*8 parentId,sortId(bomMaxEventBuffer)
       INTEGER*8 sortIndex(bomMaxEventBuffer),keyId,keyIndex
       INTEGER*8 idRadix,idHi,idLo,localFailId
-      LOGICAL packetValid
+      LOGICAL packetValid,capacityValid
       SAVE sendInt,recvInt
 #endif
 
@@ -98,10 +98,12 @@ C     record or owner-state array enters this collective.
       ENDIF
 #endif
       totalCount=0
+      capacityValid=.TRUE.
       DO rankIndex=1,nPx*nPy
         rankDispl(rankIndex)=totalCount
         IF ( rankCount(rankIndex).LT.0 .OR.
      &       rankCount(rankIndex).GT.bomMaxEventBuffer-totalCount ) THEN
+          capacityValid=.FALSE.
           CALL BOM_P4_KEEP_FAILURE(
      I         BOM_P4_PHASE_CAPACITY,BOM_FAIL_EVENT_CAPACITY,
      I         myProcId,0,0,0,0_8,
@@ -111,7 +113,7 @@ C     record or owner-state array enters this collective.
           totalCount=totalCount+rankCount(rankIndex)
         ENDIF
       ENDDO
-      IF ( totalCount.GT.bomMaxEventBuffer ) totalCount=0
+      IF ( .NOT.capacityValid ) totalCount=0
       nGlobal=totalCount
 
       DO ip=1,safeLocal
@@ -146,7 +148,7 @@ C     record or owner-state array enters this collective.
         recvDisplI(rankIndex)=metaInts*rankDispl(rankIndex)
       ENDDO
 #ifdef ALLOW_USE_MPI
-      IF ( usingMPI ) THEN
+      IF ( usingMPI .AND. capacityValid ) THEN
         CALL MPI_Allgatherv(
      I       sendInt,metaInts*safeLocal,MPI_INTEGER,
      O       recvInt,recvCountI,recvDisplI,MPI_INTEGER,
@@ -228,16 +230,18 @@ C     record or owner-state array enters this collective.
           ENDDO
         ENDIF
       ENDDO
-      DO ip=1,safeLocal
-        IF ( localOrdinal(ip).LT.1 .OR.
-     &       localOrdinal(ip).GT.nGlobal )
-     &       CALL BOM_P4_KEEP_FAILURE(
-     I       BOM_P4_PHASE_BIRTH_ORDER,BOM_FAIL_BIRTH_ID,
-     I       myProcId,localBi(ip),localBj(ip),localSlot(ip),
-     I       localParentId(ip),
-     U       localFailPhase,localFailCode,localFailBi,localFailBj,
-     U       localFailSlot,localFailId)
-      ENDDO
+      IF ( capacityValid ) THEN
+        DO ip=1,safeLocal
+          IF ( localOrdinal(ip).LT.1 .OR.
+     &         localOrdinal(ip).GT.nGlobal )
+     &         CALL BOM_P4_KEEP_FAILURE(
+     I         BOM_P4_PHASE_BIRTH_ORDER,BOM_FAIL_BIRTH_ID,
+     I         myProcId,localBi(ip),localBj(ip),localSlot(ip),
+     I         localParentId(ip),
+     U         localFailPhase,localFailCode,localFailBi,localFailBj,
+     U         localFailSlot,localFailId)
+        ENDDO
+      ENDIF
 
       CALL BOM_P4_SELECT_FAILURE(
      I     localFailPhase,localFailCode,myProcId,
@@ -331,7 +335,7 @@ C     accepted-event list; live owner records are never gathered.
       INTEGER*8 sortIndex(bomMaxEventBuffer),keyId,keyIndex
       INTEGER*8 idRadix,idHi,idLo,parentId,eventIndex,childId
       INTEGER*8 localFailId
-      LOGICAL packetValid
+      LOGICAL packetValid,capacityValid
       SAVE sendInt,recvInt,sendReal,recvReal
 #endif
 
@@ -398,10 +402,12 @@ C     accepted-event list; live owner records are never gathered.
       ENDIF
 #endif
       totalCount=0
+      capacityValid=.TRUE.
       DO rankIndex=1,nPx*nPy
         rankDispl(rankIndex)=totalCount
         IF ( rankCount(rankIndex).LT.0 .OR.
      &       rankCount(rankIndex).GT.bomMaxEventBuffer-totalCount ) THEN
+          capacityValid=.FALSE.
           CALL BOM_P4_KEEP_FAILURE(
      I         BOM_P4_PHASE_CAPACITY,BOM_FAIL_EVENT_CAPACITY,
      I         myProcId,0,0,0,0_8,
@@ -411,7 +417,7 @@ C     accepted-event list; live owner records are never gathered.
           totalCount=totalCount+rankCount(rankIndex)
         ENDIF
       ENDDO
-      IF ( totalCount.GT.bomMaxEventBuffer ) totalCount=0
+      IF ( .NOT.capacityValid ) totalCount=0
       nGlobal=totalCount
 
       DO ip=1,safeLocal
@@ -475,7 +481,7 @@ C     accepted-event list; live owner records are never gathered.
         recvDisplR(rankIndex)=metaReals*rankDispl(rankIndex)
       ENDDO
 #ifdef ALLOW_USE_MPI
-      IF ( usingMPI ) THEN
+      IF ( usingMPI .AND. capacityValid ) THEN
         CALL MPI_Allgatherv(
      I       sendInt,metaInts*safeLocal,MPI_INTEGER,
      O       recvInt,recvCountI,recvDisplI,MPI_INTEGER,
@@ -620,16 +626,18 @@ C     accepted-event list; live owner records are never gathered.
           ENDIF
         ENDDO
       ENDIF
-      DO ip=1,safeLocal
-        IF ( localChildId(ip).LT.nextIdBefore .OR.
-     &       localChildId(ip).GE.nextIdAfter )
-     &       CALL BOM_P4_KEEP_FAILURE(
-     I       BOM_P4_PHASE_BIRTH_ORDER,BOM_FAIL_BIRTH_ID,
-     I       myProcId,localSourceBi(ip),localSourceBj(ip),
-     I       localSourceSlot(ip),localParentId(ip),
-     U       localFailPhase,localFailCode,localFailBi,localFailBj,
-     U       localFailSlot,localFailId)
-      ENDDO
+      IF ( capacityValid ) THEN
+        DO ip=1,safeLocal
+          IF ( localChildId(ip).LT.nextIdBefore .OR.
+     &         localChildId(ip).GE.nextIdAfter )
+     &         CALL BOM_P4_KEEP_FAILURE(
+     I         BOM_P4_PHASE_BIRTH_ORDER,BOM_FAIL_BIRTH_ID,
+     I         myProcId,localSourceBi(ip),localSourceBj(ip),
+     I         localSourceSlot(ip),localParentId(ip),
+     U         localFailPhase,localFailCode,localFailBi,localFailBj,
+     U         localFailSlot,localFailId)
+        ENDDO
+      ENDIF
 
       CALL BOM_P4_SELECT_FAILURE(
      I     localFailPhase,localFailCode,myProcId,

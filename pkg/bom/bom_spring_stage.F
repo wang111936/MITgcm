@@ -56,6 +56,7 @@ C !LOCAL VARIABLES:
       INTEGER componentFail
       INTEGER componentIterations, maximumComponentSize
       INTEGER localPhase, geometryPhase, listPhase, graphPhase
+      INTEGER globalFail, globalPhase
       INTEGER recordStatus(bomMaxCellRecord)
       INTEGER recordOwner(bomMaxCellRecord)
       INTEGER*8 recordId(bomMaxCellRecord)
@@ -89,6 +90,7 @@ C !LOCAL VARIABLES:
       LOGICAL pairValid, accumulationValid, calcValid
       INTEGER lastGhostStatus
       LOGICAL componentValid,sortValid,found
+      LOGICAL globalValid
       SAVE neighborId, neighborRecord
       SAVE recordId, recordStatus, recordOwner, recordX, recordY
 #endif
@@ -130,8 +132,10 @@ C !LOCAL VARIABLES:
       IF ( localFail.NE.BOM_FAIL_NONE ) THEN
         failCode = localFail
         p3FailPhase = localPhase
-        RETURN
+        GOTO 800
       ENDIF
+      failCode = BOM_FAIL_NONE
+      p3FailPhase = BOM_P3_PHASE_NONE
 
 C--   Owner records precede ghosts.  The exchange routes one source to every
 C     relevant tile, but this rank-wide cell list needs one exact-ID record.
@@ -154,7 +158,7 @@ C     copy is not a graph ghost.
       IF ( .NOT.sortValid ) THEN
         failCode = BOM_FAIL_GHOST_PACKET
         p3FailPhase = BOM_P3_PHASE_GHOST
-        RETURN
+        GOTO 800
       ENDIF
       DO bj=1,nSy
        DO bi=1,nSx
@@ -162,7 +166,7 @@ C     copy is not a graph ghost.
           IF ( nRecord.GE.bomMaxCellRecord ) THEN
             failCode = BOM_FAIL_GHOST_CAPACITY
             p3FailPhase = BOM_P3_PHASE_GHOST
-            RETURN
+            GOTO 800
           ENDIF
           nRecord = nRecord+1
           recordId(nRecord) = bomGhostId(ig,bi,bj)
@@ -181,7 +185,7 @@ C     copy is not a graph ghost.
       IF ( .NOT.sortValid ) THEN
         failCode = BOM_FAIL_GHOST_PACKET
         p3FailPhase = BOM_P3_PHASE_GHOST
-        RETURN
+        GOTO 800
       ENDIF
       writeRecord = nOwner
       lastGhostId = 0_8
@@ -206,7 +210,7 @@ C     copy is not a graph ghost.
      &           ownerY(ownerIndex).NE.recordY(rec) ) THEN
               failCode = BOM_FAIL_GHOST_PACKET
               p3FailPhase = BOM_P3_PHASE_GHOST
-              RETURN
+              GOTO 800
             ENDIF
           ELSE
             writeRecord = writeRecord+1
@@ -221,7 +225,7 @@ C     copy is not a graph ghost.
      &           recordY(rec).NE.lastGhostY ) THEN
           failCode = BOM_FAIL_GHOST_PACKET
           p3FailPhase = BOM_P3_PHASE_GHOST
-          RETURN
+          GOTO 800
         ENDIF
       ENDDO
       nRecord = writeRecord
@@ -237,7 +241,7 @@ C     copy is not a graph ghost.
       IF ( .NOT.geometryValid ) THEN
         failCode = geometryFail
         p3FailPhase = geometryPhase
-        RETURN
+        GOTO 800
       ENDIF
 
       CALL BOM_BUILD_CELL_LIST(
@@ -253,7 +257,7 @@ C     copy is not a graph ghost.
       IF ( .NOT.listValid ) THEN
         failCode = listFail
         p3FailPhase = listPhase
-        RETURN
+        GOTO 800
       ENDIF
 
       CALL BOM_BUILD_NEIGHBORS(
@@ -273,7 +277,7 @@ C     copy is not a graph ghost.
       IF ( .NOT.neighborsValid ) THEN
         failCode = graphFail
         p3FailPhase = graphPhase
-        RETURN
+        GOTO 800
       ENDIF
 
       IF ( bomSpringLaw.EQ.'HOOKE' ) THEN
@@ -281,10 +285,16 @@ C     copy is not a graph ghost.
       ELSEIF ( bomSpringLaw.EQ.'EBOMB' ) THEN
         kMaximum = bomSpringA
       ELSE
-        RETURN
+        failCode = BOM_FAIL_SPRING_LAW
+        p3FailPhase = BOM_P3_PHASE_SPRING
+        GOTO 800
       ENDIF
       IF ( .NOT.IEEE_IS_FINITE(kMaximum) .OR.
-     &     kMaximum.LE.0. _d 0 ) RETURN
+     &     kMaximum.LE.0. _d 0 ) THEN
+        failCode = BOM_FAIL_SPRING_LAW
+        p3FailPhase = BOM_P3_PHASE_SPRING
+        GOTO 800
+      ENDIF
 
       DO owner=1,nOwner
         springEastWork(owner) = 0. _d 0
@@ -297,14 +307,14 @@ C     copy is not a graph ghost.
             IF ( rec.LT.1 .OR. rec.GT.nRecord ) THEN
               failCode = BOM_FAIL_PAIR_GEOMETRY
               p3FailPhase = BOM_P3_PHASE_NEIGHBOR
-              RETURN
+              GOTO 800
             ENDIF
             IF ( neighbor.GT.1 ) THEN
               IF ( neighborId(neighbor,owner).LE.
      &             neighborId(neighbor-1,owner) ) THEN
                 failCode = BOM_FAIL_PAIR_GEOMETRY
                 p3FailPhase = BOM_P3_PHASE_NEIGHBOR
-                RETURN
+                GOTO 800
               ENDIF
             ENDIF
             CALL BOM_PAIR_GEOMETRY(
@@ -318,7 +328,7 @@ C     copy is not a graph ghost.
             IF ( .NOT.pairValid ) THEN
               failCode = geometryFail
               p3FailPhase = BOM_P3_PHASE_NEIGHBOR
-              RETURN
+              GOTO 800
             ENDIF
             CALL BOM_SPRING_PAIR(
      I           bomSpringLaw,bomTau,bomSpringL,
@@ -329,7 +339,7 @@ C     copy is not a graph ghost.
             IF ( .NOT.pairValid ) THEN
               failCode = localFail
               p3FailPhase = BOM_P3_PHASE_SPRING
-              RETURN
+              GOTO 800
             ENDIF
             IF ( recordId(owner).LT.recordId(rec) ) THEN
               contributionEast = pairEast
@@ -346,7 +356,7 @@ C     copy is not a graph ghost.
             IF ( .NOT.accumulationValid ) THEN
               failCode = localFail
               p3FailPhase = BOM_P3_PHASE_SPRING
-              RETURN
+              GOTO 800
             ENDIF
             accumEast = nextEast
             accumNorth = nextNorth
@@ -358,31 +368,48 @@ C--       Arithmetic failure precedes a mathematical spring-CFL rejection.
           CALL BOM_SAFE_MULT_RL(bomTau,kMaximum,tauK,calcValid)
           IF ( .NOT.calcValid ) THEN
             failCode = BOM_FAIL_SPRING_LAW
-            RETURN
+            p3FailPhase = BOM_P3_PHASE_SPRING
+            GOTO 800
           ENDIF
           CALL BOM_SAFE_MULT_RL(
      I         tauK,DFLOAT(neighborCountWork(owner)),
      O         neighborFactor,calcValid)
           IF ( .NOT.calcValid ) THEN
             failCode = BOM_FAIL_SPRING_LAW
-            RETURN
+            p3FailPhase = BOM_P3_PHASE_SPRING
+            GOTO 800
           ENDIF
           CALL BOM_SAFE_MULT_RL(
      I         dtGuard,neighborFactor,
      O         springNumber,calcValid)
           IF ( .NOT.calcValid ) THEN
             failCode = BOM_FAIL_SPRING_LAW
-            RETURN
+            p3FailPhase = BOM_P3_PHASE_SPRING
+            GOTO 800
           ENDIF
           IF ( dtGuard.GT.0. _d 0 .AND.
      &         springNumber.GT.bomSpringCFL ) THEN
             failCode = BOM_FAIL_SPRING_CFL
-            RETURN
+            p3FailPhase = BOM_P3_PHASE_SPRING
+            GOTO 800
           ENDIF
         ELSE
           neighborCountWork(owner) = 0
         ENDIF
       ENDDO
+
+C--   No rank enters component collectives until every local graph validates.
+  800 CONTINUE
+      localFail = failCode
+      localPhase = p3FailPhase
+      CALL BOM_P3_GLOBAL_STATUS(
+     I     localFail,localPhase,
+     O     globalFail,globalPhase,globalValid,myThid)
+      IF ( .NOT.globalValid ) THEN
+        failCode = globalFail
+        p3FailPhase = globalPhase
+        RETURN
+      ENDIF
 
 C--   Raft diagnostics consume this exact successful FINAL graph while its
 C     ghost routes and sorted neighbor IDs are still authoritative.

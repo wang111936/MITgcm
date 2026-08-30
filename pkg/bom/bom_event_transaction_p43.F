@@ -48,6 +48,8 @@ C     commit.  Collectives carry bounded event metadata, never live owners.
       INTEGER bioFail,bioPhase,eventType,bioSlot,newStatus
       INTEGER graphFail,graphPhase,graphEpoch
       INTEGER componentFail,componentIterations,maximumComponent
+      INTEGER preflightFail,preflightPhase,preflightRank
+      INTEGER preflightBi,preflightBj,preflightSlot
       INTEGER tileSurvivor(nSx,nSy),tileBirth(nSx,nSy)
       INTEGER planType(bomMaxEventBuffer)
       INTEGER planStage(bomMaxEventBuffer)
@@ -82,6 +84,7 @@ C     commit.  Collectives carry bounded event metadata, never live owners.
       INTEGER graphNeighbor(bomMaxOwnerRecord)
       INTEGER*8 localFailId,orderId,movedId
       INTEGER*8 nextIdAfter
+      INTEGER*8 preflightId,preflightNeed,preflightCapacity
       INTEGER*8 planId(bomMaxEventBuffer)
       INTEGER*8 bParentId(bomMaxEventBuffer)
       INTEGER*8 bWord(bomMaxEventBuffer),bChildId(bomMaxEventBuffer)
@@ -138,7 +141,7 @@ C     commit.  Collectives carry bounded event metadata, never live owners.
       LOGICAL pointValid,interpValid,missingGrowth,planValid
       LOGICAL slotClear,freeValid,orderValid,birthValid
       LOGICAL rhsOwner,rhsValid,graphValid,componentValid
-      LOGICAL doGraph
+      LOGICAL doGraph,preflightValid
       INTEGER iDiag
       SAVE cDiag,graphDiag
 
@@ -514,7 +517,8 @@ C--   Canceled proposals never enter this accepted metadata collective.
         bChildId(ip)=aChildId(jp)
       ENDDO
 
-C--   Validate exact source binding and event-buffer capacity.
+C--   Validate exact source binding.  All capacity classes are evaluated by
+C     the common event preflight after global and destination counts exist.
       DO jp=1,nPlan
         bi=planBi(jp)
         bj=planBj(jp)
@@ -546,16 +550,6 @@ C--   Validate exact source binding and event-buffer capacity.
      U         localFailPhase,localFailCode,localFailBi,localFailBj,
      U         localFailSlot,localFailId)
       ENDDO
-      IF ( bomEventBufferCount.LT.0 .OR.
-     &     bomEventBufferCount.GT.bomMaxEventBuffer .OR.
-     &     nPlan+nBirth.GT.
-     &       bomMaxEventBuffer-bomEventBufferCount )
-     &     CALL BOM_P4_KEEP_FAILURE(
-     I       BOM_P4_PHASE_CAPACITY,BOM_FAIL_EVENT_CAPACITY,
-     I       myProcId,0,0,0,0_8,
-     U       localFailPhase,localFailCode,localFailBi,localFailBj,
-     U       localFailSlot,localFailId)
-
 C--   Compute exact post-event tile capacities from accepted metadata.
       nLocalTerminal=0
       nLocalDest=0
@@ -580,13 +574,6 @@ C--   Compute exact post-event tile capacities from accepted metadata.
       ENDDO
       DO bj=myByLo(myThid),myByHi(myThid)
        DO bi=myBxLo(myThid),myBxHi(myThid)
-        IF ( tileSurvivor(bi,bj).LT.0 .OR.
-     &       tileSurvivor(bi,bj)+tileBirth(bi,bj)
-     &       .GT.bomMaxPartTile ) CALL BOM_P4_KEEP_FAILURE(
-     I       BOM_P4_PHASE_CAPACITY,BOM_FAIL_BIRTH_CAPACITY,
-     I       myProcId,bi,bj,0,0_8,
-     U       localFailPhase,localFailCode,localFailBi,localFailBj,
-     U       localFailSlot,localFailId)
         CALL BOM_FREE_VALIDATE(bi,bj,freeFailCode,freeValid)
         IF ( .NOT.freeValid ) CALL BOM_P4_KEEP_FAILURE(
      I       BOM_P4_PHASE_TERMINAL,freeFailCode,
@@ -641,8 +628,19 @@ C--   Counter and global live-budget checks complete initial preflight.
       CALL GLOBAL_SUM_INT(globalOwners,myThid)
       CALL GLOBAL_SUM_INT(globalTerminal,myThid)
       globalAfter=globalOwners-globalTerminal+nGlobalBirth
-      IF ( globalOwners.NE.bomNPartLiveExpected .OR.
-     &     globalAfter.LT.0 .OR. globalAfter.GT.bomMaxParticles )
+      CALL BOM_EVENT_PREFLIGHT(
+     I     globalOwners,globalTerminal,nGlobalBirth,nGlobalProposal,
+     I     nPlan,nBirth,bomEventBufferCount,tileSurvivor,tileBirth,
+     I     bomNextId,
+     O     preflightFail,preflightPhase,preflightRank,
+     O     preflightBi,preflightBj,preflightSlot,preflightId,
+     O     preflightNeed,preflightCapacity,preflightValid)
+      IF ( .NOT.preflightValid ) CALL BOM_P4_KEEP_FAILURE(
+     I     preflightPhase,preflightFail,preflightRank,
+     I     preflightBi,preflightBj,preflightSlot,preflightId,
+     U     localFailPhase,localFailCode,localFailBi,localFailBj,
+     U     localFailSlot,localFailId)
+      IF ( globalOwners.NE.bomNPartLiveExpected )
      &     CALL BOM_P4_KEEP_FAILURE(
      I       BOM_P4_PHASE_BUDGET,BOM_FAIL_EVENT_BUDGET,
      I       myProcId,0,0,0,0_8,

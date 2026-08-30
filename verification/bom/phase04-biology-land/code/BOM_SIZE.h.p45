@@ -1,0 +1,154 @@
+CBOP
+C     !ROUTINE: BOM_SIZE.h
+C     !INTERFACE:
+C     #include "BOM_SIZE.h"
+
+C     !DESCRIPTION:
+C     Verification-only P4.5 B19 limits.  Small independent capacities make
+C     exact equality and one-past-limit paths executable in serial/MPI while
+C     preserving every released packet, pickup and container schema value.
+CEOP
+
+      INTEGER bomMaxPartTile
+      INTEGER bomMaxGhostTile
+      INTEGER bomMaxExchange
+      INTEGER bomMaxNeighbor
+      INTEGER bomMaxEventBuffer
+      INTEGER bomMaxInitRecords
+      INTEGER bomPacketSchema
+      INTEGER bomPacketInts
+      INTEGER bomPacketReals
+      INTEGER bomPacketSchema3
+      INTEGER bomPacketInts3
+      INTEGER bomPacketReals3
+      INTEGER bomGhostSchema
+      INTEGER bomGhostPacketInts
+      INTEGER bomGhostPacketReals
+      INTEGER bomGhostPacketBytes
+      INTEGER bomComponentLabelSchema
+      INTEGER bomComponentLabelPacketInts
+      INTEGER bomComponentLabelPacketBytes
+      INTEGER bomComponentSizeSchema
+      INTEGER bomComponentSizePacketInts
+      INTEGER bomComponentSizePacketBytes
+      INTEGER bomInitialSchema
+      INTEGER bomInitialFields
+      INTEGER bomOutputSchema
+      INTEGER bomOutputFields
+      INTEGER bomOutputSchema2
+      INTEGER bomOutputFields2
+      INTEGER bomP3ContainerSchema
+      INTEGER bomP3SidecarSchema
+      INTEGER bomP3SidecarFields
+      INTEGER bomP3SigBase
+      INTEGER bomPickupSchema
+      INTEGER bomPickupFields
+      INTEGER bomPickupFields2
+      INTEGER bomPickupSigFields
+      INTEGER bomPickupSchema2
+      INTEGER bomPickup2SigBase
+      INTEGER bomPickupEnvHeader
+      INTEGER bomPickupChunkFields
+      INTEGER bomP3CounterFields
+      INTEGER bomP3CounterDigits
+      INTEGER bomP4ContainerSchema
+      INTEGER bomP4SidecarSchema
+      INTEGER bomP4SidecarFields
+      INTEGER bomP4SidecarHeaderRecords
+      INTEGER bomP4ManifestSchema
+      INTEGER bomP4EventSchema
+      INTEGER bomP4EventFields
+      INTEGER bomP4SigBase
+      INTEGER bomP4FileNameChars
+      INTEGER bomP4SourceHeadChars
+      INTEGER bomP4SigFields
+      INTEGER bomP4BioHeader
+      INTEGER BOM_P3_COUNT_OWNER
+      INTEGER BOM_P3_COUNT_GHOST
+      INTEGER BOM_P3_COUNT_NONEMPTY
+      INTEGER BOM_P3_COUNT_COMPARISON
+      INTEGER BOM_P3_COUNT_DIRECTED
+      INTEGER BOM_P3_COUNT_UNDIRECTED
+      INTEGER BOM_P3_COUNT_MAX_NEIGHBOR
+      INTEGER BOM_P3_COUNT_REBUILD
+      INTEGER BOM_P3_COUNT_PACKET_SENT
+      INTEGER BOM_P3_COUNT_PACKET_RECEIVED
+      INTEGER BOM_P3_COUNT_BYTE_SENT
+      INTEGER BOM_P3_COUNT_BYTE_RECEIVED
+      INTEGER BOM_P3_COUNT_MAX_COMPONENT
+      INTEGER BOM_P3_COUNT_COMPONENT_ITER
+      PARAMETER ( bomMaxInitRecords = 10000 )
+      PARAMETER ( bomMaxPartTile    = 8 )
+      PARAMETER ( bomMaxGhostTile   = 4 )
+      PARAMETER ( bomMaxExchange    = 4 )
+      PARAMETER ( bomMaxNeighbor    = 4 )
+      PARAMETER ( bomMaxEventBuffer = 4 )
+      PARAMETER ( bomPacketSchema   = 2 )
+      PARAMETER ( bomPacketInts     = 10 )
+      PARAMETER ( bomPacketReals    = 6 )
+      PARAMETER ( bomPacketSchema3  = 3 )
+      PARAMETER ( bomPacketInts3    = 13 )
+      PARAMETER ( bomPacketReals3   = 7 )
+      PARAMETER ( bomGhostSchema    = 1 )
+      PARAMETER ( bomGhostPacketInts = 9 )
+      PARAMETER ( bomGhostPacketReals = 2 )
+      PARAMETER ( bomGhostPacketBytes =
+     &            4*bomGhostPacketInts+8*bomGhostPacketReals )
+      PARAMETER ( bomComponentLabelSchema = 1 )
+      PARAMETER ( bomComponentLabelPacketInts = 10 )
+      PARAMETER ( bomComponentLabelPacketBytes =
+     &            4*bomComponentLabelPacketInts )
+      PARAMETER ( bomComponentSizeSchema = 1 )
+      PARAMETER ( bomComponentSizePacketInts = 5 )
+      PARAMETER ( bomComponentSizePacketBytes =
+     &            4*bomComponentSizePacketInts )
+      PARAMETER ( bomInitialSchema  = 1 )
+      PARAMETER ( bomInitialFields  = 8 )
+      PARAMETER ( bomOutputSchema   = 1 )
+      PARAMETER ( bomOutputFields   = 24 )
+      PARAMETER ( bomOutputSchema2  = 2 )
+      PARAMETER ( bomOutputFields2  = 48 )
+      PARAMETER ( bomP3ContainerSchema = 3 )
+      PARAMETER ( bomP3SidecarSchema = 1 )
+      PARAMETER ( bomP3SidecarFields = 8 )
+      PARAMETER ( bomP3SigBase = 44 )
+      PARAMETER ( bomPickupSchema   = 1 )
+      PARAMETER ( bomPickupFields   = 24 )
+      PARAMETER ( bomPickupFields2  = 45 )
+      PARAMETER ( bomPickupSigFields = 16 )
+      PARAMETER ( bomPickupSchema2  = 2 )
+      PARAMETER ( bomPickup2SigBase = 53 )
+      PARAMETER ( bomPickupEnvHeader = 12 )
+      PARAMETER ( bomPickupChunkFields = 24 )
+      PARAMETER ( bomP3CounterFields = 14 )
+      PARAMETER ( bomP3CounterDigits = 5 )
+      PARAMETER ( bomP4ContainerSchema = 4 )
+      PARAMETER ( bomP4SidecarSchema = 1 )
+      PARAMETER ( bomP4SidecarFields = 4 )
+      PARAMETER ( bomP4SidecarHeaderRecords = 3 )
+      PARAMETER ( bomP4ManifestSchema = 1 )
+      PARAMETER ( bomP4EventSchema = 1 )
+      PARAMETER ( bomP4EventFields = 32 )
+      PARAMETER ( bomP4SigBase = 80 )
+      PARAMETER ( bomP4FileNameChars = 512 )
+      PARAMETER ( bomP4SourceHeadChars = 40 )
+      PARAMETER ( bomP4SigFields =
+     &            bomP4SigBase+bomP4FileNameChars
+     &            +bomP4SourceHeadChars )
+      PARAMETER ( bomP4BioHeader = 18 )
+      PARAMETER ( BOM_P3_COUNT_OWNER = 1 )
+      PARAMETER ( BOM_P3_COUNT_GHOST = 2 )
+      PARAMETER ( BOM_P3_COUNT_NONEMPTY = 3 )
+      PARAMETER ( BOM_P3_COUNT_COMPARISON = 4 )
+      PARAMETER ( BOM_P3_COUNT_DIRECTED = 5 )
+      PARAMETER ( BOM_P3_COUNT_UNDIRECTED = 6 )
+      PARAMETER ( BOM_P3_COUNT_MAX_NEIGHBOR = 7 )
+      PARAMETER ( BOM_P3_COUNT_REBUILD = 8 )
+      PARAMETER ( BOM_P3_COUNT_PACKET_SENT = 9 )
+      PARAMETER ( BOM_P3_COUNT_PACKET_RECEIVED = 10 )
+      PARAMETER ( BOM_P3_COUNT_BYTE_SENT = 11 )
+      PARAMETER ( BOM_P3_COUNT_BYTE_RECEIVED = 12 )
+      PARAMETER ( BOM_P3_COUNT_MAX_COMPONENT = 13 )
+      PARAMETER ( BOM_P3_COUNT_COMPONENT_ITER = 14 )
+
+C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
