@@ -688,6 +688,7 @@ C--   A second isolated transaction covers interleaved Brooks deaths and S.
       bomReleaseTime(4,bi,bj)=2. _d 0*deltaTClock
       bomNPartExpected=4*nPx*nPy
       bomNPartLiveExpected=bomNPartExpected
+      bomNextId=987654321_8
       bomBioReady=.TRUE.
       bomBioTime(BOM_ENV_OLD)=0. _d 0
       bomBioTime(BOM_ENV_NEW)=deltaTClock
@@ -1166,6 +1167,20 @@ C--   Run the same seam encounter through the synchronized spring path.
 C--   Exercise a real owner migration followed by transactional free-stack
 C     reconstruction.  Schema 2 remains unchanged; this is the P4.2
 C     land-only subset, while complete biology migration remains P4.3.
+C--   This is an isolated direct-state fixture: retire the preceding terminal
+C     history while retaining its event-time progression.
+      bomEventBufferCount=0
+      bomEventShardBirth=0_8
+      bomEventShardDeath=0_8
+      bomEventShardBeach=0_8
+      bomEventShardOutside=0_8
+      bomEventShardCancel=0_8
+      bomBirthEvents=0_8
+      bomDeathEvents=0_8
+      bomBeachEvents=0_8
+      bomOutsideEvents=0_8
+      bomCancelEvents=0_8
+      bomNextId=987654321_8
       CALL BOM_LOCATE_OWNER(
      I     1500. _d 0,-300. _d 0,1,1,
      O     xOwner,yOwner,migrateRank,migrateBi,migrateBj,

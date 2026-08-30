@@ -152,6 +152,21 @@ def main() -> int:
                 require(not re.search(
                     r"bom(?:NPartTile|Status|Id|X|Y)\s*\(", birth
                 ), "P4 birth gather references live owner arrays")
+        p4_schema_path = repo / "pkg/bom/bom_p4_schema.F"
+        if p4_schema_path.exists():
+            p4_schema = p4_schema_path.read_text(encoding="ascii")
+            if gather_pattern.search(p4_schema):
+                expected_gather_files.add("bom_p4_schema.F")
+                require(
+                    "INTEGER hiAll(nCounts*nPx*nPy),loAll(nCounts*nPx*nPy)"
+                    in p4_schema,
+                    "P4 exact-count gather shape changed",
+                )
+                require(
+                    len(re.findall(r"CALL\s+MPI_Allgather", p4_schema,
+                                   re.IGNORECASE)) == 2,
+                    "P4 exact-count gather call count changed",
+                )
     require(gather_files == expected_gather_files,
             f"unexpected global collective files: {sorted(gather_files)}")
     spring = (repo / "pkg/bom/bom_spring_stage.F").read_text(encoding="ascii")

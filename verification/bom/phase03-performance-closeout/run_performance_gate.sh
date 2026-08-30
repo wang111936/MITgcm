@@ -105,6 +105,19 @@ source_audit() {
         fail 'P4 birth-order collective references live owner arrays'
       fi
     fi
+    if [[ -f "${REPO_ROOT}/pkg/bom/bom_p4_schema.F" ]] \
+       && rg -q 'CALL[[:space:]]+MPI_Allgather' \
+         "${REPO_ROOT}/pkg/bom/bom_p4_schema.F"; then
+      expected_collective_files+=(
+        "${REPO_ROOT}/pkg/bom/bom_p4_schema.F"
+      )
+      grep -Fq 'INTEGER hiAll(nCounts*nPx*nPy),loAll(nCounts*nPx*nPy)' \
+        "${REPO_ROOT}/pkg/bom/bom_p4_schema.F" \
+        || fail 'P4 exact-count gather shape changed'
+      [[ "$(grep -c 'CALL MPI_Allgather' \
+        "${REPO_ROOT}/pkg/bom/bom_p4_schema.F")" -eq 2 ]] \
+        || fail 'P4 exact-count gather call count changed'
+    fi
   fi
   mapfile -t expected_collective_files < <(
     printf '%s\n' "${expected_collective_files[@]}" | sort

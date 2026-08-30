@@ -59,7 +59,7 @@ C !LOCAL VARIABLES:
      &       bomBirthMaxTry, bomNTracerIndex,
      &       bomNFile, bomNStartTime, bomNPeriod,
      &       bomNRepCycle, bomNInScale, bomNFilePrec,
-     &       bomEventFile
+     &       bomEventFile, bomP4SourceHead
 
       IF ( .NOT.useBOM ) THEN
 C-    pkg BOM is not used; report an unexpected data.bom if present.
@@ -119,7 +119,8 @@ C--   Safe Phase-1.5 defaults retain an inactive state and inactive output.
       bomNSource           = 'NONE'
       bomBiologyMissingPolicy = 'STOP'
       bomNFile             = ' '
-      bomEventFile         = ' '
+      bomEventFile         = 'bom_events'
+      bomP4SourceHead      = '0000000000000000000000000000000000000000'
       bomMuMaxDay          = 0. _d 0
       bomMortDay           = 0. _d 0
       bomMuMax             = 0. _d 0

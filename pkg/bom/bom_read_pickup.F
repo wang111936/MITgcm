@@ -48,6 +48,9 @@ C !LOCAL VARIABLES:
      &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       _RL scratchSpringEast(bomMaxPartTile,nSx,nSy)
       _RL scratchSpringNorth(bomMaxPartTile,nSx,nSy)
+      _RL scratchP4S(bomMaxPartTile,nSx,nSy)
+      _RL storedBioTime(BOM_ENV_NEND)
+      _RL storedShardTimeMin,storedShardTimeMax
       _RL metaTimList(1), metaMissingValue
       _RL xMap, mappedI, mappedJ
       _RL storedTime, storedFreq, storedNext
@@ -57,8 +60,13 @@ C !LOCAL VARIABLES:
       INTEGER scratchStatus(bomMaxPartTile,nSx,nSy)
       INTEGER scratchNeighbor(bomMaxPartTile,nSx,nSy)
       INTEGER scratchRaftSize(bomMaxPartTile,nSx,nSy)
+      INTEGER scratchBirthCount(bomMaxPartTile,nSx,nSy)
+      INTEGER storedBioIter(BOM_ENV_NEND)
+      INTEGER storedTempSource(BOM_ENV_NEND)
+      INTEGER storedNSource(BOM_ENV_NEND)
       INTEGER*8 scratchId(bomMaxPartTile,nSx,nSy)
       INTEGER*8 scratchRaftId(bomMaxPartTile,nSx,nSy)
+      INTEGER*8 scratchParent(bomMaxPartTile,nSx,nSy)
       INTEGER idCounts(nPx*nPy), idDispls(nPx*nPy)
       INTEGER idHiLocal(bomMaxInitRecords)
       INTEGER idLoLocal(bomMaxInitRecords)
@@ -71,7 +79,8 @@ C !LOCAL VARIABLES:
       INTEGER localErrCount, globalErrCount, idError
       INTEGER localOwnerCount, globalOwnerCount, localIdCount
       INTEGER globalIdCount, mpiErrCount, mpiRC
-      INTEGER storedExpected, storedIter, statusValue
+      INTEGER storedExpected,storedLive,storedIter,statusValue
+      INTEGER storedOwnerBudget,nFree
       INTEGER activeSchema, activeFields, sigFields, envFields
       INTEGER sigRecordFields, sigRecords, sigIndex
       INTEGER envIter0, envIter1
@@ -79,11 +88,18 @@ C !LOCAL VARIABLES:
       INTEGER metaFilePrec, metaNDims, metaNFlds, metaNTimRec
       INTEGER metaNRecords, metaFileIter
       INTEGER*8 particleId, previousId, idRadix, idHi8, idLo8
+      INTEGER*8 storedNextId,storedEventIndex
+      INTEGER*8 storedBirth,storedDeath,storedBeach
+      INTEGER*8 storedOutside,storedCancel,storedMissing
+      INTEGER*8 storedShardRecords,storedShardBirth
+      INTEGER*8 storedShardDeath,storedShardBeach
+      INTEGER*8 storedShardOutside,storedShardCancel
+      INTEGER*8 eventLocal(5),eventGlobal(5),globalMaxId
       INTEGER*8 tileBytes(nSx,nSy), recordBytes, expectedBytes
       LOGICAL dataExists, metaExists, useCurrentDir
       LOGICAL recordFinite, isOwner, hasStencil
       LOGICAL signatureValid, diagConsistent, reservedValid
-      LOGICAL useSchema3
+      LOGICAL useSchema3,useSchema4,storedBioReady
 
       _BEGIN_MASTER(myThid)
 
@@ -100,6 +116,7 @@ C !LOCAL VARIABLES:
       sigRecordFields = sigFields
       envFields = 0
       useSchema3 = .FALSE.
+      useSchema4 = .FALSE.
       IF ( bomMode.EQ.'BOM' ) THEN
         activeSchema = bomPickupSchema2
         activeFields = bomPickupFields2
@@ -107,10 +124,13 @@ C !LOCAL VARIABLES:
      O       sigFields, envFields )
         sigRecordFields = bomPickupChunkFields
         useSchema3 = bomSpringLaw.NE.'NONE'
+        useSchema4 = bomUseLand .OR. bomUseBiology
       ENDIF
       sigRecords = (sigFields+sigRecordFields-1)/sigRecordFields
       signatureValid = .TRUE.
       storedExpected = -1
+      storedLive = -1
+      storedOwnerBudget = -1
       storedIter = -1
       storedTime = 0. _d 0
       storedFreq = 0. _d 0
@@ -119,6 +139,21 @@ C !LOCAL VARIABLES:
       envTime1 = 0. _d 0
       envIter0 = 0
       envIter1 = 0
+      storedNextId=0_8
+      storedEventIndex=0_8
+      storedBirth=0_8
+      storedDeath=0_8
+      storedBeach=0_8
+      storedOutside=0_8
+      storedCancel=0_8
+      storedMissing=0_8
+      storedBioReady=.FALSE.
+      DO iEnd=1,BOM_ENV_NEND
+        storedBioTime(iEnd)=0. _d 0
+        storedBioIter(iEnd)=0
+        storedTempSource(iEnd)=BOM_BIO_TEMP_NONE
+        storedNSource(iEnd)=BOM_BIO_N_NONE
+      ENDDO
       idRadix = 4294967296_8
       recordBytes = INT(activeFields,8)*8_8
 
@@ -144,6 +179,9 @@ C !LOCAL VARIABLES:
           scratchNeighbor(ip,bi,bj) = 0
           scratchRaftId(ip,bi,bj) = 0_8
           scratchRaftSize(ip,bi,bj) = 0
+          scratchParent(ip,bi,bj) = 0_8
+          scratchP4S(ip,bi,bj) = 0. _d 0
+          scratchBirthCount(ip,bi,bj) = 0
           DO k=1,12
             scratchReal(k,ip,bi,bj) = 0. _d 0
           ENDDO
@@ -325,6 +363,84 @@ C--   Read and validate the global signature before touching tiled files.
         ENDIF
         CALL ALL_PROC_DIE( 0 )
         STOP 'ABNORMAL END: S/R BOM_READ_PICKUP'
+      ENDIF
+
+C--   Schema 4 is additive: validate its signature, the complete frame
+C     manifest, and every rank event shard before any owner is published.
+      IF ( useSchema4 ) THEN
+        localErrCount=0
+        CALL BOM_READ_P4_SIGNATURE(
+     I       fileName,2,bomPickupFields2,
+     I       storedTime,storedTime,storedNext,storedIter,
+     O       storedOwnerBudget,storedLive,storedNextId,
+     O       storedEventIndex,storedBirth,storedDeath,
+     O       storedBeach,storedOutside,storedCancel,
+     O       storedMissing,storedBioTime,storedBioIter,
+     O       storedTempSource,storedNSource,storedBioReady,
+     O       localErrCount,
+     I       myThid)
+        IF ( storedOwnerBudget.NE.storedExpected )
+     &       localErrCount=localErrCount+1
+        IF ( localErrCount.EQ.0 ) CALL BOM_VALIDATE_P4_MANIFEST(
+     I       fileName,2,useSchema3,bomUseBiology,
+     I       storedTime,storedTime,storedIter,
+     I       storedExpected,storedLive,
+     O       localErrCount,
+     I       myThid)
+        IF ( localErrCount.EQ.0 ) CALL BOM_LOAD_EVENT_SHARD_STATE(
+     O       storedShardRecords,storedShardBirth,
+     O       storedShardDeath,storedShardBeach,
+     O       storedShardOutside,storedShardCancel,
+     O       storedShardTimeMin,storedShardTimeMax,
+     O       localErrCount,
+     I       myThid)
+        globalErrCount=localErrCount
+#ifdef ALLOW_USE_MPI
+        IF ( usingMPI ) THEN
+          CALL MPI_Allreduce(localErrCount,globalErrCount,1,MPI_INTEGER,
+     &         MPI_SUM,MPI_COMM_MODEL,mpiRC)
+          IF ( mpiRC.NE.0 ) globalErrCount=globalErrCount+1
+        ENDIF
+#endif
+        eventLocal(1)=storedShardBirth
+        eventLocal(2)=storedShardDeath
+        eventLocal(3)=storedShardBeach
+        eventLocal(4)=storedShardOutside
+        eventLocal(5)=storedShardCancel
+        IF ( globalErrCount.EQ.0 ) CALL BOM_P4_GLOBAL_SUM_COUNTS(
+     I       eventLocal,5,
+     O       eventGlobal,localErrCount,
+     I       myThid)
+        IF ( globalErrCount.GT.0 ) localErrCount=localErrCount+1
+        IF ( globalErrCount.EQ.0 .AND. localErrCount.EQ.0 ) THEN
+          IF ( eventGlobal(1).NE.storedBirth .OR.
+     &         eventGlobal(2).NE.storedDeath .OR.
+     &         eventGlobal(3).NE.storedBeach .OR.
+     &         eventGlobal(4).NE.storedOutside .OR.
+     &         eventGlobal(5).NE.storedCancel )
+     &         localErrCount=localErrCount+1
+        ENDIF
+        globalErrCount=localErrCount
+#ifdef ALLOW_USE_MPI
+        IF ( usingMPI ) THEN
+          CALL MPI_Allreduce(localErrCount,globalErrCount,1,MPI_INTEGER,
+     &         MPI_SUM,MPI_COMM_MODEL,mpiRC)
+          IF ( mpiRC.NE.0 ) globalErrCount=globalErrCount+1
+        ENDIF
+#endif
+        IF ( globalErrCount.GT.0 ) THEN
+          IF ( myProcId.EQ.0 ) THEN
+            WRITE(msgBuf,'(A,A,A,I4,A,I12)')
+     &           'BOM_READ_PICKUP: schema-4 preflight suffix=',suffix,
+     &           ' code=',BOM_FAIL_PICKUP_SCHEMA4,
+     &           ' errors=',globalErrCount
+            CALL PRINT_ERROR(msgBuf,myThid)
+          ENDIF
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_READ_PICKUP SCHEMA4'
+        ENDIF
+      ELSE
+        storedLive=storedExpected
       ENDIF
 
 C--   The schema-3 metadata embeds an unchanged bitwise copy of schema 2.
@@ -692,6 +808,45 @@ C--   Stop before global ID exchange if any rank has malformed scratch.
         STOP 'ABNORMAL END: S/R BOM_READ_PICKUP'
       ENDIF
 
+C--   Decode the required P4 owner and biology sidecars only after the
+C     checksum-complete frame and schema-2 owner records both validate.
+      IF ( useSchema4 ) THEN
+        localErrCount=0
+        CALL BOM_READ_P4_SIDECAR(
+     I       fileName,storedTime,storedTime,storedNext,
+     I       storedIter,storedLive,scratchCount,
+     I       scratchId,scratchStatus,
+     O       scratchParent,scratchP4S,scratchBirthCount,
+     O       localErrCount,
+     I       myThid)
+        IF ( localErrCount.EQ.0 .AND. bomUseBiology )
+     &       CALL BOM_READ_P4_BIO_PICKUP(
+     I       fileName,storedTime,storedIter,
+     I       storedBioTime,storedBioIter,
+     I       storedTempSource,storedNSource,storedBioReady,
+     O       localErrCount,
+     I       myThid)
+        globalErrCount=localErrCount
+#ifdef ALLOW_USE_MPI
+        IF ( usingMPI ) THEN
+          CALL MPI_Allreduce(localErrCount,globalErrCount,1,MPI_INTEGER,
+     &         MPI_SUM,MPI_COMM_MODEL,mpiRC)
+          IF ( mpiRC.NE.0 ) globalErrCount=globalErrCount+1
+        ENDIF
+#endif
+        IF ( globalErrCount.GT.0 ) THEN
+          IF ( myProcId.EQ.0 ) THEN
+            WRITE(msgBuf,'(A,A,A,I4,A,I12)')
+     &           'BOM_READ_PICKUP: P4 sidecar suffix=',suffix,
+     &           ' code=',BOM_FAIL_PICKUP_SCHEMA4,
+     &           ' errors=',globalErrCount
+            CALL PRINT_ERROR(msgBuf,myThid)
+          ENDIF
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_READ_PICKUP P4 SIDECAR'
+        ENDIF
+      ENDIF
+
 C--   Decode schema-3 diagnostics, then independently rebuild the FINAL graph.
       IF ( useSchema3 ) THEN
         localErrCount = 0
@@ -793,8 +948,10 @@ C--   Gather and sort exact integer ID words before committing COMMON state.
         IF ( mpiRC.NE.0 ) mpiErrCount = mpiErrCount + 1
       ENDIF
 #endif
-      IF ( globalOwnerCount.NE.storedExpected .OR.
-     &     globalIdCount.NE.storedExpected )
+      storedOwnerBudget=storedExpected
+      IF ( useSchema4 ) storedOwnerBudget=storedLive
+      IF ( globalOwnerCount.NE.storedOwnerBudget .OR.
+     &     globalIdCount.NE.storedOwnerBudget )
      &     mpiErrCount = mpiErrCount + 1
       IF ( mpiErrCount.EQ.0 ) THEN
         CALL BOM_SORT_ID_WORDS(
@@ -811,6 +968,21 @@ C--   Gather and sort exact integer ID words before committing COMMON state.
           ENDIF
         ENDDO
       ENDIF
+      globalMaxId=0_8
+      IF ( globalIdCount.GT.0 ) THEN
+        idHi8=INT(idHiGlobal(globalIdCount),8)
+        idLo8=INT(idLoGlobal(globalIdCount),8)
+        IF ( idLo8.LT.0_8 ) idLo8=idLo8+idRadix
+        globalMaxId=idHi8*idRadix+idLo8
+      ENDIF
+      IF ( useSchema4 ) THEN
+        IF ( storedNextId.LE.globalMaxId .OR.
+     &       storedNextId.LE.0_8 .OR.
+     &       storedEventIndex.LT.0_8 .OR.
+     &       INT(storedExpected,8)+storedBirth-storedDeath-
+     &       storedBeach-storedOutside.NE.INT(storedLive,8) )
+     &       mpiErrCount=mpiErrCount+1
+      ENDIF
       globalErrCount = mpiErrCount
 #ifdef ALLOW_USE_MPI
       IF ( usingMPI ) THEN
@@ -824,7 +996,7 @@ C--   Gather and sort exact integer ID words before committing COMMON state.
           WRITE(msgBuf,'(A,A,A,3I12)')
      &         'BOM_READ_PICKUP: global ID budget failed suffix=',
      &         suffix, ' owner/id/expected=',
-     &         globalOwnerCount, globalIdCount, storedExpected
+     &         globalOwnerCount, globalIdCount, storedOwnerBudget
           CALL PRINT_ERROR( msgBuf, myThid )
         ENDIF
         CALL ALL_PROC_DIE( 0 )
@@ -854,6 +1026,25 @@ C--   One commit publishes the fully validated scratch transaction.
          ENDDO
         ENDDO
       ENDIF
+      IF ( useSchema4 .AND. bomUseBiology ) THEN
+        bomBioReady=.FALSE.
+        DO bj=1,nSy
+         DO bi=1,nSx
+          DO iEnd=1,BOM_ENV_NEND
+           DO j=1-OLy,sNy+OLy
+            DO i=1-OLx,sNx+OLx
+              bomBioTemp(i,j,iEnd,bi,bj)=
+     &             bomBioTempScratch(i,j,iEnd,bi,bj)
+              bomBioN(i,j,iEnd,bi,bj)=
+     &             bomBioNScratch(i,j,iEnd,bi,bj)
+              bomBioValid(i,j,iEnd,bi,bj)=
+     &             bomBioValidScratch(i,j,iEnd,bi,bj)
+            ENDDO
+           ENDDO
+          ENDDO
+         ENDDO
+        ENDDO
+      ENDIF
       DO bj=1,nSy
        DO bi=1,nSx
         bomNPartTile(bi,bj) = scratchCount(bi,bj)
@@ -861,6 +1052,16 @@ C--   One commit publishes the fully validated scratch transaction.
           IF ( ip.LE.scratchCount(bi,bj) ) THEN
             bomId(ip,bi,bj) = scratchId(ip,bi,bj)
             bomStatus(ip,bi,bj) = scratchStatus(ip,bi,bj)
+            IF ( useSchema4 ) THEN
+              bomParentId(ip,bi,bj)=scratchParent(ip,bi,bj)
+              bomS(ip,bi,bj)=scratchP4S(ip,bi,bj)
+              bomBirthCount(ip,bi,bj)=
+     &             scratchBirthCount(ip,bi,bj)
+            ELSE
+              bomParentId(ip,bi,bj)=0_8
+              bomS(ip,bi,bj)=0. _d 0
+              bomBirthCount(ip,bi,bj)=0
+            ENDIF
             bomX(ip,bi,bj) = scratchReal(1,ip,bi,bj)
             bomY(ip,bi,bj) = scratchReal(2,ip,bi,bj)
             bomReleaseTime(ip,bi,bj) = scratchReal(3,ip,bi,bj)
@@ -895,7 +1096,9 @@ C--   One commit publishes the fully validated scratch transaction.
             ENDIF
           ELSE
             bomId(ip,bi,bj) = 0_8
+            bomParentId(ip,bi,bj) = 0_8
             bomStatus(ip,bi,bj) = BOM_UNUSED
+            bomBirthCount(ip,bi,bj) = 0
             bomX(ip,bi,bj) = 0. _d 0
             bomY(ip,bi,bj) = 0. _d 0
             bomReleaseTime(ip,bi,bj) = 0. _d 0
@@ -908,6 +1111,7 @@ C--   One commit publishes the fully validated scratch transaction.
             bomWindNorth(ip,bi,bj) = 0. _d 0
             bomDriftEast(ip,bi,bj) = 0. _d 0
             bomDriftNorth(ip,bi,bj) = 0. _d 0
+            bomS(ip,bi,bj) = 0. _d 0
             bomSpringEast(ip,bi,bj) = 0. _d 0
             bomSpringNorth(ip,bi,bj) = 0. _d 0
             bomNeighborCount(ip,bi,bj) = 0
@@ -921,7 +1125,7 @@ C--   One commit publishes the fully validated scratch transaction.
        ENDDO
       ENDDO
       bomNPartExpected = storedExpected
-      bomNPartLiveExpected = storedExpected
+      bomNPartLiveExpected = storedOwnerBudget
       bomNextOutputTime = storedNext
       bomOutputScheduleReady = .TRUE.
       IF ( activeSchema.EQ.bomPickupSchema2 ) THEN
@@ -931,10 +1135,55 @@ C--   One commit publishes the fully validated scratch transaction.
         bomEnvIter(BOM_ENV_NEW) = envIter1
         bomEnvReady = .TRUE.
       ENDIF
+      IF ( useSchema4 ) THEN
+        bomNextId=storedNextId
+        bomEventTimeIndex=storedEventIndex
+        bomBirthEvents=storedBirth
+        bomDeathEvents=storedDeath
+        bomBeachEvents=storedBeach
+        bomOutsideEvents=storedOutside
+        bomCancelEvents=storedCancel
+        bomMissingGrowthEvents=storedMissing
+        bomEventShardRecords=storedShardRecords
+        bomEventShardBirth=storedShardBirth
+        bomEventShardDeath=storedShardDeath
+        bomEventShardBeach=storedShardBeach
+        bomEventShardOutside=storedShardOutside
+        bomEventShardCancel=storedShardCancel
+        bomEventShardTimeMin=storedShardTimeMin
+        bomEventShardTimeMax=storedShardTimeMax
+        bomEventShardReady=.TRUE.
+        CALL BOM_EVENT_BUFFER_CLEAR
+        IF ( bomUseBiology ) THEN
+          DO iEnd=1,BOM_ENV_NEND
+            bomBioTime(iEnd)=storedBioTime(iEnd)
+            bomBioIter(iEnd)=storedBioIter(iEnd)
+            bomBioTempSource(iEnd)=storedTempSource(iEnd)
+            bomBioNSource(iEnd)=storedNSource(iEnd)
+          ENDDO
+          bomBioReady=storedBioReady
+        ENDIF
+        bomFreeRebuildOps=0_8
+        bomFreeRemoveOps=0_8
+        bomFreeAllocOps=0_8
+        DO bj=1,nSy
+         DO bi=1,nSx
+          nFree=bomMaxPartTile-bomNPartTile(bi,bj)
+          bomFreeCount(bi,bj)=nFree
+          DO ip=1,nFree
+            bomFreeStack(ip,bi,bj)=bomMaxPartTile-ip+1
+          ENDDO
+          DO ip=nFree+1,bomMaxPartTile
+            bomFreeStack(ip,bi,bj)=0
+          ENDDO
+          bomFreeRebuildOps=bomFreeRebuildOps+1_8
+         ENDDO
+        ENDDO
+      ENDIF
       IF ( myProcId.EQ.0 ) THEN
         WRITE(msgBuf,'(A,A,A,I12,A,3(1X,1PE24.16))')
      &       'BOM_READ_PICKUP: complete suffix=', suffix,
-     &       ' count=', storedExpected,
+     &       ' count=', storedOwnerBudget,
      &       ' time/freq/next=', storedTime, storedFreq, storedNext
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                      SQUEEZE_RIGHT, myThid )

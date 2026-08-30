@@ -39,15 +39,24 @@ CEOP
 C !LOCAL VARIABLES:
       _RL muCandidate, mortCandidate, cycleRecords
       LOGICAL localValid
+      INTEGER k,sourceChar
 
       failCode = BOM_FAIL_BIOLOGY_CONFIG
       configValid = .FALSE.
       localValid = .TRUE.
       muCandidate = 0. _d 0
       mortCandidate = 0. _d 0
+      DO k=1,LEN(bomP4SourceHead)
+        sourceChar=IACHAR(bomP4SourceHead(k:k))
+        IF ( .NOT.( ( sourceChar.GE.IACHAR('0') .AND.
+     &                sourceChar.LE.IACHAR('9') ) .OR.
+     &              ( sourceChar.GE.IACHAR('a') .AND.
+     &                sourceChar.LE.IACHAR('f') ) ) )
+     &       localValid=.FALSE.
+      ENDDO
 
-C--   Biology-disabled land tracking is the P4.2 production subset.  It
-C     remains BOM-only and fail-closes persistence until schema 4 arrives.
+C--   Biology-disabled land tracking uses the same schema-4 event and
+C     persistence protocol as biology-enabled runs.
       IF ( .NOT.bomUseBiology ) THEN
         IF ( bomTempSource.NE.'NONE' ) localValid = .FALSE.
         IF ( bomNSource.NE.'NONE' ) localValid = .FALSE.
@@ -56,9 +65,7 @@ C     remains BOM-only and fail-closes persistence until schema 4 arrives.
      &       localValid = .FALSE.
         IF ( bomUseLand ) THEN
           IF ( bomMode.NE.'BOM' ) localValid = .FALSE.
-          IF ( bomOutputFreq.NE.0. _d 0 .OR.
-     &         bomPickupFreq.NE.0. _d 0 ) localValid = .FALSE.
-          IF ( nIter0.NE.bomInitialIter ) localValid = .FALSE.
+          IF ( bomEventFile.EQ.' ' ) localValid = .FALSE.
         ENDIF
         IF ( localValid ) THEN
           failCode = BOM_FAIL_NONE
@@ -121,6 +128,7 @@ C--   P4 biology is BOM-only and every possible child needs land checks.
      &       bomNTracerIndex.GT.PTRACERS_num .OR.
      &       bomNTracerIndex.GT.PTRACERS_numInUse )
      &       localValid = .FALSE.
+      IF ( bomEventFile.EQ.' ' ) localValid = .FALSE.
 #endif
       ELSEIF ( bomNSource.EQ.'FILES' ) THEN
         IF ( bomNFile.EQ.' ' ) localValid = .FALSE.
@@ -162,11 +170,12 @@ C--   P4 biology is BOM-only and every possible child needs land checks.
         ENDIF
       ENDIF
 
-C--   P4.1 has no schema-4 persistence and no live event commit yet.
-      IF ( bomOutputFreq.NE.0. _d 0 .OR.
-     &     bomPickupFreq.NE.0. _d 0 ) localValid = .FALSE.
-      IF ( nIter0.NE.bomInitialIter ) localValid = .FALSE.
-      IF ( bomMaxParticles.GT.0 ) localValid = .FALSE.
+C--   P4.4 permits scheduled output, pickup and split restart.  Capacity
+C     remains bounded by both the runtime limit and compact owner storage.
+      IF ( bomMaxParticles.LT.0 .OR.
+     &     bomMaxParticles.GT.bomMaxInitRecords .OR.
+     &     bomMaxParticles.GT.nPx*nPy*nSx*nSy*bomMaxPartTile )
+     &     localValid=.FALSE.
 
       IF ( localValid ) THEN
         muCandidate = bomMuMaxDay/86400. _d 0

@@ -121,6 +121,29 @@ C--     Explicitly enabled zero-particle output still writes tiled headers.
           STOP 'ABNORMAL END: S/R BOM_OUTPUT'
         ENDIF
       ENDIF
+      IF ( bomMode.EQ.'BOM' .AND.
+     &     ( bomUseLand .OR. bomUseBiology ) ) THEN
+        _BEGIN_MASTER(myThid)
+        CALL BOM_EVENT_FLUSH(
+     I       .TRUE.,
+     O       localErrCount,
+     I       myThid)
+        IF ( localErrCount.NE.0 ) THEN
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_OUTPUT EVENT FLUSH'
+        ENDIF
+        _END_MASTER(myThid)
+        _BARRIER
+        CALL BOM_EVENT_BUDGET_CHECK(localErrCount,myThid)
+        IF ( localErrCount.NE.BOM_FAIL_NONE ) THEN
+          _BEGIN_MASTER(myThid)
+          IF ( myProcId.EQ.0 ) CALL PRINT_ERROR(
+     &         'BOM_OUTPUT: P4 event budget failed',myThid)
+          _END_MASTER(myThid)
+          CALL ALL_PROC_DIE(0)
+          STOP 'ABNORMAL END: S/R BOM_OUTPUT EVENT BUDGET'
+        ENDIF
+      ENDIF
       CALL BOM_WRITE_TRAJECTORY(
      I     myTime, scheduledTime, myIter, myThid )
 

@@ -47,6 +47,16 @@ C !LOCAL VARIABLES:
       bomBeachEvents = 0_8
       bomOutsideEvents = 0_8
       bomCancelEvents = 0_8
+      bomMissingGrowthEvents = 0_8
+      bomEventShardRecords = 0_8
+      bomEventShardBirth = 0_8
+      bomEventShardDeath = 0_8
+      bomEventShardBeach = 0_8
+      bomEventShardOutside = 0_8
+      bomEventShardCancel = 0_8
+      bomEventShardTimeMin = 0. _d 0
+      bomEventShardTimeMax = 0. _d 0
+      bomEventShardReady = .FALSE.
       bomEventBufferCount = 0
       bomNextOutputTime = 0. _d 0
       bomOutputScheduleReady = .FALSE.

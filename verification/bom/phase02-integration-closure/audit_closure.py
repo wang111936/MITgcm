@@ -95,6 +95,9 @@ P43_ALLOWED_PATHS = P42_ALLOWED_PATHS | {
     "verification/bom/phase03-performance-closeout/code/BOM_SIZE.h.performance",
     "verification/bom/phase03-spring-ensemble/run_spring_ensemble_gate.sh",
 }
+P44_ALLOWED_PATHS = P43_ALLOWED_PATHS | {
+    "verification/bom/phase03-integration-closure/run_p3_g99.sh",
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -124,6 +127,8 @@ def scope_rules() -> tuple[str, tuple[str, ...], set[str], str | None]:
         return scope, P41_ALLOWED_PREFIXES, P42_ALLOWED_PATHS, P41_BASELINE
     if scope == "P4.3":
         return scope, P41_ALLOWED_PREFIXES, P43_ALLOWED_PATHS, P41_BASELINE
+    if scope == "P4.4":
+        return scope, P41_ALLOWED_PREFIXES, P44_ALLOWED_PATHS, P41_BASELINE
     raise RuntimeError(f"unsupported closure scope: {scope}")
 
 
