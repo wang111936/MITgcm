@@ -1108,7 +1108,7 @@ C--   A topology change rebuilds the FINAL cutoff graph before commit.
             ENDIF
           ENDDO
         ENDIF
-      ELSE
+      ELSEIF ( bomSpringLaw.EQ.'NONE' ) THEN
 C--     Without springs, only new children require a final owner refresh.
         DO ip=1,nCandidate
           cSpringEast(ip)=0. _d 0
