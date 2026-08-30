@@ -18,7 +18,7 @@ run_case() {
   ln -s "${executable}" "${directory}/mitgcmuv"
   set +e
   if [[ "${ranks}" -eq 1 ]]; then
-    (cd "${directory}" && /usr/bin/time -v -o resource.txt ./mitgcmuv > launch.log 2>&1)
+    (cd "${directory}" && /usr/bin/time -v -o resource.txt ./mitgcmuv > run.log 2>&1)
   else
     (cd "${directory}" && /usr/bin/time -v -o resource.txt \
       mpirun --oversubscribe -np "${ranks}" ./mitgcmuv > launch.log 2>&1)
@@ -29,7 +29,7 @@ run_case() {
   if compgen -G "${directory}/STDOUT.*" >/dev/null; then
     cat "${directory}"/STDOUT.* >> "${directory}/combined.log"
   else
-    cat "${directory}/launch.log" >> "${directory}/combined.log"
+    cat "${directory}/run.log" >> "${directory}/combined.log"
   fi
   if compgen -G "${directory}/STDERR.*" >/dev/null; then
     cat "${directory}"/STDERR.* >> "${directory}/combined.log"
