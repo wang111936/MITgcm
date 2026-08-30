@@ -9,11 +9,11 @@
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p4.4-schema4-events-pickup` |
-| 当前阶段 PR | P4.0 PR #33--P4.3 PR #36 已合并；P4.4 本地完成，尚未推送或创建 PR |
-| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.4 本地完成） |
-| 当前工作包 | P4.4 closeout 头通过直接 57/57、P4.3 26/26、P4.2 18/18、P4.1 31/31 与前序 replay 538/538 |
-| 下一工作包 | P4.4 经授权集中推送、评审和集成后，开始 P4.5 B19/P4-G99/退出审计 |
+| 当前任务分支 | `MITGCM-BOM/p4.5-capacity-exit` |
+| 当前阶段 PR | P4.0 PR #33--P4.4 PR #37 已合并；P4.5 本地实现待集中推送 |
+| 当前阶段 | Phase 4：生物过程、陆地与事件（P4.5 B19 本地完成） |
+| 当前工作包 | P4.5 B19 通过 19/19；P4-G99 689 行与独立退出审计 driver 已实现 |
+| 下一工作包 | 合并 P4.5 PR，在 development 集成头运行 P4-G99/退出审计并提交退出记录 |
 | 当前阻塞 | 无 |
 
 ## 1. 当前恢复点
@@ -21,19 +21,14 @@
 下一次继续开发时，从以下任务开始：
 
 1. 读取 [Phase 4 阶段记录](PHASE_RECORDS/PHASE-04.md) 和
-   `verification/bom/phase04-biology-land/P4.4_CLOSEOUT.md`；
-2. 核对 P4.4 本地提交作者/提交者均为
+   `verification/bom/phase04-biology-land/P4.5_CLOSEOUT.md`；
+2. 核对 P4.5 本地提交作者/提交者均为
    `WangYuLin <wang111936@outlook.com>`；
-3. 核对 `p44-final-head-attempt05` 的 57/57、
-   `p44-p43-accepted-attempt05` 的 26/26、
-   `p44-p42-accepted-attempt05` 的 18/18、
-   `p44-p41-accepted-attempt05` 的 31/31 与
-   `p44-predecessor-final-head-attempt05` 的 538/538、source-head 和
-   manifest 自校验；
-4. 保持 P4.4 不进入 B19、P4-G99、Phase 4 exit 或 Phase 5 scaling；
-5. 未经明确授权不推送、创建 PR、合并或创建 v0.5；
-6. 后续获授权时集中推送 P4.4 并创建 Draft PR；
-7. P4.4 评审集成后创建 P4.5 分支，关闭 B19、最终 P4-G99 和独立退出审计。
+3. 在洁净精确包头复验 `run_p45_gate.sh` 19/19；
+4. 集中推送并以 merge commit 合并 P4.5 PR；
+5. 在集成头运行 P4-G99 689/689 和独立 Phase 4 exit audit；
+6. 合并退出记录 PR 后复验最终门禁，再创建 annotated v0.5；
+7. 保持 Phase 5 scaling 和 Phase 6 grid support 在本阶段之外。
 
 开始前执行：
 
@@ -52,13 +47,28 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
-| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.4 本地完成：57/57 direct、P4.3 26/26、P4.2 18/18、P4.1 31/31、538/538 predecessor | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
+| Phase 4 生物与陆地 | 进行中 | v0.5 | P4.4 PR #37 已合并；P4.5 B19 本地 19/19，最终 689/689 与退出审计待集成头运行 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
 | Phase 5 HPC 加固 | 未开始 | v1.0 | 等待目标服务器信息和 Phase 4 门禁 | [开发手册](DEVELOPMENT_MANUAL.md#phase-5hpc-加固) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
 状态只能使用：`未开始`、`进行中`、`阻塞`、`完成`、`后置`。只有阶段退出条件全部通过后才能标记为完成。
 
 ## 3. 已完成证据
+
+### P4.5 capacity matrix 与最终退出 driver
+
+- P4.4 PR #37 已以 merge commit `4306d03e8` 集成；
+- 新增统一 event/owner-exchange preflight，覆盖 global、tile、event、
+  buffer、packet、exact ID 与 post-birth graph 容量；
+- 修正 event metadata 超容量后仍进入 `MPI_Allgatherv` 的越界风险；
+- 修正 rank-local graph overflow 造成 component collective 顺序分叉的风险；
+- `p45-b19-dev-attempt10` 通过冻结 B19 19/19，所有 overflow 均验证
+  stable need/capacity/context 与 bitwise rollback；
+- 最终 P4-G99 固定 689 行，独立 exit audit 固定 P4-R01--P4-R20、包祖先、
+  schema、gather 和 Phase 5/6 范围审计；
+- 当前尚未推送 P4.5、未运行集成头最终门禁、未创建 v0.5；
+- 详细记录见
+  `verification/bom/phase04-biology-land/P4.5_CLOSEOUT.md`。
 
 ### P4.4 schema 4、event shards、diagnostics 与 pickup
 
@@ -1163,6 +1173,17 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   P4-G99 与独立 Phase 4 exit audit 仍归 P4.5；
 - 未涉及 SKRIPS，分支未推送、未创建 PR、未合并、未创建 v0.5；
   唯一下一生产包为 P4.5。
+
+### 2026-08-30：P4.4 集成与 P4.5 本地实现
+
+- P4.4 PR #37 已以 merge commit `4306d03e8` 集成；
+- P4.5 统一 global/tile/event/buffer/packet/ID/graph capacity preflight，
+  每个 overflow 保留 stable failure/phase、need/capacity/context 和完整回滚；
+- 修正超容量 birth metadata 的 unsafe allgather 以及 graph overflow 时的
+  MPI collective 顺序分叉；
+- 冻结 B19 gate 已在 `p45-b19-dev-attempt10` 通过 19/19；
+- 新增 P4-G99 689-row aggregate 与独立 Phase 4 exit audit driver；
+- 未涉及 SKRIPS，未实现 Phase 5/6，未创建 v0.5。
 
 ## 6. 每次会话结束时必须更新
 

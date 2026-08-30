@@ -1,6 +1,6 @@
 # Phase 4 requirements traceability
 
-Status: **P4.4 LOCALLY VERIFIED; P4.5 REMAINS FROZEN**
+Status: **P4.5 B19 LOCALLY VERIFIED; FINAL INTEGRATION PENDING**
 
 Baseline: MITGCM-BOM-v0.4 at
 70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a
@@ -25,13 +25,13 @@ mean a production feature is implemented or tested.
 | P4-R11 | Generate exact portable Philox words and angles solely from the frozen counter key and retry | BOM_PHILOX4X32, BOM_BIRTH_ANGLE | P4-RNG01, locked word fixtures, B14 | P4.3 | verified at P4.3 |
 | P4-R12 | Retry wet placement deterministically, cancel after the bound and restore parent Sbefore | BOM_BIRTH_PLACE | P4-BR01, B13/B14 land/outside cases | P4.3 | verified at P4.3 |
 | P4-R13 | Globally sort accepted parents by exact ID and assign contiguous decomposition-independent child IDs | BOM_BIRTH_ORDER, BOM_BIRTH_IDS | P4-ID01, B13/B14/B17 | P4.3 | verified at P4.3 |
-| P4-R14 | Preflight global/live/tile/packet/event capacity and fail closed without truncation | BOM_EVENT_PREFLIGHT | B19 and rollback sentinels | P4.3/P4.5 | P4.3 transaction portion verified; full B19 remains |
+| P4-R14 | Preflight global/live/tile/packet/event capacity and fail closed without truncation | BOM_EVENT_PREFLIGHT | B19 and rollback sentinels | P4.3/P4.5 | locally verified by complete B19 19/19 |
 | P4-R15 | Migrate complete parent/S/birth state with packet schema 3 and rebuild post-event graph/components atomically | BOM_PARTICLE_EXCHANGE, event graph integration | P4-M01, B13/B17 | P4.3 | verified at P4.3 |
 | P4-R16 | Preserve released core/P3 bytes while transactionally writing and validating the required P4 sidecar and event schema | schema-4 output/event owners | P4-S01, corruption matrix | P4.4 | verified at P4.4 |
 | P4-R17 | Restart same-decomposition runs bitwise with P4 owners, counters, T/N brackets, event buffers and schedules | schema-4 pickup owners | B15 continuous/split serial/MPI | P4.4 | verified at P4.4 |
 | P4-R18 | Close live/event/ID/free-stack/mass diagnostics exactly once per successful substep | BOM_EVENT_BUDGET and diagnostics | B18 plus failure rollback | P4.4 | verified at P4.4 |
-| P4-R19 | Produce bitwise-equivalent canonical biology, births, terminal events, IDs and records in serial/MPI2/MPI4 | all P4 collective paths | B14, B17 and schema/event comparisons | P4.1--P4.5 | P4.4 restart/event focus verified; final P4.5 remains |
-| P4-R20 | Close Phase 4 only with all direct gates, exact v0.4 predecessor matrix, independent audit and no Phase 5/6 scope leakage | P4-G99 and exit-audit drivers | B11--B15, B17--B19, P4-G99 | P4.5 | frozen |
+| P4-R19 | Produce bitwise-equivalent canonical biology, births, terminal events, IDs and records in serial/MPI2/MPI4 | all P4 collective paths | B14, B17 and schema/event comparisons | P4.1--P4.5 | all direct portions locally verified; cumulative final pending |
+| P4-R20 | Close Phase 4 only with all direct gates, exact v0.4 predecessor matrix, independent audit and no Phase 5/6 scope leakage | P4-G99 and exit-audit drivers | B11--B15, B17--B19, P4-G99 | P4.5 | drivers implemented; final exact-head run pending |
 
 ## 2. Reverse implementation map
 
