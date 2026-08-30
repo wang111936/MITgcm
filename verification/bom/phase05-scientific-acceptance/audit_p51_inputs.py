@@ -249,11 +249,25 @@ def audit_configs(bundle: Path) -> None:
             "deltaTClock=900.",
             "usingCartesianGrid=.TRUE.",
             "delR=50.,50.",
+            "viscAr=1.E-3",
+            "diffKrT=0.",
+            "diffKrS=0.",
             "bathyFile='bathy.bin'",
             "uVelInitFile='uvel_init.bin'",
             f"f0={F0_S_INV:.17e}",
         ),
     )
+    data_text = (bundle / "data").read_text(encoding="ascii")
+    for forbidden in (
+        "viscAz=",
+        "viscAp=",
+        "diffKzT=",
+        "diffKpT=",
+        "diffKzS=",
+        "diffKpS=",
+    ):
+        if forbidden in data_text:
+            fail(f"data mixes delR with coordinate-specific token {forbidden!r}")
     require_tokens(bundle / "data.smoke", ("endTime=1800.", "pChkptFreq=1800."))
     require_tokens(
         bundle / "data.pkg",

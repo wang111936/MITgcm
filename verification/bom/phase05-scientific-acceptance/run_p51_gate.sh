@@ -226,10 +226,12 @@ run_smoke() {
       "${run_dir}/combined.log"; then
     fail "fatal marker in smoke: ${name}"
   fi
-  [[ -f "${run_dir}/pickup.0000000002.data" ]] \
-    || fail "main pickup data missing: ${name}"
-  [[ -f "${run_dir}/pickup.0000000002.meta" ]] \
-    || fail "main pickup meta missing: ${name}"
+  find "${run_dir}" -maxdepth 1 -type f \
+    -name 'pickup.0000000002*.data' -print -quit | grep -q . \
+    || fail "main pickup data family missing: ${name}"
+  find "${run_dir}" -maxdepth 1 -type f \
+    -name 'pickup.0000000002*.meta' -print -quit | grep -q . \
+    || fail "main pickup metadata family missing: ${name}"
   if find "${run_dir}" -maxdepth 1 -name 'pickup_bom*' -print -quit | grep -q .; then
     fail "BOM pickup emitted while useBOM is false: ${name}"
   fi
