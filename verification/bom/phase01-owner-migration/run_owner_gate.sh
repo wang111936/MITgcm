@@ -424,21 +424,24 @@ compare_states x03-multi \
 
 execute_negative n03b-capacity-mpi4 capacity-mpi4 4 \
   "${CASE_DIR}/input/data.capacity" P1-N03B-CAP
-grep -Eq 'rank/direction=[[:space:]]+0[[:space:]]+SEND[[:space:]]+needed/limit=[[:space:]]+2[[:space:]]+1' \
-  "${LAST_NEGATIVE_LOG}" || fail 'P1-N03b SEND diagnostic missing'
+grep -Eq 'rank/direction=[[:space:]]+0[[:space:]]+SEND[[:space:]]+needed/limit=[[:space:]]+2[[:space:]]+1|capacity code/phase/rank/tile=[[:space:]]+32[[:space:]]+7[[:space:]]+0[[:space:]]+0[[:space:]]+0[[:space:]]+needed/limit=[[:space:]]+2[[:space:]]+1' \
+  "${LAST_NEGATIVE_LOG}" || fail 'P1-N03b rank-0 diagnostic missing'
 record_pass n03b-send \
-  "rank 0 SEND needed/limit=2/1; collective fatal; rc=${LAST_NEGATIVE_RC}"
+  "rank 0 capacity code/phase=32/7 needed/limit=2/1; collective fatal; rc=${LAST_NEGATIVE_RC}"
 grep -Eq 'rank/direction=[[:space:]]+2[[:space:]]+RECV[[:space:]]+needed/limit=[[:space:]]+2[[:space:]]+1' \
-  "${LAST_NEGATIVE_LOG}" || fail 'P1-N03b RECV diagnostic missing'
+  "${LAST_NEGATIVE_LOG}" \
+  || grep -Eq 'capacity code/phase/rank/tile=[[:space:]]+32[[:space:]]+7[[:space:]]+2[[:space:]]+0[[:space:]]+0[[:space:]]+needed/limit=[[:space:]]+2[[:space:]]+1' \
+       "${LAST_NEGATIVE_LOG}" \
+  || fail 'P1-N03b rank-2 diagnostic missing'
 record_pass n03b-recv \
-  "rank 2 RECV needed/limit=2/1; collective fatal; rc=${LAST_NEGATIVE_RC}"
+  "rank 2 capacity code/phase=32/7 needed/limit=2/1; collective fatal; rc=${LAST_NEGATIVE_RC}"
 
 execute_negative n03b-tile-serial tile-serial 1 \
   "${CASE_DIR}/input/data.cartesian" P1-N03B-TILE
-grep -Eq 'rank/tile=[[:space:]]+0[[:space:]]+2[[:space:]]+1[[:space:]]+needed/limit=[[:space:]]+2[[:space:]]+1' \
+grep -Eq 'rank/tile=[[:space:]]+0[[:space:]]+2[[:space:]]+1[[:space:]]+needed/limit=[[:space:]]+2[[:space:]]+1|capacity code/phase/rank/tile=[[:space:]]+32[[:space:]]+7[[:space:]]+0[[:space:]]+2[[:space:]]+1[[:space:]]+needed/limit=[[:space:]]+2[[:space:]]+1' \
   "${LAST_NEGATIVE_LOG}" || fail 'P1-N03b target tile diagnostic missing'
 record_pass n03b-tile \
-  "rank/tile=0/2/1 needed/limit=2/1; no truncation; rc=${LAST_NEGATIVE_RC}"
+  "capacity code/phase=32/7 rank/tile=0/2/1 needed/limit=2/1; no truncation; rc=${LAST_NEGATIVE_RC}"
 
 execute_negative x03-hop-serial multi-serial 1 \
   "${CASE_DIR}/input/data.multi" P1-X03-HOP
