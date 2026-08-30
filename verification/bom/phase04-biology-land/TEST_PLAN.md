@@ -1,11 +1,11 @@
 # MITGCM-BOM Phase 4 test plan
 
-Status: **P4.5 B19 LOCALLY EXECUTED; FINAL INTEGRATION PENDING**
+Status: **RELEASE-CANDIDATE P4-G99 689/689 AND EXIT AUDIT PASS**
 
 P4.0 ran only the document/scope audit. P4.1--P4.4 have accepted direct and
-predecessor evidence in their closeout files. The frozen P4.5 B19 matrix has
-local 19/19 evidence; P4-G99 and the independent exit audit run only after
-the P4.5 package is integrated.
+predecessor evidence in their closeout files. P4.5 has exact package-head
+19/19 evidence. Integrated release-candidate P4-G99 passed 689/689 and the
+independent exit audit passed; both must rerun after the exit record merge.
 
 ## 1. Common evidence rules
 
@@ -411,6 +411,20 @@ An independent exit audit must then prove P4-R01--P4-R20 closure, exact
 package ancestry, no open finding, no released-schema drift, no live-owner
 event gather and no Phase 5/6 claim. Only a later explicitly authorized
 release action may create annotated tag MITGCM-BOM-v0.5.
+
+### Release-candidate execution record
+
+Clean exact development head
+`9a468ec3d642986f292b941aa6612d74301dda91` passed:
+
+- P4.1 31/31, P4.2 18/18, P4.3 26/26, P4.4 57/57 and P4.5 19/19;
+- the exact Phase 3 predecessor matrix 538/538;
+- aggregate P4-G99 689/689;
+- the independent P4-R01--P4-R20 exit audit.
+
+The evidence roots and immutable hashes are recorded in
+[PHASE4_EXIT_AUDIT.md](PHASE4_EXIT_AUDIT.md). These are candidate records;
+the exit-record merge head must produce a second complete release-head run.
 
 ## 9. Tolerance and fixture-change rule
 

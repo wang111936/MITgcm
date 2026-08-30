@@ -91,7 +91,7 @@ S<Smin、S>Smax 事件。出生成功时父/子设 S0；全部湿点重试失败
 | P4.2 | boundary scratch、terminal state machine、compact-tail free stack | 已集成 | P4-L01/F01/T01、B11、B13 death/free |
 | P4.3 | Philox、重试、全局出生 ID、packet schema 3、graph integration | 已集成 | P4-RNG01/BR01/ID01/M01、B13/B14/B17 |
 | P4.4 | schema 4、事件分片、诊断、pickup | 已集成 | P4-S01/EV01、B15/B18 |
-| P4.5 | 容量矩阵、完整集成和退出 | 本地实现 | B19 19/19；P4-G99/独立退出审计待集成头运行 |
+| P4.5 | 容量矩阵、完整集成和退出 | 已集成；候选退出通过 | B19 19/19；候选 P4-G99 689/689 与独立退出审计 PASS |
 
 工作包必须按顺序完成。每个包可以有多个本地提交，但关闭时必须在同一
 洁净精确头上保存直接门禁、全部已接受 P4 前序和必要的 v0.4 回归。
@@ -258,33 +258,34 @@ P4.3 已由 PR #36 以 merge commit `d97eb32e2` 集成；P4.4 在独立分支
 详细实现边界、已解决问题和证据路径见
 [P4.4 closeout](../../../../verification/bom/phase04-biology-land/P4.4_CLOSEOUT.md)。
 
-## 12. P4.5 本地实现结果
+## 12. P4.5 集成与候选退出结果
 
-P4.4 已由 PR #37 以 merge commit `4306d03e8` 集成。P4.5 当前完成：
+P4.4 已由 PR #37 以 merge commit `4306d03e8` 集成。P4.5 已完成：
 
 1. 对 global live、destination tile、event metadata/allgather、unflushed
    buffer、owner exchange 与 exact signed-ID 范围执行统一 preflight；
 2. 出生元数据超容量时不再进入越界 `MPI_Allgatherv`，并保留最早容量失败；
 3. post-birth candidate/neighbor/ghost 容量失败在任何 component collective
    前完成全 rank 状态归并，避免 collective 顺序分叉；
-4. `p45-b19-dev-attempt10` 通过冻结的 19/19，包含 equality、one-above、
+4. `p45-final-head-attempt11` 通过冻结的 19/19，包含 equality、one-above、
    stable need/capacity/context 和 bitwise rollback；
-5. 已实现最终 P4-G99 689 行聚合和独立退出审计 driver；二者只在 P4.5
-   合并到 development 后运行；
-6. 未实现或宣称 Phase 5/6 功能，未创建 v0.5。
+5. P4.5 PR #38 以 merge commit `3c066e7d8` 集成，PR #39--#43 随后修正
+   隔离 clone、历史 owner 审计、P4.5 scope 和 B18 最终审计兼容问题；
+6. 洁净候选头 `9a468ec3d642986f292b941aa6612d74301dda91` 通过
+   P4-G99 689/689 和独立 P4-R01--P4-R20 退出审计；
+7. 未实现或宣称 Phase 5/6 功能，未创建 v0.5。
 
 详细记录见
 [P4.5 closeout](../../../../verification/bom/phase04-biology-land/P4.5_CLOSEOUT.md)。
 
 ## 13. 当前恢复点
 
-P4.5 本地实现后：
+候选退出审计通过后：
 
-1. 在洁净精确 P4.5 包头复验 B19 19/19；
-2. 集中推送 P4.5，创建并以 merge commit 合并其 PR；
-3. 在集成 development 头运行 P4-G99 689/689 和独立退出审计；
-4. 合并 Phase 4 退出记录 PR 后在最终头再次运行两项门禁；
-5. 两项最终门禁通过后才创建并推送 annotated v0.5；
-6. Phase 5 目标服务器扩展仍不进入 P4.5 功能范围。
+1. 合并 Phase 4 退出记录 PR；
+2. 在合并后的洁净精确 release head 重跑 P4-G99 689/689；
+3. 使用新 P4-G99 证据重跑独立退出审计；
+4. 两项最终门禁通过后创建、推送并复核 annotated v0.5；
+5. Phase 5 目标服务器扩展仍不进入 Phase 4 功能范围。
 
 在 Phase 4 最终退出审计前不创建 MITGCM-BOM-v0.5 标签。
