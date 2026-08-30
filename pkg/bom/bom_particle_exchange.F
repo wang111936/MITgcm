@@ -38,6 +38,8 @@ C !LOCAL VARIABLES:
       INTEGER localMoveCount, globalMoveCount
       INTEGER localRemoteCount, globalRemoteCount
       INTEGER sendTotal, recvTotal, rhsFailCode
+      INTEGER capacityFail,capacityPhase,capacityRank
+      INTEGER capacityBi,capacityBj
 #ifdef ALLOW_USE_MPI
       INTEGER mpiRC
 #endif
@@ -86,6 +88,7 @@ C !LOCAL VARIABLES:
      &     BOM_RHS_NDIAG,bomMaxPartTile,nSx,nSy)
       LOGICAL workRefresh(bomMaxPartTile,nSx,nSy)
       INTEGER*8 idRadix, idHi8, idLo8, recvId, keyId
+      INTEGER*8 capacityNeed,capacityLimit
       INTEGER*8 keyParentId
       INTEGER*8 parentHi8,parentLo8,recvParentId
       INTEGER*8 raftHi8, raftLo8, recvRaftId, keyRaftId
@@ -98,6 +101,7 @@ C !LOCAL VARIABLES:
       _RL keyRhsDiag(BOM_RHS_NDIAG)
       LOGICAL keyRefresh, locateValid, rhsOwner, rhsValid
       LOGICAL packetValid
+      LOGICAL capacityValid
       LOGICAL springEastValid, springNorthValid
       _RL rhsX, rhsY, wetWeight, stageCFL
       INTEGER rhsFailStage
@@ -127,6 +131,11 @@ C     bounded packet storage lifetime independent of compiler stack limits.
         sendDispls(rankIndex) = 0
         recvDispls(rankIndex) = 0
         packetCursor(rankIndex) = 0
+      ENDDO
+      DO bj=1,nSy
+       DO bi=1,nSx
+        targetCount(bi,bj)=0
+       ENDDO
       ENDDO
 
 C--   Plan every destination without changing compact owner state.
@@ -233,21 +242,19 @@ C--   Count exchange precedes packet allocation and authoritative writes.
         sendTotal = sendTotal + sendCounts(rankIndex)
         recvTotal = recvTotal + recvCounts(rankIndex)
       ENDDO
-      IF ( sendTotal.GT.bomMaxExchange ) THEN
-        WRITE(msgBuf,1002)
-     &       'BOM_PARTICLE_EXCHANGE: rank/direction=',
-     &       myProcId, 'SEND', ' needed/limit=',
-     &       sendTotal, bomMaxExchange
-        CALL PRINT_ERROR( msgBuf, myThid )
-        localErrCount = localErrCount + 1
-      ENDIF
-      IF ( recvTotal.GT.bomMaxExchange ) THEN
-        WRITE(msgBuf,1002)
-     &       'BOM_PARTICLE_EXCHANGE: rank/direction=',
-     &       myProcId, 'RECV', ' needed/limit=',
-     &       recvTotal, bomMaxExchange
-        CALL PRINT_ERROR( msgBuf, myThid )
-        localErrCount = localErrCount + 1
+      CALL BOM_OWNER_EXCHANGE_PREFLIGHT(
+     I     sendTotal,recvTotal,targetCount,.FALSE.,
+     O     capacityFail,capacityPhase,capacityRank,
+     O     capacityBi,capacityBj,capacityNeed,capacityLimit,
+     O     capacityValid)
+      IF ( .NOT.capacityValid ) THEN
+        WRITE(msgBuf,1005)
+     &       'BOM_PARTICLE_EXCHANGE: capacity code/phase/rank/tile=',
+     &       capacityFail,capacityPhase,capacityRank,
+     &       capacityBi,capacityBj,' needed/limit=',
+     &       capacityNeed,capacityLimit
+        CALL PRINT_ERROR(msgBuf,myThid)
+        localErrCount=localErrCount+1
       ENDIF
       globalErrCount = localErrCount
       CALL GLOBAL_SUM_INT( globalErrCount, myThid )
@@ -372,11 +379,6 @@ C--   Pack remote migrants in destination-rank order.
 C--   Validate packet metadata and final per-tile capacity before commit.
       DO bj=1,nSy
        DO bi=1,nSx
-        targetCount(bi,bj) = 0
-       ENDDO
-      ENDDO
-      DO bj=1,nSy
-       DO bi=1,nSx
         DO ip=1,bomNPartTile(bi,bj)
           IF ( planRank(ip,bi,bj).EQ.myProcId ) THEN
             targetCount(planBi(ip,bi,bj),planBj(ip,bi,bj)) =
@@ -400,18 +402,20 @@ C--   Validate packet metadata and final per-tile capacity before commit.
           localErrCount = localErrCount + 1
         ENDIF
       ENDDO
-      DO bj=1,nSy
-       DO bi=1,nSx
-        IF ( targetCount(bi,bj).GT.bomMaxPartTile ) THEN
-          WRITE(msgBuf,1003)
-     &         'BOM_PARTICLE_EXCHANGE: rank/tile=',
-     &         myProcId, bi, bj, ' needed/limit=',
-     &         targetCount(bi,bj), bomMaxPartTile
-          CALL PRINT_ERROR( msgBuf, myThid )
-          localErrCount = localErrCount + 1
-        ENDIF
-       ENDDO
-      ENDDO
+      CALL BOM_OWNER_EXCHANGE_PREFLIGHT(
+     I     sendTotal,recvTotal,targetCount,.TRUE.,
+     O     capacityFail,capacityPhase,capacityRank,
+     O     capacityBi,capacityBj,capacityNeed,capacityLimit,
+     O     capacityValid)
+      IF ( .NOT.capacityValid ) THEN
+        WRITE(msgBuf,1005)
+     &       'BOM_PARTICLE_EXCHANGE: capacity code/phase/rank/tile=',
+     &       capacityFail,capacityPhase,capacityRank,
+     &       capacityBi,capacityBj,' needed/limit=',
+     &       capacityNeed,capacityLimit
+        CALL PRINT_ERROR(msgBuf,myThid)
+        localErrCount=localErrCount+1
+      ENDIF
       globalErrCount = localErrCount
       CALL GLOBAL_SUM_INT( globalErrCount, myThid )
       IF ( globalErrCount.GT.0 ) THEN
@@ -787,6 +791,7 @@ C--   The only authoritative topology write in this routine.
  1002 FORMAT(A,I6,1X,A4,A,2I12)
  1003 FORMAT(A,3I6,A,2I12)
  1004 FORMAT(A,I20,A,4I6,A,I6)
+ 1005 FORMAT(A,5I8,A,2I21)
 #endif /* ALLOW_BOM */
 
       RETURN
