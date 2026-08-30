@@ -1,0 +1,25 @@
+C    !ROUTINE: SIZE.h
+C    !INTERFACE:
+C    include SIZE.h
+C    !DESCRIPTION:
+C     P5-O01 standard 62 x 62 x 15 gyre, four tiles on one rank.
+CEOP
+      INTEGER sNx, sNy, OLx, OLy
+      INTEGER nSx, nSy, nPx, nPy
+      INTEGER Nx, Ny, Nr
+      PARAMETER (
+     &           sNx =  31,
+     &           sNy =  31,
+     &           OLx =   2,
+     &           OLy =   2,
+     &           nSx =   2,
+     &           nSy =   2,
+     &           nPx =   1,
+     &           nPy =   1,
+     &           Nx  = sNx*nSx*nPx,
+     &           Ny  = sNy*nSy*nPy,
+     &           Nr  =  15)
+
+      INTEGER MAX_OLX, MAX_OLY
+      PARAMETER ( MAX_OLX = OLx,
+     &            MAX_OLY = OLy )
