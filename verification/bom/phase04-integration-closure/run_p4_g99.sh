@@ -72,7 +72,9 @@ printf 'package\tgroup\tcase\tresult\tdetail\n' \
 run_driver() {
   local group="$1" driver="$2" id="${TEST_ID}-$1"
   log "run ${group}"
-  env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
+  env -u MITGCM_BOM_TEST_ARTIFACT_ROOT \
+      -u MITGCM_BOM_REPLAY_ROOT \
+      MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
       MITGCM_BOM_TEST_ID="${id}" \
       MITGCM_BOM_REQUIRE_CLEAN=1 \
       MITGCM_BOM_SCOPE_MODE=p44 \
@@ -161,7 +163,9 @@ git -C "${REPLAY_REPO}" checkout -B \
 git -C "${REPLAY_REPO}" branch -f \
   MITGCM-BOM/development "${EXPECTED_HEAD}"
 p3_id="${TEST_ID}-phase3-predecessor"
-env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
+env -u MITGCM_BOM_TEST_ARTIFACT_ROOT \
+    -u MITGCM_BOM_REPLAY_ROOT \
+    MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
     MITGCM_BOM_TEST_ID="${p3_id}" \
     MITGCM_BOM_INTEGRATION_MODE=predecessor \
     MITGCM_BOM_PREDECESSOR_CLOSURE_SCOPE="${p3_closure_scope}" \
