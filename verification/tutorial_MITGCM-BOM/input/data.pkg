@@ -1,0 +1,7 @@
+ &PACKAGES
+ useOffLine=.TRUE.,
+ useEXF=.TRUE.,
+ useDiagnostics=.FALSE.,
+ useMNC=.FALSE.,
+ useBOM=.TRUE.,
+ &

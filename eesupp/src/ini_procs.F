@@ -203,7 +203,13 @@ C--    Get MPI id for neighboring procs.
       ENDIF
 #endif /* ALLOW_NEST_CHILD */
 
-       CALL MPI_CART_RANK( mpiComm, mpiGridSpec, mpiPidW , mpiRC )
+       IF ( mpiPeriodicity(1) .EQ. _mpiFALSE_
+     &      .AND. mpiGridSpec(1) .LT. 0 ) THEN
+        mpiPidW = MPI_PROC_NULL
+        mpiRC = MPI_SUCCESS
+       ELSE
+        CALL MPI_CART_RANK( mpiComm, mpiGridSpec, mpiPidW , mpiRC )
+       ENDIF
        IF ( mpiRC .NE. MPI_SUCCESS ) THEN
         eeBootError = .TRUE.
         WRITE(msgBuf,'(A,I5)')
@@ -227,7 +233,13 @@ C--    Get MPI id for neighboring procs.
       ENDIF
 #endif /* ALLOW_NEST_CHILD */
 
-       CALL MPI_CART_RANK( mpiComm, mpiGridSpec, mpiPidE , mpiRC )
+       IF ( mpiPeriodicity(1) .EQ. _mpiFALSE_
+     &      .AND. mpiGridSpec(1) .GT. nPx-1 ) THEN
+        mpiPidE = MPI_PROC_NULL
+        mpiRC = MPI_SUCCESS
+       ELSE
+        CALL MPI_CART_RANK( mpiComm, mpiGridSpec, mpiPidE , mpiRC )
+       ENDIF
        IF ( mpiRC .NE. MPI_SUCCESS ) THEN
         eeBootError = .TRUE.
         WRITE(msgBuf,'(A,I5)')
@@ -242,7 +254,13 @@ C--    Get MPI id for neighboring procs.
        IF ( mpiPeriodicity(2) .EQ. _mpiTRUE_
      &   .AND. mpiGridSpec(2) .LT. 0 )
      &  mpiGridSpec(2) = nPy - 1
-       CALL MPI_CART_RANK( mpiComm, mpiGridSpec, mpiPidS , mpiRC )
+       IF ( mpiPeriodicity(2) .EQ. _mpiFALSE_
+     &      .AND. mpiGridSpec(2) .LT. 0 ) THEN
+        mpiPidS = MPI_PROC_NULL
+        mpiRC = MPI_SUCCESS
+       ELSE
+        CALL MPI_CART_RANK( mpiComm, mpiGridSpec, mpiPidS , mpiRC )
+       ENDIF
        IF ( mpiRC .NE. MPI_SUCCESS ) THEN
         eeBootError = .TRUE.
         WRITE(msgBuf,'(A,I5)')
@@ -257,7 +275,13 @@ C--    Get MPI id for neighboring procs.
        IF ( mpiPeriodicity(2) .EQ. _mpiTRUE_
      &   .AND. mpiGridSpec(2) .GT. nPy-1 )
      &  mpiGridSpec(2) = 0
-       CALL MPI_CART_RANK( mpiComm, mpiGridSpec, mpiPidN , mpiRC )
+       IF ( mpiPeriodicity(2) .EQ. _mpiFALSE_
+     &      .AND. mpiGridSpec(2) .GT. nPy-1 ) THEN
+        mpiPidN = MPI_PROC_NULL
+        mpiRC = MPI_SUCCESS
+       ELSE
+        CALL MPI_CART_RANK( mpiComm, mpiGridSpec, mpiPidN , mpiRC )
+       ENDIF
        IF ( mpiRC .NE. MPI_SUCCESS ) THEN
         eeBootError = .TRUE.
         WRITE(msgBuf,'(A,I5)')

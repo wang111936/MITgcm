@@ -36,7 +36,7 @@ C !LOCAL VARIABLES:
       _RL record(bomRecordSize)
       _RS dummyRS(1)
       INTEGER*8 inputIds(bomMaxInitRecords)
-      INTEGER*8 particleId
+      INTEGER*8 particleId, maxInputId
       INTEGER ioUnit, bi, bj, ip, jp, slot
       INTEGER ownerBi, ownerBj
       INTEGER nInput, nAssignedLocal, nAssignedGlobal
@@ -62,6 +62,7 @@ C !LOCAL VARIABLES:
       nAliveLocal = 0
       nWaitingLocal = 0
       errCount = 0
+      maxInputId = 0_8
 
       _BEGIN_MASTER(myThid)
 
@@ -288,6 +289,7 @@ C     INTEGER*8 so the check remains safe beyond the P1.1 verification cap.
             recordValid = .FALSE.
           ELSE
             inputIds(ip) = particleId
+            maxInputId = MAX(maxInputId,particleId)
             DO jp=1,ip-1
               IF ( particleId.EQ.inputIds(jp) ) THEN
                 WRITE(msgBuf,'(A,I20,A,2I8)')
@@ -419,6 +421,16 @@ C     INTEGER*8 so the check remains safe beyond the P1.1 verification cap.
               bomAge(slot,ownerBi,ownerBj)         = record(7)
               bomI(slot,ownerBi,ownerBj)           = ownerIx
               bomJ(slot,ownerBi,ownerBj)           = ownerJy
+C--           The version-1 initial record has no P4 sidecar fields.  A
+C             fresh biological owner starts from the configured reference
+C             amount; land-only and pre-P4 owners retain the released zero
+C             default.  Pickup restart never enters this path.
+              bomParentId(slot,ownerBi,ownerBj)     = 0_8
+              bomBirthCount(slot,ownerBi,ownerBj)  = 0
+              bomS(slot,ownerBi,ownerBj)           = 0. _d 0
+              IF ( bomUseBiology ) THEN
+                bomS(slot,ownerBi,ownerBj)         = bomS0
+              ENDIF
               nAssignedLocal = nAssignedLocal + 1
               IF ( statusValue.EQ.BOM_ALIVE )
      &             nAliveLocal = nAliveLocal + 1
@@ -440,6 +452,14 @@ C     INTEGER*8 so the check remains safe beyond the P1.1 verification cap.
           ENDIF
         ENDIF
        ENDDO
+       IF ( (bomUseLand .OR. bomUseBiology) .AND.
+     &      maxInputId.EQ.HUGE(maxInputId) ) THEN
+        WRITE(msgBuf,'(A,I20)')
+     &       'BOM_READ_INITIAL: no available P4 next ID after ',
+     &       maxInputId
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+       ENDIF
       ENDIF
 
       IF ( ioUnit.GT.0 ) CLOSE(ioUnit)
@@ -483,6 +503,9 @@ C     INTEGER*8 so the check remains safe beyond the P1.1 verification cap.
       _BEGIN_MASTER(myThid)
       bomNPartExpected = nInput
       bomNPartLiveExpected = nInput
+      IF ( bomUseLand .OR. bomUseBiology ) THEN
+        bomNextId = maxInputId + 1_8
+      ENDIF
       IF ( myProcId.EQ.0 ) THEN
         WRITE(msgBuf,'(A,4(A,I8))')
      &       'BOM_READ_INITIAL: complete',

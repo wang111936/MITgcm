@@ -91,6 +91,7 @@ C     owns placement, global ordering and child IDs.
       IMPLICIT NONE
 #include "SIZE.h"
 #include "EEPARAMS.h"
+#include "PARAMS.h"
 #include "BOM_SIZE.h"
 #include "BOM.h"
       _RL tSub0,tSub1
