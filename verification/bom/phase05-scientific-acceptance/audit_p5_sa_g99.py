@@ -16,6 +16,7 @@ V05_TAG_OBJECT = "f16e2345cbe596f37fe3434d1b2f23f85ff0ba74"
 V05_COMMIT = "1f48a75d4865fa6d5235a4db306e8abe31534f3e"
 P55_ADMISSION_BASELINE = "00ce0c39177afacf3eef6e7930a567ed52d3d785"
 EXPECTED_TOTAL = 754
+AGGREGATE_COLUMNS = ("package", "group", "case", "result", "detail")
 EXPECTED_GROUPS = (
     ("p5.1", 18),
     ("p5.2", 17),
@@ -31,6 +32,14 @@ P4_GROUPS = (
     ("p45-b19", 19),
     ("phase3-predecessor", 538),
 )
+EXPECTED_DUPLICATE_LOGICAL_ROWS = {
+    ("phase4-predecessor", "phase3-predecessor/phase2/p04-zero",
+     "serial-on"): ("build and link", "normal end; 8/8 hashes"),
+    ("phase4-predecessor", "phase3-predecessor/phase2/p04-zero",
+     "mpi2-on"): ("build and link", "normal end; 8/8 hashes"),
+    ("phase4-predecessor", "phase3-predecessor/phase2/p04-zero",
+     "mpi4-on"): ("build and link", "normal end; 8/8 hashes"),
+}
 P51_ROWS = (
     "p51-driver-audit",
     "p5-i01-generate",
@@ -178,6 +187,21 @@ def git(repo: Path, *args: str) -> str:
 def read_tsv(path: Path) -> list[dict[str, str]]:
     with path.open(encoding="utf-8", newline="") as stream:
         return list(csv.DictReader(stream, delimiter="\t"))
+
+
+def read_exact_tsv(
+    path: Path, expected_columns: tuple[str, ...]
+) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as stream:
+        reader = csv.DictReader(stream, delimiter="\t")
+        require(tuple(reader.fieldnames or ()) == expected_columns,
+                f"{path}: columns changed")
+        rows = list(reader)
+    require(all(None not in row and
+                all(row[column] is not None for column in expected_columns)
+                for row in rows),
+            f"{path}: malformed row")
+    return rows
 
 
 def sha256(path: Path) -> str:
@@ -338,7 +362,9 @@ def main() -> int:
                 f"{group}: copied independent audit differs")
     validate_p4(roots["phase4-predecessor"], expected_head)
 
-    all_rows = read_tsv(evidence / "all-rows.tsv")
+    all_rows = read_exact_tsv(
+        evidence / "all-rows.tsv", AGGREGATE_COLUMNS
+    )
     require(len(all_rows) == EXPECTED_TOTAL, "all-row cardinality mismatch")
     require(all(row["result"] == "PASS" for row in all_rows),
             "aggregate contains a non-PASS row")
@@ -348,9 +374,25 @@ def main() -> int:
     }
     require(tuple(distribution.items()) == EXPECTED_GROUPS,
             f"all-row group distribution changed: {distribution}")
-    keys = [(row["package"], row["group"], row["case"])
-            for row in all_rows]
-    require(len(keys) == len(set(keys)), "duplicate aggregate row key")
+    composite_rows = [tuple(row[column] for column in AGGREGATE_COLUMNS)
+                      for row in all_rows]
+    require(len(composite_rows) == len(set(composite_rows)),
+            "duplicate aggregate composite row")
+    logical_details: dict[tuple[str, str, str], list[str]] = {}
+    for row in all_rows:
+        logical_key = (row["package"], row["group"], row["case"])
+        logical_details.setdefault(logical_key, []).append(row["detail"])
+    require(EXPECTED_DUPLICATE_LOGICAL_ROWS.keys() <= logical_details.keys(),
+            "expected aggregate build/run logical rows missing")
+    for logical_key, details in logical_details.items():
+        if logical_key in EXPECTED_DUPLICATE_LOGICAL_ROWS:
+            require(tuple(details) ==
+                    EXPECTED_DUPLICATE_LOGICAL_ROWS[logical_key],
+                    f"aggregate build/run rows changed: {logical_key}")
+        else:
+            require(len(details) == 1,
+                    f"unexpected duplicate aggregate logical key: "
+                    f"{logical_key}")
     for group, expected_rows in DIRECT_ROWS.items():
         actual = tuple(row["case"] for row in all_rows
                        if row["package"] == group)
