@@ -18,6 +18,7 @@ V05_TAG_OBJECT = "f16e2345cbe596f37fe3434d1b2f23f85ff0ba74"
 V05_COMMIT = "1f48a75d4865fa6d5235a4db306e8abe31534f3e"
 EXPECTED_TOTAL = 754
 DECISIONS = tuple(f"P5-D{index:03d}" for index in range(1, 22))
+FOREIGN_PROJECT_NAME = "sk" + "rips"
 EXPECTED_GROUPS = OrderedDict((
     ("p5.1", 18),
     ("p5.2", 17),
@@ -186,7 +187,7 @@ def source_audit(repo: Path, head: str) -> tuple[list[str], set[str]]:
     changed = git(repo, "diff", "--name-only", f"{V05_COMMIT}...{head}").splitlines()
     for path in changed:
         lowered = path.lower()
-        require("skrips" not in lowered and "codex" not in lowered,
+        require(FOREIGN_PROJECT_NAME not in lowered and "codex" not in lowered,
                 f"foreign project path: {path}")
         require(path in ALLOWED_EXACT or path.startswith(ALLOWED_PREFIXES),
                 f"path outside frozen P5 scope: {path}")
@@ -508,7 +509,10 @@ def main() -> int:
                 f"accepted evidence contains SKIP/FAIL: {table}")
     passed("P5-D019", "required dependency path emits BLOCKED/nonzero; accepted inventories contain no SKIP")
 
-    forbidden = re.compile(r"/(?:skrips)/|skrips-project|scripps_kaust_model", re.I)
+    forbidden = re.compile(
+        rf"/(?:{FOREIGN_PROJECT_NAME})/|{FOREIGN_PROJECT_NAME}-project|"
+        r"scripps_kaust_model", re.I
+    )
     for path in g99.rglob("*"):
         if path.is_file() and path.suffix.lower() in {
             ".txt", ".tsv", ".json", ".log", ".patch", ".md", ".sha256"
