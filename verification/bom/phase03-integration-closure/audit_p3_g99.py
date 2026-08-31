@@ -31,6 +31,13 @@ ALLOWED_PATHS = {
     "verification/bom/phase01-owner-migration/run_owner_gate.sh",
     "verification/bom/phase02-integration-closure/audit_closure.py",
 }
+P55_ALLOWED_PREFIXES = (
+    "verification/bom/phase05-scientific-acceptance/",
+    "verification/tutorial_MITGCM-BOM/",
+)
+P55_ALLOWED_PATHS = {
+    "eesupp/src/ini_procs.F",
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -50,17 +57,20 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
 
 
 def main() -> int:
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 7:
         raise SystemExit(
-            "usage: audit_p3_g99.py REPO EVIDENCE HEAD MODE TOTAL"
+            "usage: audit_p3_g99.py REPO EVIDENCE HEAD MODE SCOPE TOTAL"
         )
     repo = Path(sys.argv[1]).resolve()
     evidence = Path(sys.argv[2]).resolve()
     expected_head = sys.argv[3]
     mode = sys.argv[4]
-    expected_total = int(sys.argv[5])
+    closure_scope = sys.argv[5]
+    expected_total = int(sys.argv[6])
     require(mode in {"candidate", "final", "predecessor"},
             f"invalid mode: {mode}")
+    require((evidence / "closure-scope.txt").read_text(
+        encoding="ascii").strip() == closure_scope, "closure scope mismatch")
     require(git(repo, "rev-parse", "HEAD") == expected_head, "head mismatch")
     require(git(repo, "status", "--porcelain=v1") == "", "dirty worktree")
     if mode != "predecessor":
@@ -68,20 +78,32 @@ def main() -> int:
                 "v0.4 exists")
 
     if mode == "predecessor":
+        require(
+            closure_scope in {"P4.1", "P4.2", "P4.3", "P4.4",
+                              "P4.5", "P5.5"},
+            f"invalid predecessor closure scope: {closure_scope}",
+        )
         baseline = git(repo, "rev-parse", P4_RELEASE_BASELINE)
         allowed_prefixes = ALLOWED_PREFIXES + (
             "verification/bom/phase04-",
         )
+        allowed_paths = ALLOWED_PATHS
+        if closure_scope == "P5.5":
+            allowed_prefixes += P55_ALLOWED_PREFIXES
+            allowed_paths = allowed_paths | P55_ALLOWED_PATHS
     else:
+        require(closure_scope == "P3.5",
+                f"{mode} closure scope is not P3.5")
         baseline = git(repo, "rev-parse", "MITGCM-BOM-v0.3^{commit}")
         allowed_prefixes = ALLOWED_PREFIXES
+        allowed_paths = ALLOWED_PATHS
     changed = git(repo, "diff", "--name-only", f"{baseline}...{expected_head}").splitlines()
     require(changed, "Phase 3 diff is empty")
     for path in changed:
         lowered = path.lower()
         require("skrips" not in lowered and "codex" not in lowered,
                 f"forbidden project term: {path}")
-        require(path in ALLOWED_PATHS or path.startswith(allowed_prefixes),
+        require(path in allowed_paths or path.startswith(allowed_prefixes),
                 f"path outside Phase 3 scope: {path}")
 
     row_audit = read_tsv(evidence / "row-audit.tsv")
@@ -182,7 +204,8 @@ def main() -> int:
         "predecessor": "P3-G99 PREDECESSOR AUDIT PASS",
     }
     marker = markers[mode]
-    print(f"{marker}: head={expected_head} rows={expected_total} files={len(changed)}")
+    print(f"{marker}: head={expected_head} scope={closure_scope} "
+          f"rows={expected_total} files={len(changed)}")
     return 0
 
 

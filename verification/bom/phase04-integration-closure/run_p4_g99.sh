@@ -6,10 +6,16 @@ readonly CASE_DIR
 REPO_ROOT="$(cd "${CASE_DIR}/../../.." && pwd -P)"
 readonly REPO_ROOT
 readonly EXPECTED_HEAD="${MITGCM_BOM_EXPECTED_HEAD:?set exact development head}"
-readonly TEST_ID="${MITGCM_BOM_TEST_ID:-p4-g99-${EXPECTED_HEAD:0:10}-attempt01}"
+readonly MODE="${MITGCM_BOM_INTEGRATION_MODE:-final}"
+default_test_id="p4-g99-${EXPECTED_HEAD:0:10}-attempt01"
+if [[ "${MODE}" == predecessor ]]; then
+  default_test_id="p4-g99-predecessor-${EXPECTED_HEAD:0:10}-attempt01"
+fi
+readonly TEST_ID="${MITGCM_BOM_TEST_ID:-${default_test_id}}"
 readonly EVIDENCE_ROOT="${MITGCM_BOM_TEST_ARTIFACT_ROOT:-/home/wyl/projects/mitgcm-bom-test-artifacts/phase04/p4-g99}/${TEST_ID}"
 readonly REPLAY_ROOT="${MITGCM_BOM_REPLAY_ROOT:-/home/wyl/build/mitgcm-bom/phase04-integration-closure}/${TEST_ID}"
 readonly EXPECTED_TOTAL=689
+readonly P5_RELEASE_BASELINE=1f48a75d4865fa6d5235a4db306e8abe31534f3e
 
 fail() { printf 'P4-G99 FAIL: %s\n' "$*" >&2; exit 1; }
 log() { printf '[P4-G99] %s\n' "$*"; }
@@ -19,17 +25,34 @@ for command_name in awk bash cmp find git grep python3 rg sha256sum \
   command -v "${command_name}" >/dev/null 2>&1 \
     || fail "missing ${command_name}"
 done
+[[ "${MODE}" == final || "${MODE}" == predecessor ]] \
+  || fail "invalid MITGCM_BOM_INTEGRATION_MODE=${MODE}"
 [[ "$(git -C "${REPO_ROOT}" rev-parse HEAD)" == "${EXPECTED_HEAD}" ]] \
   || fail 'current HEAD differs from expected head'
-[[ "$(git -C "${REPO_ROOT}" branch --show-current)" == \
-  MITGCM-BOM/development ]] || fail 'development branch required'
 [[ -z "$(git -C "${REPO_ROOT}" status --porcelain=v1)" ]] \
   || fail 'clean worktree required'
 [[ "$(git -C "${REPO_ROOT}" rev-parse 'MITGCM-BOM-v0.4^{commit}')" == \
   70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a ]] \
   || fail 'v0.4 release baseline changed'
-[[ -z "$(git -C "${REPO_ROOT}" tag -l MITGCM-BOM-v0.5)" ]] \
-  || fail 'P4-G99 must precede v0.5'
+if [[ "${MODE}" == final ]]; then
+  [[ "$(git -C "${REPO_ROOT}" branch --show-current)" == \
+    MITGCM-BOM/development ]] || fail 'final mode requires development'
+  [[ -z "$(git -C "${REPO_ROOT}" tag -l MITGCM-BOM-v0.5)" ]] \
+    || fail 'P4-G99 final mode must precede v0.5'
+else
+  [[ "$(git -C "${REPO_ROOT}" branch --show-current)" == \
+    MITGCM-BOM/p4.5-capacity-exit ]] \
+    || fail 'predecessor mode requires isolated P4.5 replay branch'
+  [[ "$(git -C "${REPO_ROOT}" rev-parse MITGCM-BOM/development)" == \
+    "${EXPECTED_HEAD}" ]] \
+    || fail 'predecessor replay development ref must equal exact head'
+  git -C "${REPO_ROOT}" cat-file -e \
+    "${P5_RELEASE_BASELINE}^{commit}" \
+    || fail 'exact v0.5 release commit is unavailable'
+  git -C "${REPO_ROOT}" merge-base --is-ancestor \
+    "${P5_RELEASE_BASELINE}" "${EXPECTED_HEAD}" \
+    || fail 'candidate does not descend from exact v0.5 release'
+fi
 [[ ! -e "${EVIDENCE_ROOT}" ]] \
   || fail "evidence root exists: ${EVIDENCE_ROOT}"
 [[ ! -e "${REPLAY_ROOT}" ]] \
@@ -123,6 +146,10 @@ register_direct p45-b19 19 \
   "/home/wyl/projects/mitgcm-bom-test-artifacts/phase04/p45/${TEST_ID}-p45-b19/summary.tsv" \
   SHA256SUMS
 
+p3_closure_scope=P4.5
+if [[ "${MODE}" == predecessor ]]; then
+  p3_closure_scope=P5.5
+fi
 log 'run exact 538-row v0.4 predecessor replay in isolated shared clone'
 readonly REPLAY_REPO="${REPLAY_ROOT}/repo"
 git clone --shared --no-checkout --no-tags \
@@ -137,7 +164,7 @@ p3_id="${TEST_ID}-phase3-predecessor"
 env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
     MITGCM_BOM_TEST_ID="${p3_id}" \
     MITGCM_BOM_INTEGRATION_MODE=predecessor \
-    MITGCM_BOM_PREDECESSOR_CLOSURE_SCOPE=P4.5 \
+    MITGCM_BOM_PREDECESSOR_CLOSURE_SCOPE="${p3_closure_scope}" \
     "${REPLAY_REPO}/verification/bom/phase03-integration-closure/run_p3_g99.sh" \
     > "${EVIDENCE_ROOT}/phase3-predecessor.log" 2>&1
 p3_root="/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/${p3_id}"
@@ -145,6 +172,8 @@ p3_root="/home/wyl/projects/mitgcm-bom-test-artifacts/phase03/p3-g99/${p3_id}"
   || fail 'Phase 3 predecessor source head mismatch'
 [[ "$(<"${p3_root}/mode.txt")" == predecessor ]] \
   || fail 'Phase 3 replay mode mismatch'
+[[ "$(<"${p3_root}/closure-scope.txt")" == "${p3_closure_scope}" ]] \
+  || fail 'Phase 3 replay closure scope mismatch'
 (cd "${p3_root}" && sha256sum -c manifest.sha256 >/dev/null)
 p3_actual="$(awk -F '\t' 'NR>1 && $4=="PASS" {n++} END{print n+0}' \
   "${p3_root}/all-rows.tsv")"
@@ -170,15 +199,22 @@ printf 'TOTAL\t%s\t%s\tPASS\n' \
   "${EXPECTED_TOTAL}" "${actual_total}" \
   >> "${EVIDENCE_ROOT}/row-audit.tsv"
 printf '%s\n' "${EXPECTED_HEAD}" > "${EVIDENCE_ROOT}/source-head.txt"
-printf 'final\n' > "${EVIDENCE_ROOT}/mode.txt"
+printf '%s\n' "${MODE}" > "${EVIDENCE_ROOT}/mode.txt"
 printf '%s\n' "${p3_root}" > "${EVIDENCE_ROOT}/p3-root.txt"
 git -C "${REPO_ROOT}" status --porcelain=v1 \
   > "${EVIDENCE_ROOT}/git-status.txt"
 [[ ! -s "${EVIDENCE_ROOT}/git-status.txt" ]] \
   || fail 'tests changed the exact-head worktree'
-git -C "${REPO_ROOT}" ls-files pkg/bom \
+source_scopes=(pkg/bom \
   verification/bom/phase04-biology-land \
-  verification/bom/phase04-integration-closure \
+  verification/bom/phase04-integration-closure)
+if [[ "${MODE}" == predecessor ]]; then
+  source_scopes+=(eesupp/src/ini_procs.F \
+    doc/phys_pkgs/MITGCM-BOM \
+    verification/bom/phase05-scientific-acceptance \
+    verification/tutorial_MITGCM-BOM)
+fi
+git -C "${REPO_ROOT}" ls-files "${source_scopes[@]}" \
   | while IFS= read -r path; do \
       sha256sum "${REPO_ROOT}/${path}"
     done > "${EVIDENCE_ROOT}/source-files.sha256"
@@ -187,8 +223,8 @@ sha256sum "${CASE_DIR}"/*.sh "${CASE_DIR}"/*.py \
 
 python3 "${CASE_DIR}/audit_p4_g99.py" \
   "${REPO_ROOT}" "${EVIDENCE_ROOT}" "${EXPECTED_HEAD}" \
-  "${EXPECTED_TOTAL}" > "${EVIDENCE_ROOT}/independent-audit.log"
-grep -q 'P4-G99 FINAL AUDIT PASS' \
+  "${MODE}" "${EXPECTED_TOTAL}" > "${EVIDENCE_ROOT}/independent-audit.log"
+grep -q "P4-G99 ${MODE^^} AUDIT PASS" \
   "${EVIDENCE_ROOT}/independent-audit.log" \
   || fail 'independent P4-G99 marker missing'
 (
@@ -199,7 +235,7 @@ grep -q 'P4-G99 FINAL AUDIT PASS' \
   cp "${REPLAY_ROOT}/manifest.sha256" manifest.sha256
   sha256sum -c manifest.sha256 > manifest-check.log
 )
-log "P4-G99 FINAL PASS (${EXPECTED_TOTAL}/${EXPECTED_TOTAL})"
+log "P4-G99 ${MODE^^} PASS (${EXPECTED_TOTAL}/${EXPECTED_TOTAL})"
 log "source head: ${EXPECTED_HEAD}"
 log "evidence root: ${EVIDENCE_ROOT}"
 cat "${EVIDENCE_ROOT}/row-audit.tsv"

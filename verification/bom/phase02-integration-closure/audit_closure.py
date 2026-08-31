@@ -102,6 +102,14 @@ P45_ALLOWED_PREFIXES = P41_ALLOWED_PREFIXES + (
     "verification/bom/phase04-integration-closure/",
 )
 P45_ALLOWED_PATHS = P44_ALLOWED_PATHS
+P55_ALLOWED_PREFIXES = P45_ALLOWED_PREFIXES + (
+    "verification/bom/phase05-scientific-acceptance/",
+    "verification/tutorial_MITGCM-BOM/",
+    "doc/phys_pkgs/MITGCM-BOM/",
+)
+P55_ALLOWED_PATHS = P45_ALLOWED_PATHS | {
+    "eesupp/src/ini_procs.F",
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -135,6 +143,8 @@ def scope_rules() -> tuple[str, tuple[str, ...], set[str], str | None]:
         return scope, P41_ALLOWED_PREFIXES, P44_ALLOWED_PATHS, P41_BASELINE
     if scope == "P4.5":
         return scope, P45_ALLOWED_PREFIXES, P45_ALLOWED_PATHS, P41_BASELINE
+    if scope == "P5.5":
+        return scope, P55_ALLOWED_PREFIXES, P55_ALLOWED_PATHS, P41_BASELINE
     raise RuntimeError(f"unsupported closure scope: {scope}")
 
 
