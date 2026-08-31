@@ -269,8 +269,9 @@ git clone --shared --no-checkout --no-tags "${REPO_ROOT}" "${P4_REPO}" \
 git -C "${P4_REPO}" checkout -B MITGCM-BOM/p4.5-capacity-exit \
   "${EXPECTED_HEAD}" >> "${EVIDENCE_ROOT}/phase4-clone.log" 2>&1
 git -C "${P4_REPO}" branch -f MITGCM-BOM/development "${EXPECTED_HEAD}"
-git -C "${P4_REPO}" update-ref refs/tags/MITGCM-BOM-v0.4 \
-  "${V04_TAG_OBJECT}"
+git -C "${P4_REPO}" fetch --no-tags "${REPO_ROOT}" \
+  refs/tags/MITGCM-BOM-v0.4:refs/tags/MITGCM-BOM-v0.4 \
+  >> "${EVIDENCE_ROOT}/phase4-clone.log" 2>&1
 [[ "$(git -C "${P4_REPO}" rev-parse MITGCM-BOM-v0.4)" == \
   "${V04_TAG_OBJECT}" ]] || fail 'replay v0.4 tag object mismatch'
 [[ "$(git -C "${P4_REPO}" rev-parse 'MITGCM-BOM-v0.4^{commit}')" == \
