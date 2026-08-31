@@ -97,11 +97,15 @@ external environmental datasets remain outside the repository.
 - phase04-integration-closure/: final 689-row P4-G99 and independent Phase 4
   exit-audit drivers; the release-candidate executions passed and the final
   release-head executions follow the exit-record merge;
-- phase05-scientific-acceptance/: P5.0 frozen production-simulation plan for
-  executable packaging, deterministic real inputs, full `BOM_MAIN` Julia and
-  PAPER2024 trajectory comparisons, released-feature/schema-4 qualification,
-  dynamic-ocean one-way coupling, restart/MPI and 30-day endurance; no Phase 5
-  execution evidence is claimed by the freeze;
+- phase05-scientific-acceptance/: the frozen P5.0 production-simulation plan
+  plus completed P5.1--P5.4 exact-head evidence for executable packaging,
+  deterministic inputs, full `BOM_MAIN` Julia/PAPER2024 comparison,
+  released-feature/schema-4 qualification, dynamic-ocean one-way coupling,
+  same-decomposition restart/MPI and 30-day endurance; the aggregate P5.5
+  scientific-acceptance decision remains separate;
+- ../tutorial_MITGCM-BOM/: a productized six-hour, three-particle production
+  build/run tutorial with self-contained input generation, schema-2 decoding,
+  CSV/JSON summaries and a trajectory plot;
 - reference/phase02/: checksummed B16 inputs, fixed-step golden files, and a
   separately marked non-gating adaptive Tsit5 context trajectory;
 - later phase directories: analytical, restart, MPI decomposition and

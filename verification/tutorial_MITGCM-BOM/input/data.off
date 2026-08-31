@@ -1,0 +1,13 @@
+ &OFFLINE_PARM01
+ UvelFile='offline_u',
+ VvelFile='offline_v',
+ ThetFile='offline_theta',
+ &
+ &OFFLINE_PARM02
+ offlineIter0=0,
+ deltaToffline=900.,
+ offlineTimeOffset=450.,
+ offlineForcingPeriod=900.,
+ offlineForcingCycle=0.,
+ offlineLoadPrec=64,
+ &

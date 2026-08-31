@@ -1,0 +1,36 @@
+{
+  "equation": "JULIA",
+  "equation_code": 2,
+  "executable_sha256": "55ed8337fe5839bcd4368a461cd81819820235af1ada1b5ece9a4e77f5b8401b",
+  "final_time_s": 21600.0,
+  "first_time_s": 900.0,
+  "frame_count": 24,
+  "particle_count": 3,
+  "particles": {
+    "1001": {
+      "final_status": 1,
+      "final_x_m": 83335.37817788227,
+      "final_y_m": 59246.73945261347,
+      "path_length_m": 3279.3818513589404
+    },
+    "1002": {
+      "final_status": 1,
+      "final_x_m": 203452.30635442227,
+      "final_y_m": 149590.68224174264,
+      "path_length_m": 3334.086208216151
+    },
+    "1003": {
+      "final_status": 1,
+      "final_x_m": 323569.02693487314,
+      "final_y_m": 239847.6838380108,
+      "path_length_m": 3425.852804079866
+    }
+  },
+  "production_fortran_parent": "2447777a3412a184de7dcdcd00aef3b7a1a2ed13",
+  "record_count": 72,
+  "record_width": 48,
+  "schema": "MITGCM-BOM-TUTORIAL-EXPECTED-v1",
+  "suggested_same_toolchain_abs_tolerance_m": 1e-06,
+  "tile_file_count": 96,
+  "trajectory_schema": 2
+}
