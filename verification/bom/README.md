@@ -97,12 +97,12 @@ external environmental datasets remain outside the repository.
 - phase04-integration-closure/: final 689-row P4-G99 and independent Phase 4
   exit-audit drivers; the release-candidate executions passed and the final
   release-head executions follow the exit-record merge;
-- phase05-scientific-acceptance/: the frozen P5.0 production-simulation plan
-  plus completed P5.1--P5.4 exact-head evidence for executable packaging,
-  deterministic inputs, full `BOM_MAIN` Julia/PAPER2024 comparison,
-  released-feature/schema-4 qualification, dynamic-ocean one-way coupling,
-  same-decomposition restart/MPI and 30-day endurance; the aggregate P5.5
-  scientific-acceptance decision remains separate;
+- phase05-scientific-acceptance/: the frozen P5.0 production-simulation plan,
+  completed P5.1--P5.4 exact-head scientific evidence, final P5-SA-G99
+  754/754 aggregation and independent P5-D001--P5-D021 21/21 exit audit;
+  scientific acceptance is PASS while OpenMP, target-server scale,
+  changed-decomposition restart and performance remain NOT_EVALUATED for the
+  separate Phase 5 HPC freeze;
 - ../tutorial_MITGCM-BOM/: a productized six-hour, three-particle production
   build/run tutorial with self-contained input generation, schema-2 decoding,
   CSV/JSON summaries and a trajectory plot;

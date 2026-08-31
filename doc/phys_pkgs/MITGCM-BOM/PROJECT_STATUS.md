@@ -4,31 +4,32 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-30 |
+| 最后更新 | 2026-08-31 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p5.0-scientific-acceptance-freeze` |
-| 当前阶段 PR | Phase 4 已由 PR #44 收口；P5.0 当前仅冻结方案，尚未推送或建 PR |
-| 当前阶段 | Phase 5：科学验收与 HPC 加固（P5.0 方案冻结） |
-| 当前工作包 | 冻结生产编译、真实积分、Julia/PAPER2024 对照、功能/MPI/restart/耐久验收方案；未运行 Phase 5 测试 |
-| 下一工作包 | P5.1 生产 executable 与确定性输入 pipeline；随后按 P5.2--P5.5 顺序执行 |
-| 当前阻塞 | 科学验收无阻塞；目标服务器 HPC 信息尚未指定，但不阻塞 P5-SA |
+| 当前任务分支 | `MITGCM-BOM/p5.5-scientific-g99` |
+| 当前阶段 PR | Phase 4 已由 PR #44 收口；P5.5 本地科学候选已通过，尚未推送或建 PR |
+| 当前阶段 | Phase 5：科学验收与 HPC 加固（科学准入完成；HPC 未评估） |
+| 当前工作包 | P5.0--P5.5 科学验收：754/754，独立退出审计 21/21 |
+| 下一工作包 | 建议冻结 `P5.6 HPC acceptance`：先锁定目标服务器与 B20/OpenMP/restart/performance 契约 |
+| 当前阻塞 | 科学验收无阻塞；目标服务器配置尚未提供，阻塞站点 HPC 验收但不阻塞 HPC 方案冻结 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取
-   `verification/bom/phase05-scientific-acceptance/SCIENTIFIC_ACCEPTANCE_PLAN.md`；
-2. 核对基线 annotated `MITGCM-BOM-v0.5` peel 到
-   `1f48a75d4865fa6d5235a4db306e8abe31534f3e`；
-3. P5.1 只实现生产 executable、确定性 MDS 输入生成/独立解码和
-   P5-B01/P5-I01 驱动；
-4. 不在 P5.1 提前运行或宣称 P5-J/P/F/O/R/L 科学结果；
-5. 后续严格按 P5.2、P5.3、P5.4、P5.5 顺序执行；
-6. 将目标服务器 HPC 和 Phase 6 一般网格分别保留在科学准入之后。
+1. 读取 `verification/bom/phase05-scientific-acceptance/P5.5_CLOSEOUT.md`
+   和 `verification/bom/phase05-scientific-acceptance/`
+   `PHASE5_SCIENTIFIC_EXIT_AUDIT.md`；
+2. 核对 P5.5 收口提交的最终 exact-head 754/754 与 21/21 外部证据；
+3. 经用户明确授权后再批量推送、创建 PR 并以 merge commit 集成到
+   `MITGCM-BOM/development`；本阶段不创建 v1.0 标签；
+4. 从集成头创建独立 HPC 冻结分支，建议工作包编号为 P5.6；
+5. 收集目标服务器工具链、Slurm、并行文件系统、CPU/NUMA 与绑定信息，
+   冻结 B20、OpenMP、变分解 restart、I/O 和性能验收协议；
+6. Phase 6 一般网格继续后置，不进入 Phase 5 HPC 范围。
 
 开始前执行：
 
@@ -48,12 +49,38 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
 | Phase 4 生物与陆地 | 完成 | v0.5 | PR #33--#44 已合并；release-head 门禁/独立审计通过；annotated `MITGCM-BOM-v0.5` 已发布 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
-| Phase 5 科学验收与 HPC 加固 | 进行中 | v1.0 | P5.0 科学验收方案已冻结；尚无 Phase 5 build/run 证据；目标服务器 HPC 后置于 P5-SA | [科学验收方案](../../../verification/bom/phase05-scientific-acceptance/SCIENTIFIC_ACCEPTANCE_PLAN.md) |
+| Phase 5 科学验收与 HPC 加固 | 进行中 | v1.0 | P5.0--P5.5 科学准入候选 754/754、独立 21/21 PASS；HPC 为 NOT_EVALUATED | [P5.5 closeout](../../../verification/bom/phase05-scientific-acceptance/P5.5_CLOSEOUT.md) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
 状态只能使用：`未开始`、`进行中`、`阻塞`、`完成`、`后置`。只有阶段退出条件全部通过后才能标记为完成。
 
 ## 3. 已完成证据
+
+### P5.5 科学聚合与独立退出审计
+
+- 洁净精确候选 `f3f50a77a0e01fd4a1687ead312282422999280d` 的
+  `p55-g99-f3f50a77a-attempt06` 通过 P5.1 18/18、P5.2 17/17、
+  P5.3 22/22、P5.4 8/8 和 Phase 4 predecessor 689/689，总计
+  P5-SA-G99 754/754；
+- aggregate evidence root 为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase05/scientific-acceptance/`
+  `p5-sa-g99/p55-g99-f3f50a77a-attempt06`；`all-rows.tsv` 与 aggregate
+  manifest SHA-256 分别为
+  `4118d2b604d3dac255a5bcaf7de303045054033208fe9f03211d120359b21338`
+  和 `da8bef9a303495eb7f8f6fcc09f7f94fda5612d6826103662774f532f38ed336`；
+- `p55-exit-f3f50a77a-attempt02` 独立重验 manifest、14 个科学案例及
+  P5-D001--P5-D021，最终 21/21 PASS；exit evidence root 为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase05/scientific-exit-audit/`
+  `p55-exit-f3f50a77a-attempt02`，manifest SHA-256 为
+  `b34b9fd1ec53575ea257a1453bc70db19f86997f696a364009b2567e249d4e8e`；
+- attempt04 的 aggregate row-key 投影问题和 attempt05 的 D007
+  read-ahead 历史计数问题均已修正，未改变冻结科学规则；
+- 科学准入结论为 PASS；HPC acceptance 为 NOT_EVALUATED，Phase 5/v1.0
+  仍未退出；
+- BOM 独立于 FLT 与 SKRIPS，本工作未读取或修改 SKRIPS 文件，未引入
+  外部项目依赖；未推送、未创建 PR、未合并、未创建标签；
+- 详细记录见
+  `verification/bom/phase05-scientific-acceptance/P5.5_CLOSEOUT.md`。
 
 ### P4.5 capacity matrix 与 release-candidate 退出
 
@@ -69,7 +96,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - P4.5 PR #38 与集成修正 PR #39--#43 已以 merge commit 集成；
 - clean exact candidate `9a468ec3d` 的 P4-G99 通过 689/689，独立
   P4-R01--P4-R20 exit audit PASS；
-- 当前尚待退出记录 PR、release-head 两项复验和 annotated v0.5；
+- Phase 4 退出记录 PR #44 已合并；release-head 门禁和独立审计通过，
+  annotated `MITGCM-BOM-v0.5` 已发布并 peel 到 `1f48a75d4865fa6d5235a4db306e8abe31534f3e`；
 - 详细记录见
   `verification/bom/phase04-biology-land/P4.5_CLOSEOUT.md`。
 
@@ -1217,6 +1245,25 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 当前正在 `MITGCM-BOM/phase4-exit-audit` 写入退出记录；合并后必须在
   新 release head 重跑两项门禁，之后才允许 annotated v0.5；
 - 未涉及 SKRIPS，Phase 5/6 仍在 Phase 4 之外。
+
+### 2026-08-31：P5.0--P5.5 科学验收候选收口
+
+- 冻结科学方案保持不变；P5.1--P5.4 分别完成生产编译/确定性输入、
+  Julia 完整生产轨迹、PAPER2024 独立 oracle/时间收敛，以及发布功能、
+  动态海洋、restart/MPI 和 30 天耐久验收；
+- P5.5 在 exact candidate `f3f50a77a0e01fd4a1687ead312282422999280d`
+  新鲜重跑四个科学组和完整 Phase 4 predecessor，最终 754/754 PASS；
+- 单独 exit audit 重验 754 行、14 个案例、五个子 manifest 和
+  P5-D001--P5-D021，最终 21/21 PASS；
+- 正式失败根全部保留；修正限于聚合/隔离/审计器，冻结公式、输入、
+  容差、期望结果和生产 BOM 语义未因候选输出而放宽；
+- 科学准入结论为 PASS，但 OpenMP、目标服务器、并行文件系统、
+  changed-decomposition restart、10 万粒子/256 ranks 和 `<20%` 开销均为
+  NOT_EVALUATED，因此 Phase 5 状态仍为“进行中”；
+- 当前收口只在本地分支进行，无 GitHub push/PR/merge/tag；文档提交后需
+  对新 exact HEAD 重跑 P5-SA-G99 754/754 与独立 21/21；
+- 下一任务是经授权集成 P5.5，随后创建独立 HPC freeze；建议编号 P5.6，
+  先锁定目标站点和 B20/OpenMP/restart/I/O/performance 契约。
 
 ## 6. 每次会话结束时必须更新
 
