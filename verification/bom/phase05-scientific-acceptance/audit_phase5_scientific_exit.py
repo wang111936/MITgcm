@@ -383,10 +383,12 @@ def main() -> int:
                           re.I), "OFFLINE became a pkg/bom dependency")
     passed("P5-D006", "pkg/bom has no OFFLINE include/call; OFFLINE remains case provider")
 
-    require(input_audit["binary_field_checks"] == 299 and
-            input_audit["file_count"] == 313,
+    require(input_audit["binary_field_checks"] == 302 and
+            input_audit["file_count"] == 316 and
+            input_audit["time_records"] == 97 and
+            input_audit["forcing_records"] == 98,
             "native C-grid input inventory changed")
-    passed("P5-D007", "independent P5-I01 reader: 299 binary checks, 313 files, 97 native-time records")
+    passed("P5-D007", "independent P5-I01 reader: 302 binary checks, 316 files, 97 endpoints, 98 forcing records")
 
     require(p52["component_comparisons"] == 8352 and
             p52_result["components"]["tolerance"] == {
