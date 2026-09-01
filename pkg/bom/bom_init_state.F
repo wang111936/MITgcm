@@ -60,6 +60,8 @@ C !LOCAL VARIABLES:
       bomEventBufferCount = 0
       bomNextOutputTime = 0. _d 0
       bomOutputScheduleReady = .FALSE.
+      bomArchiveFrameCount = 0
+      bomArchiveStarted = .FALSE.
       bomEnvReady = .FALSE.
       bomGradReady = .FALSE.
       bomMetricReady = .FALSE.
@@ -145,6 +147,7 @@ C !LOCAL VARIABLES:
       ENDDO
       DO bj=1,nSy
        DO bi=1,nSx
+        bomArchiveTileRecords(bi,bj) = 0_8
         bomNPartTile(bi,bj) = 0
         bomFreeCount(bi,bj) = bomMaxPartTile
         bomNGhostTile(bi,bj) = 0

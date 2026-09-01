@@ -34,7 +34,8 @@ C !LOCAL VARIABLES:
      &       bomMode, bomEquationMode, bomIntegrator,
      &       bomDeltaTTarget, bomOutputFreq, bomPickupFreq,
      &       bomSeed, bomMaxParticles, bomInitialIter,
-     &       bomInitialFile, bomSpringLaw, bomNeighborPolicy
+     &       bomInitialFile, bomSpringLaw, bomNeighborPolicy,
+     &       bomTrajectoryMode, bomTrajectoryFile
       NAMELIST /BOM_PARM02/
      &       bomLeewayWindCoeff, bomWindSource,
      &       bomStokesSource, bomWetWeightMin, bomAdvCFL,
@@ -78,6 +79,8 @@ C--   Safe Phase-1.5 defaults retain an inactive state and inactive output.
       bomDeltaTTarget  = deltaTClock
       bomOutputFreq    = 0. _d 0
       bomPickupFreq    = 0. _d 0
+      bomTrajectoryMode = 'FRAME'
+      bomTrajectoryFile = 'bom_trajectories'
       bomSeed           = 20240801
       bomMaxParticles   = 0
       bomInitialIter    = 0

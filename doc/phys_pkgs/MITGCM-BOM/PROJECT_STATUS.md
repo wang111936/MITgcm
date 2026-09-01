@@ -4,32 +4,33 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-08-31 |
+| 最后更新 | 2026-09-01 |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p5.5-scientific-g99` |
-| 当前阶段 PR | Phase 4 已由 PR #44 收口；P5.5 本地科学候选已通过，尚未推送或建 PR |
+| 当前任务分支 | `MITGCM-BOM/p5.6-trajectory-archive` |
+| 当前阶段 PR | P5.5/P5.6 均为本地候选；本次未推送、未建 PR、未合并、未创建标签 |
 | 当前阶段 | Phase 5：科学验收与 HPC 加固（科学准入完成；HPC 未评估） |
-| 当前工作包 | P5.0--P5.5 科学验收：754/754，独立退出审计 21/21 |
-| 下一工作包 | 建议冻结 `P5.6 HPC acceptance`：先锁定目标服务器与 B20/OpenMP/restart/performance 契约 |
-| 当前阻塞 | 科学验收无阻塞；目标服务器配置尚未提供，阻塞站点 HPC 验收但不阻塞 HPC 方案冻结 |
+| 当前工作包 | P5.6-I/O：连续 MDS trajectory archive；基础 10/10、P3/P4 active 6/6 PASS |
+| 下一工作包 | 本地归档提交复核后，继续 P5.6-HPC 的目标服务器/OpenMP/MPI-4/长时 I/O 与性能验收 |
+| 当前阻塞 | 本地归档无阻塞；MNC 延期；目标服务器大规模 HPC 验收尚未完成 |
 
 ## 1. 当前恢复点
 
 下一次继续开发时，从以下任务开始：
 
-1. 读取 `verification/bom/phase05-scientific-acceptance/P5.5_CLOSEOUT.md`
-   和 `verification/bom/phase05-scientific-acceptance/`
-   `PHASE5_SCIENTIFIC_EXIT_AUDIT.md`；
-2. 核对 P5.5 收口提交的最终 exact-head 754/754 与 21/21 外部证据；
-3. 经用户明确授权后再批量推送、创建 PR 并以 merge commit 集成到
-   `MITGCM-BOM/development`；本阶段不创建 v1.0 标签；
-4. 从集成头创建独立 HPC 冻结分支，建议工作包编号为 P5.6；
-5. 收集目标服务器工具链、Slurm、并行文件系统、CPU/NUMA 与绑定信息，
-   冻结 B20、OpenMP、变分解 restart、I/O 和性能验收协议；
-6. Phase 6 一般网格继续后置，不进入 Phase 5 HPC 范围。
+1. 读取 `verification/bom/phase05-trajectory-archive/README.md` 和
+   `TEST_PLAN.md`，核对基础 `p56-archive-dev-attempt08` 10/10 与 active
+   `p56-archive-active-dev-attempt04` 6/6 证据；
+2. 检查 `MITGCM-BOM/p5.6-trajectory-archive` 的本地提交和工作树，保持
+   `FRAME` 默认、`ARCHIVE` 显式选择以及 MNC 延期边界；
+3. 只有经用户明确授权后才批量推送 P5.5/P5.6、创建 PR 并规划顺序集成；
+   本阶段不创建 v1.0 标签；
+4. 继续 P5.6-HPC：收集目标服务器工具链、Slurm、并行文件系统、
+   CPU/NUMA 与绑定信息，完成 OpenMP、MPI-4/目标规模、长帧 I/O、restart
+   和性能验收；
+5. Phase 6 一般网格继续后置，不进入 Phase 5 HPC 范围。
 
 开始前执行：
 
@@ -49,12 +50,39 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
 | Phase 4 生物与陆地 | 完成 | v0.5 | PR #33--#44 已合并；release-head 门禁/独立审计通过；annotated `MITGCM-BOM-v0.5` 已发布 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
-| Phase 5 科学验收与 HPC 加固 | 进行中 | v1.0 | P5.0--P5.5 科学准入候选 754/754、独立 21/21 PASS；HPC 为 NOT_EVALUATED | [P5.5 closeout](../../../verification/bom/phase05-scientific-acceptance/P5.5_CLOSEOUT.md) |
+| Phase 5 科学验收与 HPC 加固 | 进行中 | v1.0 | P5.0--P5.5 科学准入 754/754、独立 21/21 PASS；P5.6-I/O archive 10/10+6/6 PASS；目标 HPC 仍未验收 | [P5.6 archive](../../../verification/bom/phase05-trajectory-archive/TEST_PLAN.md) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
 状态只能使用：`未开始`、`进行中`、`阻塞`、`完成`、`后置`。只有阶段退出条件全部通过后才能标记为完成。
 
 ## 3. 已完成证据
+
+### P5.6-I/O continuous MDS trajectory archive
+
+- 在 `MITGCM-BOM/p5.6-trajectory-archive` 新增显式
+  `bomTrajectoryMode='ARCHIVE'`，默认 `FRAME` 输出契约保持不变，MNC
+  仍延期；
+- 每次启动按 `nIter0` 写一个不可覆盖 segment：每 tile 固定一对 MDS
+  文件、一个全局 index 对、一个原子 `.claim`，P3/P4 激活时分别增加
+  一对固定追加签名流；四 tile 文件数恒为 11/13/15，不随输出帧数增长；
+- 64-word owner 记录保留全部 schema-2 core，并嵌入 P3 49--56、P4
+  57--60；固定签名流保存完整 P3/P4 provenance；index `.meta` 是唯一
+  committed-frame ledger，未提交的 index/tile/signature 尾部不对读者可见；
+- `p56-archive-dev-attempt08` 通过 10/10：串行/MPI-2 debug/IEEE、1/3
+  帧恒定文件数、全 64 words FRAME 等价、claim、碰撞哈希不变、基础
+  orphan tail、2+1 split restart 和 MPI-2 publication；
+- `p56-archive-active-dev-attempt04` 通过 6/6：P3 serial/MPI-2、P4-only
+  `initial=4/live=2`、测试态计数增长 `initial=1/live=2` 和 P3+P4 的完整
+  owner/signature 等价；计数增长夹具验证容量边界，但不宣称完整 birth
+  transaction；
+- 证据根分别为
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase05/p56-archive/`
+  `p56-archive-dev-attempt08` 与
+  `/home/wyl/projects/mitgcm-bom-test-artifacts/phase05/p56-archive-active/`
+  `p56-archive-active-dev-attempt04`；
+- 当前门禁未宣称真实并发双启动故障注入、active signature orphan 注入、
+  MPI-4/OpenMP、目标并行文件系统或大规模性能验收；Phase 5 仍为
+  “进行中”；未读取或修改 SKRIPS，未推送 GitHub。
 
 ### P5.5 科学聚合与独立退出审计
 
@@ -1264,6 +1292,27 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   对新 exact HEAD 重跑 P5-SA-G99 754/754 与独立 21/21；
 - 下一任务是经授权集成 P5.5，随后创建独立 HPC freeze；建议编号 P5.6，
   先锁定目标站点和 B20/OpenMP/restart/I/O/performance 契约。
+
+### 2026-09-01：P5.6-I/O 连续 trajectory archive 本地完成
+
+- 服务器长时模拟暴露 `FRAME` 每个输出时刻创建一组 BOM trajectory
+  文件的问题；新增 opt-in `ARCHIVE`，将同一次启动的所有时刻追加到按
+  `nIter0` 命名的固定 MDS segment，MNC 本包不实施；
+- 固定 segment 使用 tile/index MDS 对、原子 `.claim` 和条件 P3/P4
+  signature stream；四 tile 为 11/13/15 个文件，文件数与帧数无关；
+- 审计补齐完整 P3/P4 provenance、index-ledger/orphan-tail 语义、并发名称
+  claim、负 `nIter0` 拒绝和 P3/P4 effective-live 计数；P4-only
+  `initial=4/live=2` 与测试态计数增长 `initial=1/live=2` 均已验证，解码器
+  按全局容量而不是初始数执行 live 上界检查；后者不等同于完整 birth
+  transaction；
+- 基础最终门禁 `p56-archive-dev-attempt08` 为 10/10 PASS，active 最终
+  门禁 `p56-archive-active-dev-attempt04` 为 6/6 PASS；详细矩阵和证据路径
+  见 `verification/bom/phase05-trajectory-archive/TEST_PLAN.md`；
+- 默认 `FRAME`、pickup/restart、P4 event shards/manifests 均保持不变；
+  tutorial `analysis/plot_bom.py` 仍只支持 FRAME；
+- 本工作与 SKRIPS 独立，未读取或修改 SKRIPS 文件；当前仅本地开发，
+  未 push/PR/merge/tag。下一任务是在本地提交与复核后继续目标服务器
+  HPC/OpenMP/MPI-4/长帧压力和性能验收。
 
 ## 6. 每次会话结束时必须更新
 

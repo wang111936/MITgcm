@@ -144,8 +144,13 @@ C--     Explicitly enabled zero-particle output still writes tiled headers.
           STOP 'ABNORMAL END: S/R BOM_OUTPUT EVENT BUDGET'
         ENDIF
       ENDIF
-      CALL BOM_WRITE_TRAJECTORY(
-     I     myTime, scheduledTime, myIter, myThid )
+      IF ( bomTrajectoryMode.EQ.'ARCHIVE' ) THEN
+        CALL BOM_WRITE_TRAJECTORY_ARCHIVE(
+     I       myTime, scheduledTime, myIter, myThid )
+      ELSE
+        CALL BOM_WRITE_TRAJECTORY(
+     I       myTime, scheduledTime, myIter, myThid )
+      ENDIF
 
       _BEGIN_MASTER(myThid)
       bomNextOutputTime = nextTime

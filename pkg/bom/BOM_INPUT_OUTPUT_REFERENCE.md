@@ -89,7 +89,10 @@ multiple of `bomNPeriod`.
 
 ## 3. Trajectory files
 
-At every scheduled output time the package writes a tiled MDS family with
+`bomTrajectoryMode` selects `FRAME` or `ARCHIVE`. Both are MDS float64 output;
+neither path is MNC/NetCDF output.
+
+In the default `FRAME` mode every scheduled output time writes a tiled family with
 prefix `bom_traj.<suffix>`. With the default iteration suffix, a member looks
 like:
 
@@ -155,6 +158,100 @@ Diagnostics are evaluated at the accepted final particle position and exact
 sample time. The duplicated base current, wind, and drift values are checked
 for exact consistency when a pickup is read.
 
+### Continuous `ARCHIVE` mode
+
+Set these controls in `BOM_PARM01` when a long simulation must avoid one file
+family per output time:
+
+```fortran
+ bomTrajectoryMode='ARCHIVE',
+ bomTrajectoryFile='bom_trajectories',
+```
+
+One model startup creates the segment
+`bom_trajectories.s<10-digit-nIter0>`. A restart has a different `nIter0` and
+therefore creates a new segment instead of overwriting or truncating the old
+one. Before the first MDS member is written, rank 0 atomically creates the
+persistent text member `<segment>.claim` with Fortran `STATUS='NEW'`. An
+existing member or claim makes a same-`nIter0` startup fail closed; the claim
+prevents two concurrent startups from both passing a read-only collision
+preflight.
+
+The member count is independent of the number of frames:
+
+```text
+2 * (global tile count + 1) + 1
+  + 2 when P3 is active
+  + 2 when P4 is active
+```
+
+The first term is one `.data/.meta` pair per tile plus the global index pair;
+`+1` is the claim. The conditional pairs are fixed, append-only `.p3sig` and
+`.p4sig` signature streams. Thus a four-tile segment has 11 files with neither
+extension, 13 with P3 only or P4 only, and 15 with both P3 and P4.
+
+Each tile is a sequence of variable-length frame blocks:
+
+```text
+64-word frame header
+N x 64-word owner record
+64-word tile commit
+```
+
+Empty tiles still append a header and commit. The header contract is:
+
+| Fields | Meaning |
+|---:|---|
+| 1--3 | Archive schema `1`, width `64`, header kind `1`. |
+| 4--9 | Frame ordinal, startup `nIter0`, iteration, sample/scheduled/next times. |
+| 10--14 | Tile owners, initial/historical owner budget, effective live owners, active core schema and width. Before P4 the effective count is the admitted owner count; P4 uses its maintained live-owner count. |
+| 15--20 | Mode, equation, current, wind, Stokes and integrator codes. |
+| 21--30 | P3/P4 presence flags, schemas and fixed owner ranges 49--56/57--60. |
+| 31--38 | Core/reserve/diagnostic ranges and precision. |
+| 39--51 | Decomposition, domain, global tile origin, rank and local tile. |
+| 52--59 | Previous high-water and block/owner/end record offsets as exact high/low words. |
+| 60--62 | Tile capacity and P3/P4 extension widths. |
+| 63--64 | Reserved zeros. |
+
+The unified owner record is:
+
+| Fields | Meaning |
+|---:|---|
+| 1--48 | Byte-identical normalized schema-2 core mapping described above. LEEW uses its schema-1 fields and zero-fills the remainder. |
+| 49--56 | P3 ID, raft ID, neighbor count, raft size and spring east/north fields; zero when P3 is inactive. |
+| 57--60 | P4 parent ID, amount and birth count; zero when P4 is inactive. |
+| 61--64 | Reserved zeros. |
+
+A tile commit repeats the frame identity, times, counts and exact block offsets;
+its field 28 is the complete marker `1`. Tile `.meta` `nrecords` is the local
+high-water after the last complete block.
+
+The global index uses the same 64-word width. Record 1 is the segment
+descriptor: archive/core/extension schemas, feature and source codes,
+decomposition, capacity, initial counts, schedule, and conditional signature
+stream dimensions. Record `frame+1` is the ordered frame commit and contains
+iteration, three times, global counts, feature codes, complete marker `1` in
+field 28, and per-frame/cumulative P3/P4 signature records in fields 33--36.
+Field 37 confirms signature publication is complete. When P3 or P4 is active,
+rank 0 appends the complete legacy signature bytes for that frame to the one
+fixed `.p3sig.data/.meta` or `.p4sig.data/.meta` pair before advancing the
+index.
+
+All ranks finish tile data, and rank 0 finishes active signature chunks, before
+rank 0 advances the index. Index `.meta` is the sole committed-frame ledger.
+Readers expose only its committed records and ignore: index data beyond index
+meta; tile data or tile meta beyond blocks named by committed index records;
+and signature data or meta beyond the fields 34/36 cumulative high-water.
+The `.claim` reserves the segment name but is not a frame publication marker.
+The MDS meta rewrite is ordered but is not a filesystem-level atomic rename;
+a strict node-failure workflow should validate/copy a closed segment before
+publication outside the run directory.
+
+`ARCHIVE` changes analysis output only. Pickup/restart, P4 event shards and
+their manifests retain their existing formats. The archive segment identity is
+not pickup state: restart continuity is represented explicitly by the new
+`nIter0` segment.
+
 ### Status codes
 
 | Code | Name | Meaning |
@@ -167,13 +264,16 @@ for exact consistency when a pickup is read.
 | 5 | `INVALID` | Rejected/internal invalid state; never an admitted initial status. |
 | 6 | `WAITING` | Valid owner awaiting release. |
 
-The introductory decoder reads the schema-2 core and therefore works for
-plain, spring, and Phase-4 containers. Terminal/event detail remains in the
-Phase-4 sidecars and event shards.
+The introductory `analysis/plot_bom.py` decoder reads `FRAME` schema-2 core
+families and therefore works for plain, spring, and Phase-4 FRAME containers.
+It does not recognize `ARCHIVE` segments. The independent archive contract
+decoder is `verification/bom/phase05-trajectory-archive/verify_archive.py`;
+terminal/event detail remains in the Phase-4 sidecars and event shards.
 
 ## 4. Conditional sidecars
 
-The core schema remains stable as features are added:
+The following per-frame members apply to `FRAME`. The core schema remains
+stable as features are added:
 
 | Active path | Container | Additional members |
 |---|---:|---|
@@ -187,6 +287,13 @@ The `.p3` owner-aligned sidecar stores parent/component and spring state. The
 persists accepted temperature/nutrient brackets and counters. The manifest is
 the publication point and records exact member names, sizes, hashes, source
 fingerprint, schema, and decomposition.
+
+In `ARCHIVE`, the owner-aligned P3/P4 trajectory fields are embedded in words
+49--60 of the unified owner record, so they do not create per-time owner
+sidecars. Complete P3/P4 provenance is retained in the fixed, append-only
+`.p3sig`/`.p4sig` stream pairs described above. Therefore no trajectory
+sidecar, signature, or manifest *file family* is created per output time.
+Pickup sidecars and manifests are unchanged.
 
 Event output uses append-only per-rank shards derived from `bomEventFile`, for
 example `bom_events.r000000...`, with a matching per-rank `.manifest`.

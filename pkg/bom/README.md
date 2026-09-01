@@ -101,6 +101,8 @@ A minimal BOM slow-manifold configuration is:
  bomIntegrator='RK4',
  bomDeltaTTarget=900.,
  bomOutputFreq=900.,
+ bomTrajectoryMode='ARCHIVE',
+ bomTrajectoryFile='bom_trajectories',
  bomPickupFreq=0.,
  bomMaxParticles=3,
  bomInitialIter=0,
@@ -210,12 +212,30 @@ zero age.
 
 ## 7. Output and restart
 
-With `bomOutputFreq>0`, each scheduled frame writes tiled
-`bom_traj.<suffix>.*.data` files. BOM mode uses a 48-field schema-2 core that
-contains particle position, velocity, ownership, and all 27 slow-manifold
-diagnostics. Spring runs add `.p3` and `.p3sig` sidecars. Land/biology runs add
-`.p4`, `.p4sig`, `.p4bio`, and `.p4manifest` members plus append-only event
-shards.
+With `bomOutputFreq>0`, `bomTrajectoryMode='FRAME'` retains the original tiled
+`bom_traj.<suffix>.*.data` family for each scheduled time. This remains the
+default for existing cases. BOM mode uses a 48-field schema-2 core containing
+position, velocity, ownership, and all 27 slow-manifold diagnostics; active
+P3/P4 paths add their existing per-frame members.
+
+For long runs, set `bomTrajectoryMode='ARCHIVE'`. One model startup then appends
+every scheduled frame to `bomTrajectoryFile.s<nIter0>`. A segment contains one
+persistent `.data/.meta` pair per tile, one global index pair, one atomic
+`.claim`, and one fixed `.p3sig` and/or `.p4sig` pair when those paths are
+active. Its file count is
+`2*(global tiles+1)+1+2*hasP3+2*hasP4`, independent of simulation time; a
+four-tile segment therefore has 11, 13, or 15 files.
+
+The unified 64-word record preserves the 48 core words and embeds the eight P3
+and four P4 owner words; the fixed signature streams retain their complete
+per-frame provenance. A restart writes a new segment named by its new `nIter0`;
+an existing claim or member is rejected rather than overwritten. The claim
+reserves the segment name, while index `.meta` is the authoritative
+committed-frame ledger. This is MDS output; MNC/NetCDF support is separate and
+remains deferred.
+
+The independent decoder and base/active production gates are in
+`verification/bom/phase05-trajectory-archive/`.
 
 MITgcm checkpoint scheduling (`pChkptFreq`, `chkptFreq`, or the normal package
 pickup call) writes `pickup_bom.<suffix>*`. Keep `bomPickupFreq=0`; it is a
@@ -229,8 +249,11 @@ member into scratch state and commits only after all ranks agree. A missing,
 truncated, corrupt, or incompatible member is fatal before any restarted
 trajectory frame is published.
 
-Use `analysis/plot_bom.py` from the tutorial to combine tiled trajectory
-records into CSV and a plan-view figure.
+Use `analysis/plot_bom.py` from the tutorial to combine tiled `FRAME`
+trajectory records into CSV and a plan-view figure. It is currently
+FRAME-only and does not read `ARCHIVE` segments; use the independent archive
+decoder above to validate an archive before adding a dedicated analysis
+adapter.
 
 ## 8. Springs, rafts, land, and biology
 
