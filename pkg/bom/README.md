@@ -6,7 +6,13 @@ slow-manifold equations (`BOM`) with the `PAPER2024` and `JULIA` conventions.
 It does not call, wrap, or require `pkg/flt`; `ALLOW_BOM`/`useBOM` and
 `ALLOW_FLT`/`useFLT` are separate compile-time and run-time switches.
 
-This guide describes the released production interface. For an executable,
+For the current development pre-release, its qualification evidence and open
+limitations, read the
+[2026-09-14 pre-release record](../../doc/phys_pkgs/MITGCM-BOM/PRE_RELEASE_2026-09-14.md).
+This is not an HPC-qualified v1.0 release. In particular, S1 trajectory noise
+and the frozen extended biology initial-file interface are not implemented.
+
+This guide describes the production interface. For an executable,
 self-contained example, start with
 [`verification/tutorial_MITGCM-BOM`](../../verification/tutorial_MITGCM-BOM/README.md).
 The complete namelist and file contracts are in
@@ -19,7 +25,8 @@ The current package supports:
 
 - regular Cartesian and spherical-polar grids;
 - surface current fields from the active MITgcm state, including `pkg/offline`;
-- no wind or exact-time EXF wind;
+- no wind or exact-time EXF wind from regular, non-yearly sequences,
+  with or without `pkg/cal`;
 - no explicit Stokes drift, BOM-owned time-varying Stokes files, or a
   compile-time external coupler provider;
 - `LEEW`, `PAPER2024`, and `JULIA` drift equations with RK2 or RK4;
@@ -39,6 +46,13 @@ deliberately rejected rather than silently approximated:
 - restart with a different rank/tile decomposition;
 - three-dimensional particle motion, sinking, or vertical mixing; and
 - EXF wind without `ALLOW_EXF`, `useEXF=.TRUE.`, and `useAtmWind=.TRUE.`.
+
+Yearly EXF wind files and negative-period calendar-monthly wind inputs remain
+unsupported. Fresh biological owners currently use a common `bomS0` with
+zero parent ID and birth count; per-owner extended biological initial input
+is an open freeze/implementation discrepancy, distinct from supported pickup
+restoration. Event shards retain their existing full-history copy/hash flush
+and fixed buffer limits; trajectory ARCHIVE does not remove those limits.
 
 ## 2. Build the package
 
@@ -101,6 +115,8 @@ A minimal BOM slow-manifold configuration is:
  bomIntegrator='RK4',
  bomDeltaTTarget=900.,
  bomOutputFreq=900.,
+ bomTrajectoryMode='ARCHIVE',
+ bomTrajectoryFile='bom_trajectories',
  bomPickupFreq=0.,
  bomMaxParticles=3,
  bomInitialIter=0,
@@ -210,12 +226,30 @@ zero age.
 
 ## 7. Output and restart
 
-With `bomOutputFreq>0`, each scheduled frame writes tiled
-`bom_traj.<suffix>.*.data` files. BOM mode uses a 48-field schema-2 core that
-contains particle position, velocity, ownership, and all 27 slow-manifold
-diagnostics. Spring runs add `.p3` and `.p3sig` sidecars. Land/biology runs add
-`.p4`, `.p4sig`, `.p4bio`, and `.p4manifest` members plus append-only event
-shards.
+With `bomOutputFreq>0`, `bomTrajectoryMode='FRAME'` retains the original tiled
+`bom_traj.<suffix>.*.data` family for each scheduled time. This remains the
+default for existing cases. BOM mode uses a 48-field schema-2 core containing
+position, velocity, ownership, and all 27 slow-manifold diagnostics; active
+P3/P4 paths add their existing per-frame members.
+
+For long runs, set `bomTrajectoryMode='ARCHIVE'`. One model startup then appends
+every scheduled frame to `bomTrajectoryFile.s<nIter0>`. A segment contains one
+persistent `.data/.meta` pair per tile, one global index pair, one atomic
+`.claim`, and one fixed `.p3sig` and/or `.p4sig` pair when those paths are
+active. Its file count is
+`2*(global tiles+1)+1+2*hasP3+2*hasP4`, independent of simulation time; a
+four-tile segment therefore has 11, 13, or 15 files.
+
+The unified 64-word record preserves the 48 core words and embeds the eight P3
+and four P4 owner words; the fixed signature streams retain their complete
+per-frame provenance. A restart writes a new segment named by its new `nIter0`;
+an existing claim or member is rejected rather than overwritten. The claim
+reserves the segment name, while index `.meta` is the authoritative
+committed-frame ledger. This is MDS output; MNC/NetCDF support is separate and
+remains deferred.
+
+The independent decoder and base/active production gates are in
+`verification/bom/phase05-trajectory-archive/`.
 
 MITgcm checkpoint scheduling (`pChkptFreq`, `chkptFreq`, or the normal package
 pickup call) writes `pickup_bom.<suffix>*`. Keep `bomPickupFreq=0`; it is a
@@ -229,8 +263,11 @@ member into scratch state and commits only after all ranks agree. A missing,
 truncated, corrupt, or incompatible member is fatal before any restarted
 trajectory frame is published.
 
-Use `analysis/plot_bom.py` from the tutorial to combine tiled trajectory
-records into CSV and a plan-view figure.
+Use `analysis/plot_bom.py` from the tutorial to combine tiled `FRAME`
+trajectory records into CSV and a plan-view figure. It is currently
+FRAME-only and does not read `ARCHIVE` segments; use the independent archive
+decoder above to validate an archive before adding a dedicated analysis
+adapter.
 
 ## 8. Springs, rafts, land, and biology
 

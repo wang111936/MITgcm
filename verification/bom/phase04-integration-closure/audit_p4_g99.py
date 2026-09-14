@@ -19,6 +19,7 @@ EXPECTED_GROUPS = {
     "phase3-predecessor": 538,
 }
 P4_BASELINE = "70c02a277ea7d472ccf6e9a7533b2b41ed7eab5a"
+P5_RELEASE_BASELINE = "1f48a75d4865fa6d5235a4db306e8abe31534f3e"
 ALLOWED_PREFIXES = (
     "pkg/bom/",
     "verification/bom/phase04-",
@@ -35,6 +36,13 @@ ALLOWED_PATHS = {
     "verification/bom/phase03-performance-closeout/code/BOM_SIZE.h.performance",
     "verification/bom/phase03-performance-closeout/run_performance_gate.sh",
     "verification/bom/phase03-spring-ensemble/run_spring_ensemble_gate.sh",
+}
+P55_ALLOWED_PREFIXES = (
+    "verification/bom/phase05-scientific-acceptance/",
+    "verification/tutorial_MITGCM-BOM/",
+)
+P55_ALLOWED_PATHS = {
+    "eesupp/src/ini_procs.F",
 }
 
 
@@ -55,24 +63,50 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
 
 
 def main() -> int:
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         raise SystemExit(
-            "usage: audit_p4_g99.py REPO EVIDENCE HEAD TOTAL"
+            "usage: audit_p4_g99.py REPO EVIDENCE HEAD MODE TOTAL"
         )
     repo = Path(sys.argv[1]).resolve()
     evidence = Path(sys.argv[2]).resolve()
     expected_head = sys.argv[3]
-    expected_total = int(sys.argv[4])
+    mode = sys.argv[4]
+    expected_total = int(sys.argv[5])
+    require(mode in {"final", "predecessor"}, f"invalid mode: {mode}")
     require(git(repo, "rev-parse", "HEAD") == expected_head,
             "head mismatch")
-    require(git(repo, "branch", "--show-current") ==
-            "MITGCM-BOM/development", "development branch required")
     require(git(repo, "status", "--porcelain=v1") == "",
             "dirty worktree")
-    require(git(repo, "tag", "-l", "MITGCM-BOM-v0.5") == "",
-            "v0.5 exists")
     require(git(repo, "rev-parse", "MITGCM-BOM-v0.4^{commit}") ==
             P4_BASELINE, "v0.4 baseline mismatch")
+    if mode == "final":
+        require(git(repo, "branch", "--show-current") ==
+                "MITGCM-BOM/development", "development branch required")
+        require(git(repo, "tag", "-l", "MITGCM-BOM-v0.5") == "",
+                "v0.5 exists")
+        allowed_prefixes = ALLOWED_PREFIXES
+        allowed_paths = ALLOWED_PATHS
+        expected_p3_scope = "P4.5"
+    else:
+        require(git(repo, "branch", "--show-current") ==
+                "MITGCM-BOM/p4.5-capacity-exit",
+                "isolated P4.5 replay branch required")
+        require(git(repo, "rev-parse", "MITGCM-BOM/development") ==
+                expected_head, "replay development ref mismatch")
+        git(repo, "cat-file", "-e",
+            f"{P5_RELEASE_BASELINE}^{{commit}}")
+        git(repo, "merge-base", "--is-ancestor",
+            P5_RELEASE_BASELINE, expected_head)
+        allowed_prefixes = ALLOWED_PREFIXES + P55_ALLOWED_PREFIXES
+        allowed_paths = ALLOWED_PATHS | P55_ALLOWED_PATHS
+        expected_p3_scope = "P5.5"
+    require((evidence / "mode.txt").read_text(
+        encoding="ascii").strip() == mode, "evidence mode mismatch")
+    p3_root = Path((evidence / "p3-root.txt").read_text(
+        encoding="ascii").strip())
+    require((p3_root / "closure-scope.txt").read_text(
+        encoding="ascii").strip() == expected_p3_scope,
+        "Phase 3 closure scope mismatch")
 
     changed = git(
         repo, "diff", "--name-only", f"{P4_BASELINE}...{expected_head}"
@@ -82,7 +116,7 @@ def main() -> int:
         lowered = path.lower()
         require("skrips" not in lowered and "codex" not in lowered,
                 f"forbidden project term: {path}")
-        require(path in ALLOWED_PATHS or path.startswith(ALLOWED_PREFIXES),
+        require(path in allowed_paths or path.startswith(allowed_prefixes),
                 f"path outside Phase 4 scope: {path}")
 
     audit_rows = read_tsv(evidence / "row-audit.tsv")
@@ -190,8 +224,12 @@ def main() -> int:
     native = sorted((evidence / "native-manifests").glob("*.sha256"))
     require(len(native) == len(EXPECTED_GROUPS),
             "native manifests missing")
+    markers = {
+        "final": "P4-G99 FINAL AUDIT PASS",
+        "predecessor": "P4-G99 PREDECESSOR AUDIT PASS",
+    }
     print(
-        f"P4-G99 FINAL AUDIT PASS: head={expected_head} "
+        f"{markers[mode]}: head={expected_head} "
         f"rows={expected_total} files={len(changed)}"
     )
     return 0

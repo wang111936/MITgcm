@@ -1,0 +1,11 @@
+case	result	detail
+build-serial	PASS	debug compile and schema-2 pickup symbols
+build-mpi4	PASS	debug compile and schema-2 pickup symbols
+schema2-write	PASS	BOM schema 2 signature, particles, and sidecars
+schema2-read	PASS	transactional zero-particle schema-2 restart
+stokes-bitwise	PASS	nonzero FILES Stokes continuous/split endpoint pickup bitwise identical
+leew-schema1	PASS	schema-1 layout and restart compatibility
+schema1-bom-reject	PASS	schema 1 rejected before BOM particle commit
+parameter-fingerprint	PASS	legal changed SI tau rejected exactly
+endpoint-preflight	PASS	truncated sidecar rejected before commit
+mpi4-schema2	PASS	four-rank schema-2 write and transactional restart

@@ -69,13 +69,14 @@ C !LOCAL VARIABLES:
       uHasFile = uwindfile.NE.' '
       vHasFile = vwindfile.NE.' '
 
-C--   This increment supports regular non-calendar EXF sequences.  Reject
-C     unsupported ownership/timing before any reader or work-array write.
+C--   This provider supports regular, non-yearly EXF sequences with or
+C     without pkg/cal.  Reject unsupported ownership/timing before any
+C     reader or work-array write.
       IF ( .NOT.IEEE_IS_FINITE(targetTime) )
      &     localErrCount = localErrCount + 1
       IF ( .NOT.useEXF .OR. .NOT.useAtmWind )
      &     localErrCount = localErrCount + 1
-      IF ( useCAL .OR. useExfYearlyFields )
+      IF ( useExfYearlyFields )
      &     localErrCount = localErrCount + 1
       IF ( exf_iprec.NE.32 .AND. exf_iprec.NE.64 )
      &     localErrCount = localErrCount + 1
@@ -177,7 +178,8 @@ C     both files contain every record before invoking an EXF reader.
       IF ( globalErrCount.GT.0 ) RETURN
 
 C--   Initialise and independently evaluate in BOM-owned storage.  Passing
-C     nIter0 forces EXF to load both records for every endpoint request.
+C     nIter0 forces EXF to load both records for every endpoint request in
+C     both calendar and non-calendar regular-sequence branches.
       CALL EXF_INIT_FLD(
      I     'uwind', uwindfile, uwindmask,
      I     uwindperiod, exf_inscal_uwind, uwindconst,

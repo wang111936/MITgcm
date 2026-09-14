@@ -1,0 +1,41 @@
+case	result	detail
+source-contract	PASS	frozen names; test code remains isolated
+build-serial	PASS	debug compile and transaction symbols
+build-mpi4	PASS	debug compile and transaction symbols
+build-production-serial	PASS	debug compile and transaction symbols
+build-exf-serial	PASS	debug compile and transaction symbols
+build-exf-mpi4	PASS	debug compile and transaction symbols
+build-production-exf-serial	PASS	debug compile and transaction symbols
+build-exf-cal-serial	PASS	debug compile and transaction symbols
+build-exf-cal-mpi4	PASS	debug compile and transaction symbols
+build-production-exf-cal-serial	PASS	debug compile and transaction symbols
+build-coupler-serial	PASS	debug compile and transaction symbols
+build-coupler-mpi4	PASS	debug compile and transaction symbols
+build-production-coupler-serial	PASS	debug compile and transaction symbols
+bom-serial	PASS	fresh/normal ocean-NONE-NONE and rollback transaction
+bom-mpi4	PASS	fresh/normal ocean-NONE-NONE and rollback transaction
+bom-env-time-serial	PASS	P2-E06 snap/linear/secant and P2-N02 no extrapolation
+bom-env-time-mpi4	PASS	P2-E06 snap/linear/secant and P2-N02 no extrapolation
+bom-stokes-serial	PASS	P2-E04 exact/repeat FILES Stokes and P2-N03 rollback
+bom-stokes-mpi4	PASS	P2-E04 exact/repeat FILES Stokes and P2-N03 rollback
+bom-coupler-serial	PASS	P2-E05 copied exact labels and P2-N03 transactional rollback
+bom-coupler-mpi4	PASS	P2-E05 copied exact labels and P2-N03 transactional rollback
+bom-coupler-sigma-zero	PASS	P2-E05 copied exact labels and P2-N03 transactional rollback
+bom-exf-serial	PASS	P2-E03 exact EXF values and P2-N03 transactional rollback
+bom-exf-mpi4	PASS	P2-E03 exact EXF values and P2-N03 transactional rollback
+bom-exf-cal-serial	PASS	P2-E03 exact EXF values and P2-N03 transactional rollback
+bom-exf-cal-mpi4	PASS	P2-E03 exact EXF values and P2-N03 transactional rollback
+production-one-step	PASS	production fresh hook and one normal zero-particle step
+production-stokes-one-step	PASS	production BOM-owned FILES fresh hook and one normal step
+production-exf-one-step	PASS	production exact-time EXF fresh hook and one normal step
+production-exf-cal-one-step	PASS	production calendar EXF fresh hook and one normal step
+production-precombined-none	PASS	P2-E05 legal PRECOMBINED plus NONE source row
+leew-compat	PASS	Phase-1 defaults and normal end preserved
+current-unset	PASS	rejected before init; status=0
+nan-alpha	PASS	rejected before init; status=0
+tau-overflow	PASS	rejected before init; status=0
+none-sigma	PASS	rejected before init; status=0
+duplicate-files	PASS	rejected before init; status=0
+bad-files	PASS	rejected before init; status=0
+coupler-unavailable	PASS	rejected before init; status=0
+duplicate-coupler	PASS	rejected before init; status=0

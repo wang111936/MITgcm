@@ -14,6 +14,8 @@ initial file.
 | `bomIntegrator` | `'RK4'` | `'RK2'` or `'RK4'`. |
 | `bomDeltaTTarget` | `deltaTClock` | Positive finite target particle step in seconds. The actual substep divides the ocean step exactly. |
 | `bomOutputFreq` | `0` | Seconds between trajectory frames; zero disables output. A positive value must be at least `deltaTClock`. |
+| `bomTrajectoryMode` | `'FRAME'` | `'FRAME'` preserves one MDS family per output time. `'ARCHIVE'` appends all times from one model startup to one fixed MDS family per tile. |
+| `bomTrajectoryFile` | `'bom_trajectories'` | Nonblank MDS prefix used only by `ARCHIVE`. The startup `nIter0` is appended as the segment identity. |
 | `bomPickupFreq` | `0` | Reserved compatibility control; must remain zero. Use MITgcm checkpoint scheduling. |
 | `bomSeed` | `20240801` | Deterministic Phase-4 random seed. |
 | `bomMaxParticles` | `0` | Nonnegative global owner/birth ceiling, bounded by compiled initial and tile capacity. |

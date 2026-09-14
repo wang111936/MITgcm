@@ -18,7 +18,9 @@ CEOP
       CHARACTER*8  bomTempSource
       CHARACTER*8  bomNSource
       CHARACTER*12 bomBiologyMissingPolicy
+      CHARACTER*8  bomTrajectoryMode
       CHARACTER*(MAX_LEN_FNAM) bomInitialFile
+      CHARACTER*(MAX_LEN_FNAM) bomTrajectoryFile
       CHARACTER*(MAX_LEN_FNAM) bomUStokesFile
       CHARACTER*(MAX_LEN_FNAM) bomVStokesFile
       CHARACTER*(MAX_LEN_FNAM) bomNFile
@@ -31,7 +33,8 @@ CEOP
      &       bomNeighborPolicy, bomTempSource, bomNSource,
      &       bomBiologyMissingPolicy, bomInitialFile,
      &       bomUStokesFile, bomVStokesFile,
-     &       bomNFile, bomEventFile, bomP4SourceHead
+     &       bomNFile, bomEventFile, bomP4SourceHead,
+     &       bomTrajectoryMode, bomTrajectoryFile
 
       _RL bomDeltaTTarget
       _RL bomOutputFreq
@@ -114,6 +117,16 @@ C     complete post-migration output event.
 
       LOGICAL bomOutputScheduleReady
       COMMON /BOM_OUTPUT_L/ bomOutputScheduleReady
+
+C--   Continuous trajectory archive state.  A new segment is created for
+C     every model startup (the segment name includes nIter0); no pickup state
+C     is needed and an existing segment is never overwritten.
+      INTEGER bomArchiveFrameCount
+      COMMON /BOM_ARCHIVE_I/ bomArchiveFrameCount
+      INTEGER*8 bomArchiveTileRecords(nSx,nSy)
+      COMMON /BOM_ARCHIVE_I8/ bomArchiveTileRecords
+      LOGICAL bomArchiveStarted
+      COMMON /BOM_ARCHIVE_L/ bomArchiveStarted
 
 C--   Stable status values.  Biology and beaching are reserved until
 C     Phase 4, but their numeric codes must not be reused.

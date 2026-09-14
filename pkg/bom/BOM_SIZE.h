@@ -36,6 +36,12 @@ CEOP
       INTEGER bomOutputFields
       INTEGER bomOutputSchema2
       INTEGER bomOutputFields2
+      INTEGER bomArchiveSchema
+      INTEGER bomArchiveFields
+      INTEGER bomArchiveIndexSchema
+      INTEGER bomArchiveIndexFields
+      INTEGER bomArchiveHeaderType
+      INTEGER bomArchiveCommitType
       INTEGER bomP3ContainerSchema
       INTEGER bomP3SidecarSchema
       INTEGER bomP3SidecarFields
@@ -107,6 +113,12 @@ CEOP
       PARAMETER ( bomOutputFields   = 24 )
       PARAMETER ( bomOutputSchema2  = 2 )
       PARAMETER ( bomOutputFields2  = 48 )
+      PARAMETER ( bomArchiveSchema = 1 )
+      PARAMETER ( bomArchiveFields = 64 )
+      PARAMETER ( bomArchiveIndexSchema = 1 )
+      PARAMETER ( bomArchiveIndexFields = 64 )
+      PARAMETER ( bomArchiveHeaderType = 1 )
+      PARAMETER ( bomArchiveCommitType = 2 )
       PARAMETER ( bomP3ContainerSchema = 3 )
       PARAMETER ( bomP3SidecarSchema = 1 )
       PARAMETER ( bomP3SidecarFields = 8 )

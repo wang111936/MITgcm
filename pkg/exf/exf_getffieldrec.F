@@ -91,7 +91,10 @@ CEOP
       IF ( useCAL ) THEN
 
 C     Set some default values.
+C     myIter=nIter0 also lets independent work arrays request a complete
+C     two-record refresh without changing calendar or model-time globals.
        first = ((myTime - modelstart) .lt. 0.5*modelstep)
+     &         .OR. myIter.EQ.nIter0
        changed = .FALSE.
 
        if ( fldPeriod .eq. 0. _d 0 ) then

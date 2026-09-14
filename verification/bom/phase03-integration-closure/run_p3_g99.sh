@@ -168,8 +168,8 @@ if [[ "${MODE}" == predecessor ]]; then
   closure_scope="${MITGCM_BOM_PREDECESSOR_CLOSURE_SCOPE:-P4.1}"
   [[ "${closure_scope}" == P4.1 || "${closure_scope}" == P4.2 \
      || "${closure_scope}" == P4.3 || "${closure_scope}" == P4.4 \
-     || "${closure_scope}" == P4.5 ]] \
-    || fail 'predecessor closure scope must be P4.1--P4.5'
+     || "${closure_scope}" == P4.5 || "${closure_scope}" == P5.5 ]] \
+    || fail 'predecessor closure scope must be P4.1--P4.5 or P5.5'
 fi
 env MITGCM_BOM_EXPECTED_HEAD="${EXPECTED_HEAD}" \
     MITGCM_BOM_TEST_ID="${TEST_ID}-phase2" \
@@ -188,6 +188,8 @@ printf 'TOTAL\t%s\t%s\tPASS\n' "${EXPECTED_TOTAL}" "${actual_total}" \
   >> "${EVIDENCE_ROOT}/row-audit.tsv"
 printf '%s\n' "${EXPECTED_HEAD}" > "${EVIDENCE_ROOT}/source-head.txt"
 printf '%s\n' "${MODE}" > "${EVIDENCE_ROOT}/mode.txt"
+printf '%s\n' "${closure_scope}" \
+  > "${EVIDENCE_ROOT}/closure-scope.txt"
 git -C "${REPO_ROOT}" status --porcelain=v1 \
   > "${EVIDENCE_ROOT}/git-status.txt"
 [[ ! -s "${EVIDENCE_ROOT}/git-status.txt" ]] \
@@ -200,7 +202,7 @@ sha256sum "${CASE_DIR}"/*.sh "${CASE_DIR}"/*.py \
 
 python3 "${CASE_DIR}/audit_p3_g99.py" \
   "${REPO_ROOT}" "${EVIDENCE_ROOT}" "${EXPECTED_HEAD}" \
-  "${MODE}" "${EXPECTED_TOTAL}" \
+  "${MODE}" "${closure_scope}" "${EXPECTED_TOTAL}" \
   > "${EVIDENCE_ROOT}/independent-audit.log"
 grep -q "P3-G99 ${MODE^^} AUDIT PASS" \
   "${EVIDENCE_ROOT}/independent-audit.log" \

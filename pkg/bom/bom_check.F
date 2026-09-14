@@ -39,6 +39,8 @@ CEOP
 C !LOCAL VARIABLES:
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER errCount, nSub
+      INTEGER ILNBLNK
+      EXTERNAL ILNBLNK
       _RL subRatio, dtSub
       LOGICAL deltaTFinite, targetFinite, outputFinite
       LOGICAL pickupFinite, coeffFinite, wetFinite, cflFinite
@@ -73,6 +75,10 @@ C !LOCAL VARIABLES:
      &     'bomEquationMode =', ' /* equation convention */')
       CALL WRITE_0D_C( bomIntegrator, -1, INDEX_NONE,
      &     'bomIntegrator =', ' /* time integrator */')
+      CALL WRITE_0D_C( bomTrajectoryMode, -1, INDEX_NONE,
+     &     'bomTrajectoryMode =', ' /* FRAME or ARCHIVE */')
+      CALL WRITE_0D_C( bomTrajectoryFile, -1, INDEX_NONE,
+     &     'bomTrajectoryFile =', ' /* archive prefix */')
       CALL WRITE_0D_RL( bomDeltaTTarget, INDEX_NONE,
      &     'bomDeltaTTarget =', ' /* target particle step [s] */')
       CALL WRITE_0D_I( bomMaxParticles, INDEX_NONE,
@@ -577,6 +583,39 @@ C--   Phase-2 slow-manifold parameters are active only in BOM mode.
      &       bomOutputFreq, bomPickupFreq
         CALL PRINT_ERROR( msgBuf, myThid )
         errCount = errCount + 1
+      ENDIF
+
+      IF ( bomTrajectoryMode.NE.'FRAME' .AND.
+     &     bomTrajectoryMode.NE.'ARCHIVE' ) THEN
+        WRITE(msgBuf,'(A,A)')
+     &       'BOM_CHECK: invalid bomTrajectoryMode=', bomTrajectoryMode
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+      ENDIF
+      IF ( bomTrajectoryMode.EQ.'ARCHIVE' ) THEN
+        IF ( ILNBLNK(bomTrajectoryFile).LE.0 .OR.
+     &       ILNBLNK(mdsioLocalDir)
+     &       +ILNBLNK(bomTrajectoryFile).GT.MAX_LEN_FNAM-25 ) THEN
+          WRITE(msgBuf,'(A,I6,A,I6)')
+     &         'BOM_CHECK: archive path/prefix length=',
+     &         ILNBLNK(mdsioLocalDir)+ILNBLNK(bomTrajectoryFile),
+     &         ' allowed=',MAX_LEN_FNAM-25
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+        IF ( nIter0.LT.0 ) THEN
+          WRITE(msgBuf,'(A,I12)')
+     &         'BOM_CHECK: ARCHIVE requires nonnegative nIter0=',nIter0
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
+        IF ( nPx*nSx.GT.999 .OR. nPy*nSy.GT.999 ) THEN
+          WRITE(msgBuf,'(A,2I8)')
+     &         'BOM_CHECK: archive tile indices exceed I3.3=',
+     &         nPx*nSx,nPy*nSy
+          CALL PRINT_ERROR( msgBuf, myThid )
+          errCount = errCount + 1
+        ENDIF
       ENDIF
 
       IF ( pickupFinite ) THEN
