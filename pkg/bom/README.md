@@ -6,7 +6,13 @@ slow-manifold equations (`BOM`) with the `PAPER2024` and `JULIA` conventions.
 It does not call, wrap, or require `pkg/flt`; `ALLOW_BOM`/`useBOM` and
 `ALLOW_FLT`/`useFLT` are separate compile-time and run-time switches.
 
-This guide describes the released production interface. For an executable,
+For the current development pre-release, its qualification evidence and open
+limitations, read the
+[2026-09-14 pre-release record](../../doc/phys_pkgs/MITGCM-BOM/PRE_RELEASE_2026-09-14.md).
+This is not an HPC-qualified v1.0 release. In particular, S1 trajectory noise
+and the frozen extended biology initial-file interface are not implemented.
+
+This guide describes the production interface. For an executable,
 self-contained example, start with
 [`verification/tutorial_MITGCM-BOM`](../../verification/tutorial_MITGCM-BOM/README.md).
 The complete namelist and file contracts are in
@@ -19,7 +25,8 @@ The current package supports:
 
 - regular Cartesian and spherical-polar grids;
 - surface current fields from the active MITgcm state, including `pkg/offline`;
-- no wind or exact-time EXF wind;
+- no wind or exact-time EXF wind from regular, non-yearly sequences,
+  with or without `pkg/cal`;
 - no explicit Stokes drift, BOM-owned time-varying Stokes files, or a
   compile-time external coupler provider;
 - `LEEW`, `PAPER2024`, and `JULIA` drift equations with RK2 or RK4;
@@ -39,6 +46,13 @@ deliberately rejected rather than silently approximated:
 - restart with a different rank/tile decomposition;
 - three-dimensional particle motion, sinking, or vertical mixing; and
 - EXF wind without `ALLOW_EXF`, `useEXF=.TRUE.`, and `useAtmWind=.TRUE.`.
+
+Yearly EXF wind files and negative-period calendar-monthly wind inputs remain
+unsupported. Fresh biological owners currently use a common `bomS0` with
+zero parent ID and birth count; per-owner extended biological initial input
+is an open freeze/implementation discrepancy, distinct from supported pickup
+restoration. Event shards retain their existing full-history copy/hash flush
+and fixed buffer limits; trajectory ARCHIVE does not remove those limits.
 
 ## 2. Build the package
 

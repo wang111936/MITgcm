@@ -106,7 +106,8 @@ build_case() {
               bom_verify_endpoint_transaction_ \
               bom_verify_stokes_files_ bom_verify_env_time_)
   fi
-  if [[ "${packages_file}" == packages.exf.conf ]]; then
+  if [[ "${packages_file}" == packages.exf.conf ||
+        "${packages_file}" == packages.exf.cal.conf ]]; then
     symbols+=(exf_init_varia_)
     if [[ "${test_driver}" == yes ]]; then
       symbols+=(bom_verify_exf_endpoints_)
@@ -152,6 +153,7 @@ prepare_env_time_run() {
 prepare_exf_run() {
   local run_name="$1"
   local build_name="$2"
+  local calendar_mode="${3:-no}"
   local run_dir="${RUN_ROOT}/${run_name}"
 
   mkdir -p "${run_dir}"
@@ -159,9 +161,15 @@ prepare_exf_run() {
   sed -i 's/P21-ENDPOINT-STATE/P21-EXF-ENDPOINTS/' \
     "${run_dir}/data"
   cp "${CASE_DIR}/input/eedata" "${run_dir}/eedata"
-  cp "${CASE_DIR}/input/data.pkg.exf" "${run_dir}/data.pkg"
+  if [[ "${calendar_mode}" == yes ]]; then
+    cp "${CASE_DIR}/input/data.pkg.exf.cal" "${run_dir}/data.pkg"
+    cp "${CASE_DIR}/input/data.exf.cal" "${run_dir}/data.exf"
+    cp "${CASE_DIR}/input/data.cal" "${run_dir}/data.cal"
+  else
+    cp "${CASE_DIR}/input/data.pkg.exf" "${run_dir}/data.pkg"
+    cp "${CASE_DIR}/input/data.exf" "${run_dir}/data.exf"
+  fi
   cp "${CASE_DIR}/input/data.bom.exf" "${run_dir}/data.bom"
-  cp "${CASE_DIR}/input/data.exf" "${run_dir}/data.exf"
   python3 "${CASE_DIR}/input/generate_exf_fixture.py" \
     --output-dir "${run_dir}"
   ln -s "${BUILD_ROOT}/${build_name}/mitgcmuv" \
@@ -291,13 +299,14 @@ run_exf_positive() {
   local name="$1"
   local build_name="$2"
   local ranks="$3"
+  local calendar_mode="${4:-no}"
   local run_dir="${RUN_ROOT}/${name}"
   local combined="${run_dir}/combined.log"
   local rank
   local rank_log
 
   log "run ${name}"
-  prepare_exf_run "${name}" "${build_name}"
+  prepare_exf_run "${name}" "${build_name}" "${calendar_mode}"
   if [[ "${ranks}" -eq 1 ]]; then
     (
       cd "${run_dir}"
@@ -432,6 +441,25 @@ run_exf_production_smoke() {
     'production exact-time EXF fresh hook and one normal step'
 }
 
+run_exf_cal_production_smoke() {
+  local run_dir="${RUN_ROOT}/production-exf-cal-one-step"
+
+  log 'run production-exf-cal-one-step'
+  prepare_exf_run production-exf-cal-one-step \
+    production-exf-cal-serial yes
+  sed -i 's/endTime=0\./endTime=1200./' "${run_dir}/data"
+  (
+    cd "${run_dir}"
+    ./mitgcmuv > run.log 2>&1
+  )
+  assert_normal_log "${run_dir}/run.log"
+  if grep -q 'P2.1 EXF ENDPOINT PASS' "${run_dir}/run.log"; then
+    fail 'test-only CAL EXF endpoint driver leaked into production build'
+  fi
+  record_pass production-exf-cal-one-step \
+    'production calendar EXF fresh hook and one normal step'
+}
+
 run_stokes_production_smoke() {
   local run_dir="${RUN_ROOT}/production-stokes-one-step"
 
@@ -549,6 +577,10 @@ build_case production-serial SIZE.h.serial no no
 build_case exf-serial SIZE.h.serial no yes packages.exf.conf
 build_case exf-mpi4 SIZE.h.mpi4 yes yes packages.exf.conf
 build_case production-exf-serial SIZE.h.serial no no packages.exf.conf
+build_case exf-cal-serial SIZE.h.serial no yes packages.exf.cal.conf
+build_case exf-cal-mpi4 SIZE.h.mpi4 yes yes packages.exf.cal.conf
+build_case production-exf-cal-serial SIZE.h.serial no no \
+  packages.exf.cal.conf
 build_case coupler-serial SIZE.h.serial no yes packages.conf \
   BOM_OPTIONS.h.coupler
 build_case coupler-mpi4 SIZE.h.mpi4 yes yes packages.conf \
@@ -567,9 +599,12 @@ run_coupler_positive bom-coupler-sigma-zero coupler-serial 1 \
   data.bom.coupler-zero
 run_exf_positive bom-exf-serial exf-serial 1
 run_exf_positive bom-exf-mpi4 exf-mpi4 4
+run_exf_positive bom-exf-cal-serial exf-cal-serial 1 yes
+run_exf_positive bom-exf-cal-mpi4 exf-cal-mpi4 4 yes
 run_production_smoke
 run_stokes_production_smoke
 run_exf_production_smoke
+run_exf_cal_production_smoke
 run_precombined_none_smoke
 run_leew_compat
 run_negative current-unset data.bom.unset \

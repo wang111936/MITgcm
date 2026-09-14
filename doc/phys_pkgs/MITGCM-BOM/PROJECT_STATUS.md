@@ -4,33 +4,39 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-09-01 |
+| 最后更新 | 2026-09-14（预发布集成；本轮专项验证待完成） |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/p5.6-trajectory-archive` |
-| 当前阶段 PR | P5.5/P5.6 均为本地候选；本次未推送、未建 PR、未合并、未创建标签 |
+| 当前任务分支 | `MITGCM-BOM/pre-release-20260914` |
+| 当前开发源码提交 | 基于 `3dcb37216` 集成 CAL–EXF 两文件修复及回归夹具；精确验证提交见预发布记录 |
+| GitHub development | 发布前基线 `00ce0c39177afacf3eef6e7930a567ed52d3d785`；本轮获授权通过 merge commit 更新 |
+| 独立实验源码 | `/home/wyl/MITGCM-BOM/src`：detached `00ce0c391` + ARCHIVE + 未提交 CAL–EXF 修复；不是主仓库的干净镜像 |
+| 当前阶段 PR | 本轮集中发布 P5.5、P5.6、CAL–EXF 和状态更正；专项验证后创建并合并一个 PR，不创建标签 |
 | 当前阶段 | Phase 5：科学验收与 HPC 加固（科学准入完成；HPC 未评估） |
-| 当前工作包 | P5.6-I/O：连续 MDS trajectory archive；基础 10/10、P3/P4 active 6/6 PASS |
-| 下一工作包 | 本地归档提交复核后，继续 P5.6-HPC 的目标服务器/OpenMP/MPI-4/长时 I/O 与性能验收 |
-| 当前阻塞 | 本地归档无阻塞；MNC 延期；目标服务器大规模 HPC 验收尚未完成 |
+| 当前工作包 | 2026-09-14 预发布基线集成与针对性回归；不是完整 Phase 5/HPC/v1.0 退出 |
+| 下一工作包 | 预发布完成后，单独处理生物扩展初值契约 D08；S1 随机扩散和 HPC 工作包需各自冻结/授权 |
+| 当前阻塞/限制 | 生物 schema-2 冷启动初值未实现；S1 随机扩散未实现；事件缓冲/全日志复制待加固；年度/月历风不支持；MNC 延期；完整 HPC/v1.0 未验收 |
+
+当前交付边界见 [2026-09-14 预发布记录](PRE_RELEASE_2026-09-14.md)。
+历史盘点及漏项补录见 [开发状态与剩余任务](DEVELOPMENT_RECONCILIATION_2026-09-12.md)。
+下方历史条目的“下一步/未推送”只代表记录当时；当前结论以上表和本次盘点为准。
 
 ## 1. 当前恢复点
 
-下一次继续开发时，从以下任务开始：
-
-1. 读取 `verification/bom/phase05-trajectory-archive/README.md` 和
-   `TEST_PLAN.md`，核对基础 `p56-archive-dev-attempt08` 10/10 与 active
-   `p56-archive-active-dev-attempt04` 6/6 证据；
-2. 检查 `MITGCM-BOM/p5.6-trajectory-archive` 的本地提交和工作树，保持
-   `FRAME` 默认、`ARCHIVE` 显式选择以及 MNC 延期边界；
-3. 只有经用户明确授权后才批量推送 P5.5/P5.6、创建 PR 并规划顺序集成；
-   本阶段不创建 v1.0 标签；
-4. 继续 P5.6-HPC：收集目标服务器工具链、Slurm、并行文件系统、
-   CPU/NUMA 与绑定信息，完成 OpenMP、MPI-4/目标规模、长帧 I/O、restart
-   和性能验收；
-5. Phase 6 一般网格继续后置，不进入 Phase 5 HPC 范围。
+1. 用户已授权更新 GitHub development 为本轮预发布基线；只集中集成已完成的
+   P5.5、ARCHIVE、CAL–EXF 修复和文档，不顺带实现发现的剩余功能。
+2. CAL 修复包括两个生产文件、endpoint driver 和四个配置；不覆盖实验源码树，
+   不修改独立实验程序、数据或 SKRIPS 文件。年度/月历风仍不支持。
+3. 在同一干净候选提交运行 endpoint、pickup、ARCHIVE 基础与 active 专项。
+   754/754、21/21 是 `16711ae22` 的历史科学证据，不冒称当前全部重跑。
+4. 发布后优先明确 D08 生物扩展初值的补实现契约。S1 是随机扩散源码开发的
+   前置任务，不是修改 bomSeed 即可运行；两项均不因本次预发布而关闭。
+5. D09/D10 事件缓冲自动刷写与增量 I/O、D02--D07 其余工程任务、HPC
+   冻结/性能/故障验收继续开放。MNC 保持延期，Phase 6 保持后置。
+6. 案例输出和日志缺口仍在案例任务跟进；本轮不宣称 C3/C4 已完成，
+   也不据 tile 数推断 MPI ranks。不创建正式 release、预发布 tag 或 v1.0 标签。
 
 开始前执行：
 
@@ -49,13 +55,50 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 1 BOM-Lite | 完成 | v0.2 | 257/257、独立退出审计、PR #16 和 annotated tag `MITGCM-BOM-v0.2` 全部完成 | [Phase 1](PHASE_RECORDS/PHASE-01.md) |
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
-| Phase 4 生物与陆地 | 完成 | v0.5 | PR #33--#44 已合并；release-head 门禁/独立审计通过；annotated `MITGCM-BOM-v0.5` 已发布 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
-| Phase 5 科学验收与 HPC 加固 | 进行中 | v1.0 | P5.0--P5.5 科学准入 754/754、独立 21/21 PASS；P5.6-I/O archive 10/10+6/6 PASS；目标 HPC 仍未验收 | [P5.6 archive](../../../verification/bom/phase05-trajectory-archive/TEST_PLAN.md) |
+| Phase 4 生物与陆地 | 进行中 | v0.5 已发布 | 历史门禁/退出及 tag 保留；复核发现冻结 §16.1 生物扩展冷启动初值未实现，按 D08 重新打开该契约差异，不抹去已通过功能 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
+| Phase 5 科学验收与 HPC 加固 | 进行中 | v1.0 | 历史 `16711ae22` 754/754、21/21；本轮将 ARCHIVE 与 CAL–EXF 集成到预发布候选并做专项验证；完整 HPC 未验收 | [预发布记录](PRE_RELEASE_2026-09-14.md) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
 状态只能使用：`未开始`、`进行中`、`阻塞`、`完成`、`后置`。只有阶段退出条件全部通过后才能标记为完成。
 
 ## 3. 已完成证据
+
+### 2026-09-14：预发布集成范围
+
+- 用户授权更新 `MITGCM-BOM/development` 为本轮预发布最终基线；保留
+  WangYuLin 作者身份、MITGCM-BOM 分支命名和 merge commit 历史。
+- 集成已有 P5.5/P5.6 和实验 CAL–EXF 补丁，不开发 S1、生物扩展初值、
+  事件 I/O、MNC 或 HPC 新功能。精确候选与专项结果见预发布记录。
+- 生物冷启动 schema 差异与事件 I/O 限制正式补录；历史测试行数不再
+  被表述为全部冻结功能或全部实际案例可运行的证明。
+- 以下 2026-09-12 及更早记录中的“未归并/未推送/下一步”为历史状态。
+
+### 2026-09-12 跨任务补录：实验 CAL–EXF 修复及真实案例
+
+- `MITGCM-BOM服务器自定义案例运行` 于 2026-09-10 修复 B2 的
+  `BOM_BUILD_ENDPOINTS stage=7/code=10`：BOM 原先拒绝 `useCAL`，
+  EXF 的 CAL 分支又未响应独立工作数组所需的双记录强制刷新。
+- 修复文件是实验仓库的 `pkg/bom/bom_get_exf_wind.F` 与
+  `pkg/exf/exf_getffieldrec.F`；本次核对实文件哈希和 diff，确认两项均
+  尚未回写 `/home/wyl/projects/mitgcm-bom`。实验 HEAD 仍为 detached
+  `00ce0c391`，不能用该 SHA 单独标识修复后源码。
+- 证据 `p21-exf-cal-20260910-attempt01` 40/40、
+  `p21-pickup-exf-cal-20260910-attempt01` 10/10、
+  `cal-none-old-new-20260910-attempt01` 8/8；后者 4800 s、跨 EXF 记录边界，
+  515 个 MDS/archive 文件位级一致。10 项 pickup 是修复后的既有兼容回归，
+  不是任意 CAL 风场 restart 新矩阵。
+- 正式实验程序 `/home/wyl/MITGCM-BOM/build/mitgcmuv` 的 SHA-256 为
+  `81b98e7b5dea34cffddf668d82ff3d7f4d5dce04bb1b163a984695b73554170d`。
+- `案例输出绘图` 已诊断 B0--B3；2026-09-12 本地 B4 诊断报告亦已生成。
+  B1--B4 各 72 h、216 帧、16 粒子，ARCHIVE 为 100 tile/203 成员；
+  B0 为 288 个 BOM 帧、216 个 FLT 帧。B2 风项、B3 Stokes、B4 组合
+  分量在各自报告中闭合，归档完整，不能再记为“尚无服务器输出”。
+- 仍不宣称全场/作业验收：B 组缺 state/diagnostics 和 STDOUT/STDERR；
+  manifest 400 ranks 与输出 100 tiles 不一致，实际 MPI ranks 应以日志确认。
+  C3/7d 输出不足 7 d，C4/n100 不足 72 h 且背景海洋有异常；见盘点。
+- 已有 `case_tools/diagnose_b0_results.py` 至 `diagnose_b4_results.py`
+  等案例 ARCHIVE 后处理；通用教程 `plot_bom.py` 仍为 FRAME-only。
+  源码导览任务也已完成首轮分类/调用链，不能列为尚未开展。
 
 ### P5.6-I/O continuous MDS trajectory archive
 
@@ -80,11 +123,21 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
   `p56-archive-dev-attempt08` 与
   `/home/wyl/projects/mitgcm-bom-test-artifacts/phase05/p56-archive-active/`
   `p56-archive-active-dev-attempt04`；
-- 当前门禁未宣称真实并发双启动故障注入、active signature orphan 注入、
-  MPI-4/OpenMP、目标并行文件系统或大规模性能验收；Phase 5 仍为
-  “进行中”；未读取或修改 SKRIPS，未推送 GitHub。
+- 上述本地专项门禁未覆盖真实并发双启动、active signature orphan、
+  MPI-4/OpenMP 或目标并行文件系统性能；后续案例补充了 100/400 tile
+  输出证据，但不等于这些专项故障/线程/B20 门禁完成。Phase 5 仍进行中。
 
 ### P5.5 科学聚合与独立退出审计
+
+最终关闭记录提交 `16711ae22266c45ad91e7e0b406557d718dd8aee` 已在
+`p55-g99-16711ae22-attempt07` 通过 754/754，独立
+`p55-exit-16711ae22-attempt03` 通过 21/21。本次只读核对两份
+`source-head.txt`、inventory 和审计摘要；科学 PASS，HPC NOT_EVALUATED。
+两份 manifest 本身的 SHA-256 依次为
+`46f75883b924241907d5248fc87d1d402f74b81fc8020aedbb555a2bfba180f0`、
+`26283516fed511360256b0b1917b8ce3b75f4800bb8014409d57d16d7db1bc71`。
+以下 `f3f50a77a` 为此前候选证据，保留历史，不再充当最新关闭头。
+完整路径见本次盘点；这些结果不自动适用于后来的生产代码改动。
 
 - 洁净精确候选 `f3f50a77a0e01fd4a1687ead312282422999280d` 的
   `p55-g99-f3f50a77a-attempt06` 通过 P5.1 18/18、P5.2 17/17、
@@ -472,23 +525,42 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | R-001 | 上游 Julia 提交没有根级 Manifest | 固定重建环境与校验和；B16 fixed-step golden 已通过，保留上游限制记录 | 已裁决，不阻塞 |
 | R-002 | 论文方程与旧 Julia 行为可能不完全一致 | `PAPER2024` 与 `JULIA` 分离实现并通过逐分量/轨迹门禁 | 已关闭 |
 | R-003 | 分布式弹簧邻居复杂度高 | P3 已用 cell-linked list、ghost 和计数门禁关闭；目标服务器扩展留 Phase 5 | 已关闭 |
-| R-004 | 目标服务器工具链尚未确定 | 本地 GNU/MPI 为基线，服务器 optfile 在 Phase 5 单独建立 | Phase 5 |
-| R-005 | 参考 Julia 出生/陆地行为不满足 MPI 与事件闭合 | P4.0 冻结 Philox、父 ID 全局排序、last-wet 和事务 event 语义 | Phase 4 |
-| R-005 | 一般网格迁移不能直接继承 FLT | Phase 6 后置并建立专门拓扑测试 | Phase 6 |
-| R-006 | GitHub 仓库当前关闭 Issues | 暂用阶段分支、提交和本状态账本记录；启用 Issues 后补建阶段 Issue | 不阻塞源码开发 |
-| R-007 | 固定 Julia 提交的自带测试调用不存在的函数；默认场失败时只警告 | 不修改参考源码；保存失败证据，另建 BOM 解析场和 smoke/golden 测试 | Phase 0/2 |
+| R-004 | 目标服务器最终支持与性能范围未冻结 | 已有区域案例构建和 100/400 tile 输出；仍缺可追踪站点工具链、调度器/文件系统/NUMA 及 B20 验收 | Phase 5 |
+| R-005 | 参考 Julia 出生/陆地行为不满足 MPI 与事件闭合 | P4 已实现 Philox、全局父 ID 排序、last-wet、事务与预算；P5.4 已做真实功能积分 | 已关闭 |
+| R-006 | 历史 Issues 不可用 | 2026-08-23 返回 410，使用账本替代；本轮未重查 Issues，启用与否不是代码开发欠项 | 不阻塞源码开发 |
+| R-007 | 固定 Julia 自带测试陈旧/默认场失败只警告 | 保留上游限制；B16 与 P5.2 锁定参考已验证，不改参考源码来凑测试 | 已裁决，不阻塞 |
 | R-008 | MITgcm 的 Fortran `STOP` 可能返回 0，截断文件也可能由运行时直接终止 | 驱动禁止只看退出码，同时识别正常结束、MITgcm 异常和 Fortran runtime error | Phase 0/CI |
 | R-009 | Phase 1 海洋步内冻结环境场，对真实时变驱动不具高阶时间精度 | Phase 2 old/new stage-time interpolation 与 B05 endpoint-refinement 已通过 | 已关闭 |
 | R-010 | Phase 1 pickup 只支持相同 MPI/tile 分解 | 写入并核对分解签名；变分解重启明确拒绝，后续单独设计 | Phase 5 |
-| R-011 | P1.1 为小型验证文件采用每 rank 全量读取 | 以 `bomInitGlobalLimit` 硬限制；P1.5 前复核可扩展分片读取，禁止直接用于百万粒子 | Phase 1.5 |
+| R-011 | 每 rank 仍遍历全局初值文件 | `bom_read_initial.F` 仍为受限全局读取；可扩展分片读取留 Phase 5，不能仅扩大容量头文件即宣称解决 | Phase 5 |
 | R-012 | P1.1 locator 只覆盖规则原生坐标初值分发 | 已由 P1.2 映射核心与兼容包装关闭；完整映射、P1.1 和 Phase 0 门禁已通过 | 已关闭 |
 | R-013 | P1.2 插值组件未接入 `BOM_MAIN` 的已有粒子诊断路径 | 已实现非移动调用、上下文集体终止；串行/MPI4 权威状态 bitwise 不变门禁通过 | 已关闭 |
 | R-014 | 映射初始化未完整拒绝累计溢出、派生非有限量和末端非有限 face | 已补强预溢出、派生量、双端点和周期算术检查；19/19 门禁通过 | 已关闭 |
-| R-015 | P1.3 单 tile 阶段无法合法提交跨 owner 轨迹 | 每个 RK stage/final 离开当前 owner 时明确失败；P1.4 以迁移协议替换该边界 | Phase 1.4 |
-| R-016 | EXF 已启用但 10 m `uwind/vwind` 未更新或被误标为 BOM 步末时刻 | source 同时要求 `ALLOW_EXF`、`useEXF`、`useAtmWind`；复制到 BOM 快照并分别记录 EXF 请求 `t0` 与海流步末 `t1` | Phase 1.3 |
-| R-017 | RK2/RK4 可能被误解为对真实时变海洋场具有相同高阶精度 | P1.3 明确标记步末冻结场；只用稳态解析 fixture 验证积分器阶数，old/new 场留给 Phase 2 | Phase 2 |
+| R-015 | P1.3 单 tile 临时迁移限制 | P1.4 迁移及后续 stage/ensemble MPI 已完成，不能保留为 P1 欠项 | 已关闭 |
+| R-016 | EXF 时间标签/自有端点 | P2.1 exact-time EXF provider 已完成；后发现的 CAL 限制另见 R-019 | 已关闭（既定非 CAL 范围） |
+| R-017 | RK 阶数与时变场插值精度混淆 | P2 已有 OLD/NEW、stage-time 与 B05；P5.3 有独立收敛门禁，不等于任意真实 forcing 皆四阶 | 已裁决 |
+| R-018 | 一般网格迁移（修正历史重复 R-005） | EXCH2/LLC/cubed-sphere 继续后置，不继承 FLT 未完成路径 | Phase 6 |
+| R-019 | 主仓库 CAL+直接 EXF 风仍失败 | 实验副本两文件修复及 40+10+8 回归已有；待带测试回写并复验 | Phase 5 / D01 |
+| R-020 | OpenMP 尚无生产支持 | `bom_check.F` 仍拒绝非零粒子 `nTx*nTy!=1`；需要线程安全实现 | Phase 5 |
+| R-021 | ARCHIVE 故障与崩溃一致性未完全加固 | 原子 claim/提交账本已做；真实并发、rank I/O 故障和断电恢复不在已验收范围 | Phase 5 |
+| R-022 | 案例结果与运行 provenance 不完整 | 补齐日志、实际 ranks/tile 映射、源码 diff/程序哈希；C3/7d、C4 另行调查，不预断为 BOM 算法 bug | 案例验收 |
+| R-023 | 历史完整门禁被误用于新代码 | 754/754、21/21 绑定 16711；ARCHIVE+CAL 修复需整合后回归 | Phase 5 集成 |
+| R-024 | MNC 轨迹后端缺失 | 用户 2026-09-01 明确延期；现有格点 MNC 诊断不等于粒子 NetCDF | 后置，待重新授权 |
 
 ## 5. 会话记录
+
+### 2026-09-12：完整对话与跨任务开发状态对账
+
+- 分页回溯本任务全部可检索历史（19 页、183 个 turn 条目，含自动续轮与空条目），
+  并补查同项目服务器案例、案例绘图和源码导览任务；以当前源码、正式记录及
+  已存案例报告消解历史“下一步/未完成”的冲突。
+- 核对 development 远端仍为 `00ce0c391`；开发分支为 `3dcb37216`；
+  最新实验修复则位于独立 dirty 副本，不再把三个版本混称“最新源码”。
+- 补录 P5.5 final 16711 证据、FIX 交付、CAL–EXF 修复及 B0--B4 实验输出；
+  更新 OpenMP、分片初值、变分解重启、MNC、HPC 和案例未完任务分类。
+- 新增 `DEVELOPMENT_RECONCILIATION_2026-09-12.md`，作为本次完整盘点。
+  不改冻结科学方案或测试总数，不实现新功能，不重跑模拟，不操作远端；
+  保留实验源码未提交修改与所有历史证据。本轮未读取/修改 SKRIPS 文件。
 
 ### 2026-08-30：P5.0 科学验收方案冻结
 
