@@ -9,10 +9,8 @@ alone, including optional windage, Stokes drift and Sargassum raft processes.
 [简体中文](README.zh-CN.md) · [User guide](pkg/bom/README.md) ·
 [Runnable tutorial](verification/tutorial_MITGCM-BOM/README.md)
 
-**Developed by Dr. Yulin Wang (王煜林), College of Ocean and Meteorology,
+**Developed by Dr. Yulin Wang , College of Ocean and Meteorology,
 Guangdong Ocean University.**
-
-**由广东海洋大学海洋与气象学院王煜林博士开发。**
 
 Contact: [wang111936@outlook.com](mailto:wang111936@outlook.com)
 
