@@ -1,6 +1,6 @@
 # MITGCM-BOM 2026-09-14 预发布基线
 
-状态：**候选已集成，专项验证及 GitHub 合并待完成**。
+状态：**预发布专项 66/66 PASS；交付目标为 development，非 HPC/v1.0 正式发布**。
 
 用户授权把当前已完成成果集中更新到 `wang111936/MITgcm` 的
 `MITGCM-BOM/development`，作为本轮预发布最终基线。此次不是完整
@@ -32,18 +32,30 @@ CAL 修复必须同时包含 `pkg/bom/bom_get_exf_wind.F` 和
 
 | 专项 | 状态 | 覆盖 |
 |---|---|---|
-| P2.1 endpoint state（含 CAL） | 待执行 | ocean/NONE/EXF/FILES/COUPLER、CAL serial/MPI4、真实生产短跑、来源/事务负测 |
-| P2.1 pickup | 待执行 | 既有环境端点连续/分段恢复及损坏拒绝；不是完整 CAL restart 矩阵 |
-| P5.6 ARCHIVE 基础 | 待执行 | serial/MPI2、FRAME 等价、恒定文件数、claim、基础孤立尾部、分段 restart |
-| P5.6 ARCHIVE active | 待执行 | P3 serial/MPI2、P4/P3+P4 状态和签名、计数增长夹具 |
+| P2.1 endpoint state（含 CAL） | 40/40 PASS | ocean/NONE/EXF/FILES/COUPLER、CAL serial/MPI4、真实生产短跑、来源/事务负测 |
+| P2.1 pickup | 10/10 PASS | 既有环境端点连续/分段恢复及损坏拒绝；不是完整 CAL restart 矩阵 |
+| P5.6 ARCHIVE 基础 | 10/10 PASS | serial/MPI2、FRAME 等价、恒定文件数、claim、基础孤立尾部、分段 restart |
+| P5.6 ARCHIVE active | 6/6 PASS | P3 serial/MPI2、P4/P3+P4 状态和签名、计数增长夹具 |
 
-候选 SHA、结果数量、证据根和清单哈希在验证完成后补录；没有结果前不发布 PASS。
+四组均在干净提交 `ddc8699d7ea1996efc91d9b531b9bb7eeeba5c73` 执行，
+所有脚本正常完成，汇总检查了精确行数、无重复 case key、全部 PASS。
+测试期间源码未变化；之后只增加文档和摘要，最终合并树的生产代码与
+上述测试提交保持一致，不将文档提交描述成一次新的模型测试。
+
+可下载的逐项摘要、SHA-256、目录对象和外部证据根见
+[预发布验证证据](PRE_RELEASE_EVIDENCE_2026-09-14/README.md)。
+66 行含构建/接口检查，不是 66 个独立完整科学案例。
 
 历史科学基准 754/754、独立 21/21 仅绑定 `16711ae22`。
 历史 CAL 通用路径影响比较 `cal-none-old-new-20260910-attempt01`
 为 8/8、4800 s、515 文件位级一致，验证的是其记录的补丁和夹具，
 不是本轮新运行，也不是任意 EXF 配置的普遍保证。
 本次专项不能替代新的完整科学聚合或目标 HPC 退出。
+
+旧聚合入口也不是当前预发布版本的现成总门禁：Phase 2 closure 固定
+endpoint 34 行，CAL 扩展后独立驱动为 40 行；P5.5 范围白名单未覆盖
+后续 ARCHIVE verification 和包外 EXF 修改。H05 必须先明确新增计数与
+范围再执行完整聚合。本轮不放宽旧白名单或删行制造 754/754 结果。
 
 ## 3. 下载与使用
 

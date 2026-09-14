@@ -1,0 +1,7 @@
+case	result	detail
+active-builds	PASS	P3 serial/MPI-2 and P4 serial debug/IEEE fixtures linked
+p3-serial	PASS	P3 owner words and every full signature chunk match FRAME exactly
+p3-mpi2	PASS	two ranks publish P3 owner/signature streams through one index
+p4-only	PASS	live=2/initial=4 index counts, owner words and P4 signature match
+p4-growth	PASS	live=2/initial=1 is valid below capacity and matches FRAME
+p3-p4-combined	PASS	P3/P4 owner words and complete provenance signatures match

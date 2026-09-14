@@ -1,0 +1,11 @@
+case	result	detail
+source-contract	PASS	explicit dispatch; 64-field owner; atomic claim; index commit
+build-serial	PASS	GNU debug/IEEE build; archive writer linked
+build-mpi2	PASS	GNU MPI-2 debug/IEEE build; archive writer linked
+serial-append	PASS	one and three frames both use exactly 11 files
+frame-equivalence	PASS	all 64 owner words match normalized legacy FRAME output
+atomic-claim	PASS	one persistent STATUS=NEW segment claim is present
+collision-reject	PASS	existing nIter0 segment rejected; member hashes unchanged
+orphan-tail	PASS	index commit remains authoritative; tile/index tails ignored
+restart-segment	PASS	2+1 frames use two immutable 11-file nIter0 segments
+mpi2-append	PASS	two ranks publish four tile streams and one ordered index

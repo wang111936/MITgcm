@@ -4,18 +4,18 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 最后更新 | 2026-09-14（预发布集成；本轮专项验证待完成） |
+| 最后更新 | 2026-09-14（预发布集成，四组专项 66/66 PASS） |
 | 权威开发仓库 | `/home/wyl/projects/mitgcm-bom` |
 | GitHub 仓库 | `wang111936/MITgcm` |
 | 上游仓库 | `MITgcm/MITgcm` |
 | 集成分支 | `MITGCM-BOM/development` |
-| 当前任务分支 | `MITGCM-BOM/pre-release-20260914` |
-| 当前开发源码提交 | 基于 `3dcb37216` 集成 CAL–EXF 两文件修复及回归夹具；精确验证提交见预发布记录 |
-| GitHub development | 发布前基线 `00ce0c39177afacf3eef6e7930a567ed52d3d785`；本轮获授权通过 merge commit 更新 |
+| 当前任务分支 | 交付分支 `MITGCM-BOM/development`；本轮集成来源 `MITGCM-BOM/pre-release-20260914` |
+| 当前开发源码提交 | 四组专项绑定 `ddc8699d7ea1996efc91d9b531b9bb7eeeba5c73`；随后仅文档/证据提交；交付 merge 的代码树应与该提交一致 |
+| GitHub development | 本轮预发布交付目标；发布前基线 `00ce0c39177afacf3eef6e7930a567ed52d3d785`；最终 merge SHA/PR 以该分支提交历史为准 |
 | 独立实验源码 | `/home/wyl/MITGCM-BOM/src`：detached `00ce0c391` + ARCHIVE + 未提交 CAL–EXF 修复；不是主仓库的干净镜像 |
-| 当前阶段 PR | 本轮集中发布 P5.5、P5.6、CAL–EXF 和状态更正；专项验证后创建并合并一个 PR，不创建标签 |
+| 当前阶段 PR | 本轮集中交付 P5.5、P5.6、CAL–EXF 和状态更正，采用单 PR/merge commit；不创建标签 |
 | 当前阶段 | Phase 5：科学验收与 HPC 加固（科学准入完成；HPC 未评估） |
-| 当前工作包 | 2026-09-14 预发布基线集成与针对性回归；不是完整 Phase 5/HPC/v1.0 退出 |
+| 当前工作包 | 2026-09-14 预发布基线；专项回归 66/66 已通过；不是完整 Phase 5/HPC/v1.0 退出 |
 | 下一工作包 | 预发布完成后，单独处理生物扩展初值契约 D08；S1 随机扩散和 HPC 工作包需各自冻结/授权 |
 | 当前阻塞/限制 | 生物 schema-2 冷启动初值未实现；S1 随机扩散未实现；事件缓冲/全日志复制待加固；年度/月历风不支持；MNC 延期；完整 HPC/v1.0 未验收 |
 
@@ -29,7 +29,8 @@
    P5.5、ARCHIVE、CAL–EXF 修复和文档，不顺带实现发现的剩余功能。
 2. CAL 修复包括两个生产文件、endpoint driver 和四个配置；不覆盖实验源码树，
    不修改独立实验程序、数据或 SKRIPS 文件。年度/月历风仍不支持。
-3. 在同一干净候选提交运行 endpoint、pickup、ARCHIVE 基础与 active 专项。
+3. 同一干净候选提交已通过 endpoint 40/40、pickup 10/10、ARCHIVE 基础
+   10/10 与 active 6/6；最终代码树一致性需在合并后核验。
    754/754、21/21 是 `16711ae22` 的历史科学证据，不冒称当前全部重跑。
 4. 发布后优先明确 D08 生物扩展初值的补实现契约。S1 是随机扩散源码开发的
    前置任务，不是修改 bomSeed 即可运行；两项均不因本次预发布而关闭。
@@ -56,7 +57,7 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 | Phase 2 慢流形惯性 | 完成 | v0.3 | PR #20--#24 顺序集成；最终 390/390；独立退出审计 PASS | [Phase 2](PHASE_RECORDS/PHASE-02.md) |
 | Phase 3 弹簧与邻居 | 完成 | v0.4 | PR #26--#32 已集成；release-head 538/538、独立退出审计和 annotated v0.4 全部完成 | [Phase 3](PHASE_RECORDS/PHASE-03.md) |
 | Phase 4 生物与陆地 | 进行中 | v0.5 已发布 | 历史门禁/退出及 tag 保留；复核发现冻结 §16.1 生物扩展冷启动初值未实现，按 D08 重新打开该契约差异，不抹去已通过功能 | [Phase 4](PHASE_RECORDS/PHASE-04.md) |
-| Phase 5 科学验收与 HPC 加固 | 进行中 | v1.0 | 历史 `16711ae22` 754/754、21/21；本轮将 ARCHIVE 与 CAL–EXF 集成到预发布候选并做专项验证；完整 HPC 未验收 | [预发布记录](PRE_RELEASE_2026-09-14.md) |
+| Phase 5 科学验收与 HPC 加固 | 进行中 | v1.0 | 历史 `16711ae22` 754/754、21/21；本轮 ARCHIVE+CAL 预发布专项 66/66；完整聚合适配及 HPC 未关闭 | [预发布记录](PRE_RELEASE_2026-09-14.md) |
 | Phase 6 一般网格 | 后置 | v2.x | 不阻塞规则经纬网 v1.0 | [开发手册](DEVELOPMENT_MANUAL.md#phase-6一般网格后续) |
 
 状态只能使用：`未开始`、`进行中`、`阻塞`、`完成`、`后置`。只有阶段退出条件全部通过后才能标记为完成。
@@ -68,7 +69,8 @@ git -C /home/wyl/projects/mitgcm-bom status --short --branch
 - 用户授权更新 `MITGCM-BOM/development` 为本轮预发布最终基线；保留
   WangYuLin 作者身份、MITGCM-BOM 分支命名和 merge commit 历史。
 - 集成已有 P5.5/P5.6 和实验 CAL–EXF 补丁，不开发 S1、生物扩展初值、
-  事件 I/O、MNC 或 HPC 新功能。精确候选与专项结果见预发布记录。
+  事件 I/O、MNC 或 HPC 新功能。`ddc8699d7` 四组专项 66/66，逐项摘要
+  随源码发布，详见预发布记录；后续文档提交不改变测试覆盖的代码树。
 - 生物冷启动 schema 差异与事件 I/O 限制正式补录；历史测试行数不再
   被表述为全部冻结功能或全部实际案例可运行的证明。
 - 以下 2026-09-12 及更早记录中的“未归并/未推送/下一步”为历史状态。
